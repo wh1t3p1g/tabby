@@ -36,3 +36,6 @@ temp/
 *.class
 .idea/
 cases/
+
+.mvn/
+mvnw*
