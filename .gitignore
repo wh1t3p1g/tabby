@@ -39,3 +39,4 @@ cases/
 
 .mvn/
 mvnw*
+logs/
