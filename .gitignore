@@ -40,3 +40,4 @@ cases/
 .mvn/
 mvnw*
 logs/
+cache/*

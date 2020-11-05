@@ -1,5 +1,6 @@
 package tabby;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -14,9 +15,12 @@ import tabby.core.Analyser;
 @SpringBootApplication
 @EnableCaching
 @EnableRetry
-@EntityScan("tabby.bean")
+@EntityScan("tabby.dal.bean")
 @EnableNeo4jRepositories("tabby.dal.repository")
 public class TabbyApplication {
+
+    @Autowired
+    private Analyser analyser;
 
     public static void main(String[] args) {
         SpringApplication.run(TabbyApplication.class, args).close();
@@ -26,8 +30,9 @@ public class TabbyApplication {
     CommandLineRunner run(){
         return args -> {
             SootConfiguration.initSootOption();
-            Analyser.runSootAnalysis(null);
-//            Analyser.runSootAnalysis(new String[]{"cases", "codes"});
+//            Analyser.runSootAnalysis(null);
+//            Analyser.runSootAnalysis(new String[]{"cases", "testcases"});
+            analyser.runSootAnalysisWithJDK();
         };
     }
 }

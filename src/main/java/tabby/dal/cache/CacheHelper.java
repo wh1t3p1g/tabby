@@ -1,7 +1,12 @@
 package tabby.dal.cache;
 
-import tabby.bean.ref.ClassReference;
-import tabby.bean.ref.MethodReference;
+import tabby.dal.bean.ref.ClassReference;
+import tabby.dal.bean.ref.MethodReference;
+import tabby.dal.bean.ref.handle.ClassRefHandle;
+import tabby.dal.bean.ref.handle.MethodRefHandle;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -9,23 +14,33 @@ import tabby.bean.ref.MethodReference;
  */
 public interface CacheHelper {
 
-    public <T> void add(T ref);
+    <T> void add(T ref);
 
-    public <T> void remove(T ref);
+    <T> void remove(T ref);
 
-    public void clear(String type);
+    void clear(String type);
 
-    public <T> void update(T ref);
+    <T> void update(T ref);
 
-    public void save(String path);
+    void save(String path, Object data);
 
-    public void loadFromFile(String path);
+    void saveToCSV();
 
-    public ClassReference loadClassRef(String name);
+    void loadFromFile(String path);
 
-    public ClassReference loadClassRefByHandle(ClassReference.Handle handle);
+    ClassReference loadClassRef(String name);
 
-    public MethodReference loadMethodRef(ClassReference.Handle classReference, String name, String signature);
+    ClassReference loadClassRefByHandle(ClassRefHandle handle);
 
-    public MethodReference loadMethodRefByHandle(MethodReference.Handle handle);
+    MethodReference loadMethodRef(ClassRefHandle classReference, String name, String signature);
+
+    MethodReference loadMethodRefByHandle(MethodRefHandle handle);
+
+    void loadRuntimeClasses(List<String> jdk);
+
+    List<String> getRuntimeClasses();
+
+    Map<ClassRefHandle, ClassReference> getSavedClassRefs();
+
+    Map<MethodRefHandle, MethodReference> getSavedMethodRefs();
 }
