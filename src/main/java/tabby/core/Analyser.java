@@ -7,8 +7,10 @@ import soot.*;
 import soot.options.Options;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.dal.cache.CacheHelper;
+import tabby.util.FileUtils;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -56,27 +58,37 @@ public class Analyser {
         log.info("Soot analysis done!");
     }
 
-
-    public void runSootAnalysisWithJDK(){
+    public void runSootAnalysis(String path, boolean isOnlyJDK){
         try{
-            cacheHelper.loadRuntimeClasses(getJdkDependencies());
-            PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "off");
-            Options.v().set_process_dir(getJdkDependencies());
+            cacheHelper.clear("all");
+            if(isOnlyJDK){
+                Options.v().set_process_dir(getJdkDependencies());
+                cacheHelper.loadRuntimeClasses(getJdkDependencies(), true);
+            }else{
+                Options.v().set_process_dir(FileUtils.getTargetDirectoryJarFiles(path));
+                cacheHelper.loadRuntimeClasses(FileUtils.getTargetDirectoryJarFiles(path), false);
+            }
+
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
-            PackManager.v().runPacks();
+
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
-            classInfoScanner.collect();
-            classInfoScanner.build();
-            classInfoScanner.save();
+            // 类信息抽取
+            classInfoScanner.run(cacheHelper.getRuntimeClasses());
+            // 函数调用分析
+            //            PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "off");
+//            PackManager.v().runPacks();
+
         }catch (CompilationDeathException e){
             if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
                 throw e;
             } else {
                 return;
             }
+        }catch (IOException e){
+
         }
     }
 
@@ -85,6 +97,8 @@ public class Analyser {
         jdk.add(jdk.get(0).replace("rt.jar","jsse.jar"));
         jdk.add(jdk.get(0).replace("rt.jar","charsets.jar"));
         jdk.add(jdk.get(0).replace("rt.jar","ext/sunec.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/zipfs.jar"));
+        // TODO jdk其他的jar包是否也需要分析？
         return jdk;
     }
 }

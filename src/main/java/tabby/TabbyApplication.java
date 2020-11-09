@@ -12,6 +12,8 @@ import org.springframework.retry.annotation.EnableRetry;
 import tabby.config.SootConfiguration;
 import tabby.core.Analyser;
 
+import java.io.File;
+
 @SpringBootApplication
 @EnableCaching
 @EnableRetry
@@ -32,7 +34,8 @@ public class TabbyApplication {
             SootConfiguration.initSootOption();
 //            Analyser.runSootAnalysis(null);
 //            Analyser.runSootAnalysis(new String[]{"cases", "testcases"});
-            analyser.runSootAnalysisWithJDK();
+            String path = String.join(File.separator, System.getProperty("user.dir"), "cases", "jars");
+            analyser.runSootAnalysis(path, false);
         };
     }
 }

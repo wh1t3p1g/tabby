@@ -1,9 +1,10 @@
 package tabby.config;
 
 import lombok.extern.slf4j.Slf4j;
-import soot.*;
+import soot.G;
+import soot.PhaseOptions;
+import soot.Scene;
 import soot.options.Options;
-import tabby.core.soot.transformer.ClassInfoTransformer;
 
 import java.io.File;
 
@@ -23,9 +24,9 @@ public class SootConfiguration {
         G.reset();
 
         // 添加transformer
-        PackManager.v()
-                .getPack("wjtp")
-                .add(new Transform("wjtp.classTransformer", new ClassInfoTransformer()));
+//        PackManager.v()
+//                .getPack("wjtp")
+//                .add(new Transform("wjtp.classTransformer", new ClassInfoTransformer()));
 //        PackManager.v()
 //                .getPack("jtp")
 //                .add(new Transform("jtp.callGraphTransformer", callGraphTransformer));

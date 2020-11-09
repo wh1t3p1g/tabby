@@ -1,6 +1,5 @@
 package tabby.dal.bean.ref;
 
-import com.google.gson.Gson;
 import lombok.Getter;
 import lombok.Setter;
 import org.neo4j.ogm.annotation.Id;
@@ -9,6 +8,7 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootClass;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.edge.Extend;
 import tabby.dal.bean.edge.Has;
 import tabby.dal.bean.edge.Interfaces;
@@ -74,12 +74,12 @@ public class ClassReference{
     }
 
     public static ClassReference parse(SootClass cls){
-        Gson gson = new Gson();
         ClassReference classRef = newInstance(cls.getName());
         classRef.setInterface(cls.isInterface());
-        classRef.setHasSuperClass(cls.hasSuperclass());
         // 提取父类信息
-        if(cls.hasSuperclass()){
+        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
+            // 剔除Object类的继承关系，节省继承边数量
+            classRef.setHasSuperClass(cls.hasSuperclass());
             classRef.setSuperClass(cls.getSuperclass().getName());
         }
         // 提取接口信息
@@ -96,7 +96,7 @@ public class ClassReference{
                 fieldInfo.add(field.getName());
                 fieldInfo.add(field.getModifiers()+"");
                 fieldInfo.add(field.getType().toString());
-                classRef.getFields().add(gson.toJson(fieldInfo));
+                classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
             });
         }
         // 提取类函数信息
@@ -126,11 +126,11 @@ public class ClassReference{
         ret.add(uuid.toString());
         ret.add(name);
         ret.add(superClass);
-        ret.add(String.join(">|<", interfaces));
+        ret.add(String.join("|", interfaces));
         ret.add(Boolean.toString(isInterface));
         ret.add(Boolean.toString(hasSuperClass));
         ret.add(Boolean.toString(hasInterfaces));
-        ret.add(String.join(">|<", fields));
+        ret.add(String.join("|", fields));
         return ret;
     }
 

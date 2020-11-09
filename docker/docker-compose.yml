@@ -1,0 +1,10 @@
+version: '3'
+services:
+  graph:
+    build: .
+    volumes:
+    - ./cache:/var/lib/neo4j/import
+    - ./data:/data
+    ports:
+    - 7474:7474
+    - 7687:7687

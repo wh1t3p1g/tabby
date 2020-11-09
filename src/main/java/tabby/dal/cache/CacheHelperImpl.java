@@ -1,19 +1,25 @@
 package tabby.dal.cache;
 
-import com.google.gson.Gson;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.ref.ClassReference;
 import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
 import tabby.dal.bean.ref.handle.MethodRefHandle;
+import tabby.dal.service.ClassRefService;
+import tabby.dal.service.MethodRefService;
 import tabby.util.CSVUtils;
 import tabby.util.ClassLoaderUtils;
 import tabby.util.ClassResourceEnumerator;
+import tabby.util.FileUtils;
 
 import java.io.*;
 import java.util.*;
+
+import static tabby.config.GlobalConfiguration.*;
 
 /**
  * @author wh1t3P1g
@@ -25,29 +31,16 @@ import java.util.*;
 @Component
 public class CacheHelperImpl implements CacheHelper{
 
+    @Autowired
+    private ClassRefService classRefService;
+    @Autowired
+    private MethodRefService methodRefService;
+
     private List<String> runtimeClasses = new ArrayList<>();
     // 临时保存类信息和函数信息，这些数据结构仅在第一阶段发生改变
     // 第二阶段的数据流分析中仅添加函数信息中的call信息
     private Map<ClassRefHandle, ClassReference> savedClassRefs = new HashMap<>();
     private Map<MethodRefHandle, MethodReference> savedMethodRefs = new HashMap<>();
-
-    private static String CACHE_PATH = String.join(File.separator, System.getProperty("user.dir"), "cache");
-    private static String RUNTIME_CACHE_PATH = String.join(File.separator, CACHE_PATH, "runtime.bat");
-    private static String CLASSES_CACHE_PATH = String.join(File.separator,CACHE_PATH, "classes.csv");
-    private static String METHODS_CACHE_PATH = String.join(File.separator,CACHE_PATH, "methods.csv");
-    private static String CALL_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "calls.csv");
-    private static String EXTEND_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "extends.csv");
-    private static String HAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "has.csv");
-    private static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "interfaces.csv");
-    private static List<String[]> CSV_HEADERS = new ArrayList<>(Arrays.asList(
-            new String[]{"uuid", "name", "superClass", "interfaces", "isInterface", "hasSuperClass", "hasInterfaces", "fields"},// class
-            new String[]{"uuid", "name", "signature", "isStatic"},// method
-            new String[]{"uuid", "source", "target"}, // extend/interfaces/
-            new String[]{"uuid", "classRef", "MethodRef"}, // has
-            new String[]{"uuid", "source", "target", "lineNum"} // call
-
-    ));
-//    private static List<>
 
     @Override
     public <T> void add(T ref) {
@@ -80,6 +73,7 @@ public class CacheHelperImpl implements CacheHelper{
         }else{
             savedMethodRefs.clear();
             savedClassRefs.clear();
+            runtimeClasses.clear();
         }
     }
 
@@ -103,20 +97,20 @@ public class CacheHelperImpl implements CacheHelper{
     }
 
     @Override
-    public void loadRuntimeClasses(List<String> jdk){
-        String path = String.join(File.separator, System.getProperty("user.dir"), "cache", "runtime.dat");
-        File file = new File(path);
-        if(file.exists()){
+    public void loadRuntimeClasses(List<String> jars, boolean fileFirst){
+        if(fileFirst && FileUtils.fileExists(RUNTIME_CACHE_PATH)){
             // load from file
-            loadFromFile(path);
+            loadFromFile(RUNTIME_CACHE_PATH);
         }
+
         if(runtimeClasses == null || runtimeClasses.isEmpty()){
             // init runtime classes
             try {
-                ClassResourceEnumerator classResourceEnumerator = new ClassResourceEnumerator(ClassLoaderUtils.getClassLoader(jdk));
+                ClassResourceEnumerator classResourceEnumerator =
+                        new ClassResourceEnumerator(ClassLoaderUtils.getClassLoader(jars));
                 runtimeClasses = (List<String>) classResourceEnumerator.getTargetClassLoaderClasses();
                 if(!runtimeClasses.isEmpty()){
-                    save(path, runtimeClasses);
+                    save(RUNTIME_CACHE_PATH, runtimeClasses);
                 }
             } catch (IOException e) {
                 e.printStackTrace();
@@ -126,8 +120,6 @@ public class CacheHelperImpl implements CacheHelper{
 
     @Override
     public void save(String path, Object data) {
-        // TODO 保存到文件
-        log.info(path);
         try{
             File file = new File(path);
             if(!file.exists()){
@@ -135,11 +127,17 @@ public class CacheHelperImpl implements CacheHelper{
             }
             FileWriter fileWritter = new FileWriter(file,true);
             BufferedWriter bufferWritter = new BufferedWriter(fileWritter);
-            bufferWritter.write(new Gson().toJson(data));
+            bufferWritter.write(GlobalConfiguration.GSON.toJson(data));
             bufferWritter.close();
         }catch (Exception e){
             e.printStackTrace();
         }
+    }
+
+    @Override
+    public void saveToNeo4j(){
+        // TODO
+
     }
 
     @Override
@@ -192,13 +190,12 @@ public class CacheHelperImpl implements CacheHelper{
         Object obj = null;
         try{
             reader = new FileReader(file);
-            Gson gson = new Gson();
             if(path.contains("runtime.dat")){
-                runtimeClasses = gson.fromJson(reader, List.class);
+                runtimeClasses = GlobalConfiguration.GSON.fromJson(reader, List.class);
             }else if(path.contains("class.dat")){
-                savedClassRefs = gson.fromJson(reader, Map.class);
+                savedClassRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
             }else if(path.contains("method.dat")){
-                savedMethodRefs = gson.fromJson(reader, Map.class);
+                savedMethodRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

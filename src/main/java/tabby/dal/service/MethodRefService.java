@@ -3,9 +3,11 @@ package tabby.dal.service;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.bean.ref.handle.MethodRefHandle;
 import tabby.dal.repository.MethodRefRepository;
+import tabby.util.FileUtils;
 
 import java.util.Map;
 
@@ -26,5 +28,11 @@ public class MethodRefService {
 
     public void saveAll(Map<MethodRefHandle, MethodReference> methodRefs){
         methodRefRepository.saveAll(methodRefs.values());
+    }
+
+    public void importMethodRef(){
+        if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
+            methodRefRepository.loadMethodRefFromCSV(GlobalConfiguration.METHODS_CACHE_PATH);
+        }
     }
 }

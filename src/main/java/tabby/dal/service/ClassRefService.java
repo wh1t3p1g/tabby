@@ -5,9 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.ref.ClassReference;
 import tabby.dal.repository.ClassRefRepository;
 import tabby.dal.repository.MethodRefRepository;
+import tabby.util.FileUtils;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -44,5 +46,23 @@ public class ClassRefService {
     public void clear(){
         methodRefRepository.deleteAll();
         classRefRepository.deleteAll();
+    }
+
+    public void importClassRef(){
+        if(FileUtils.fileExists(GlobalConfiguration.CLASSES_CACHE_PATH)){
+            classRefRepository.loadClassRefFromCSV(GlobalConfiguration.CLASSES_CACHE_PATH);
+        }
+    }
+
+    public void buildEdge(){
+        if(FileUtils.fileExists(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH)){
+            classRefRepository.loadExtendEdgeFromCSV(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH);
+        }
+        if(FileUtils.fileExists(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH)){
+            classRefRepository.loadInterfacesEdgeFromCSV(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH);
+        }
+        if(FileUtils.fileExists(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH)){
+            classRefRepository.loadHasEdgeFromCSV(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH);
+        }
     }
 }

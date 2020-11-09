@@ -8,6 +8,7 @@ import org.neo4j.ogm.annotation.Relationship;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootMethod;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.edge.Call;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
 import tabby.dal.bean.ref.handle.MethodRefHandle;
@@ -31,7 +32,13 @@ public class MethodReference {
 
     private String signature;
 
-    private boolean isStatic;
+    private boolean isStatic = false;
+
+    private boolean hasParameters = false;
+
+    private Set<String> parameters = new HashSet<>();
+
+    private String returnType;
 
     private transient ClassRefHandle classRef;
 
@@ -55,6 +62,16 @@ public class MethodReference {
         MethodReference methodRef = newInstance(method.getName(), method.getSignature());
         methodRef.setStatic(method.isStatic());
         methodRef.setClassRef(handle);
+        methodRef.setReturnType(method.getReturnType().toString());
+        if(method.getParameterCount() > 0){
+            methodRef.setHasParameters(true);
+            for(int i=0; i<method.getParameterCount();i++){
+                List<Object> param = new ArrayList<>();
+                param.add(i); // param position
+                param.add(method.getParameterType(i).toString()); // param type
+                methodRef.getParameters().add(GlobalConfiguration.GSON.toJson(param));
+            }
+        }
         return methodRef;
     }
 
@@ -64,6 +81,9 @@ public class MethodReference {
         csv.add(name);
         csv.add(signature);
         csv.add(Boolean.toString(isStatic));
+        csv.add(Boolean.toString(hasParameters));
+        csv.add(String.join("|", parameters));
+        csv.add(returnType);
         return csv;
     }
 }

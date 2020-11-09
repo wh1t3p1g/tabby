@@ -15,6 +15,7 @@ import tabby.dal.service.ClassRefService;
 import tabby.dal.service.MethodRefService;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,23 +35,28 @@ public class ClassInfoScanner {
     @Autowired
     private MethodRefService methodRefService;
 
-    public void collect(){
-        if(cacheHelper.getRuntimeClasses().isEmpty()) return;
+    public void run(List<String> classes){
+        collect(classes);
+        build();
+        save();
+    }
 
-        cacheHelper.getRuntimeClasses().forEach(this::collect);
+    public void collect(List<String> classes){
+        if(classes.isEmpty()) return;
 
-        log.info("collect jdk runtime classes information. DONE!");
+        classes.forEach(this::collect);
+
+        log.info("collect "+classes.size()+" classes information. DONE!");
     }
 
     public void build(){
         if(cacheHelper.getSavedClassRefs().isEmpty()) return;
-        Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>();
-        clonedClassRefs.putAll(cacheHelper.getSavedClassRefs());
+        Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>(cacheHelper.getSavedClassRefs());
         clonedClassRefs.forEach((handle, classRef) -> {
             // build superclass relationship
             if(classRef.isHasSuperClass()){
-                ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass());
-                if(superClassRef == null){
+                ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
+                if(superClassRef == null){ // cache中没有 默认为新类
                     superClassRef = collect(classRef.getSuperClass());
                 }
                 Extend extend =  Extend.newInstance(classRef, superClassRef);
@@ -73,20 +79,17 @@ public class ClassInfoScanner {
     public void save(){
         log.info("start to save cache to neo4j database!");
         // clear cache runtime classes
-        cacheHelper.getRuntimeClasses().clear();
+//        cacheHelper.getRuntimeClasses().clear();
         classRefService.clear();
-        // save cache to neo4j database
-        if(!cacheHelper.getSavedClassRefs().isEmpty()){
-//            cacheHelper.getSavedClassRefs().forEach((key, value) -> {
-//                classRefService.save(value);
-//            });
-            cacheHelper.saveToCSV();
-//            classRefService.saveAll(cacheHelper.getSavedClassRefs().values());
-        }
-
-        if(!cacheHelper.getSavedMethodRefs().isEmpty()){
-
-        }
+        // save cache to csv
+        cacheHelper.saveToCSV();
+        // load csv data to neo4j
+        log.info("load "+ cacheHelper.getSavedMethodRefs().size()+ " method reference cache");
+        methodRefService.importMethodRef();
+        log.info("load "+ cacheHelper.getSavedClassRefs().size() +" class reference cache");
+        classRefService.importClassRef();
+        classRefService.buildEdge();
+        log.info("load csv data to neo4j finished!");
     }
 
     private ClassReference collect(String classname){
@@ -102,8 +105,13 @@ public class ClassInfoScanner {
             }
         }catch (Exception e){
             // class not found
-//            log.error(classname+" class not found!");
+            log.debug(classname+" class not found!");
         }
+//        if(classRef == null){// 无法找到相应的类，只存储一个classname
+        // // TODO 是否需要去存储没办法找到的类 存疑？
+//            classRef = ClassReference.newInstance(classname);
+//            cacheHelper.add(classRef);
+//        }
         return classRef;
     }
 }

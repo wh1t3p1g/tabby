@@ -25,6 +25,7 @@ public interface CacheHelper {
     void save(String path, Object data);
 
     void saveToCSV();
+    void saveToNeo4j();
 
     void loadFromFile(String path);
 
@@ -36,7 +37,7 @@ public interface CacheHelper {
 
     MethodReference loadMethodRefByHandle(MethodRefHandle handle);
 
-    void loadRuntimeClasses(List<String> jdk);
+    void loadRuntimeClasses(List<String> jars, boolean fileFirst);
 
     List<String> getRuntimeClasses();
 

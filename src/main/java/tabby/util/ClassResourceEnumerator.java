@@ -30,8 +30,6 @@ public class ClassResourceEnumerator {
             if(classInfo.getName().startsWith("org.springframework") ||
                     classInfo.getName().contains("tabby")) // 规避非jdk
                 continue;
-            if(!classInfo.getName().startsWith("com.sun.xml.internal")) // 测试
-                continue;
             result.add(classInfo.getName());
         }
         return result;

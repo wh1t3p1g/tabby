@@ -1,0 +1,45 @@
+CREATE CONSTRAINT ON (c:Class) ASSERT c.uuid IS UNIQUE;
+CREATE CONSTRAINT ON (m:Method) ASSERT m.uuid IS UNIQUE;
+
+:auto USING PERIODIC COMMIT 500
+LOAD CSV WITH HEADERS FROM 'file:///classes.csv' AS row
+WITH row, SPLIT(row.interfaces, '>|<') AS infaces, SPLIT(row.fields, '>|<') AS fields
+
+CREATE (c:Class {uuid:row.uuid, name:row.name, superClass:row.superClass, interfaces:infaces, fields:fields})
+SET c.isInterface = CASE row.isInterface WHEN 'TRUE' THEN true ELSE false END,
+  c.hasSuperClass = CASE row.hasSuperClass WHEN 'TRUE' THEN true ELSE false END,
+  c.hasInterfaces = CASE row.hasInterfaces WHEN 'TRUE' THEN true ELSE false END;
+
+
+LOAD CSV WITH HEADERS FROM 'file:///classes.csv' AS row
+WITH row, SPLIT(row.interfaces, '>|<') AS infaces, SPLIT(row.fields, '>|<') AS fields
+CREATE (c:Class)
+SET c = row, c.isInterface = CASE row.isInterface WHEN 'TRUE' THEN true ELSE false END,
+  c.hasSuperClass = CASE row.hasSuperClass WHEN 'TRUE' THEN true ELSE false END,
+  c.hasInterfaces = CASE row.hasInterfaces WHEN 'TRUE' THEN true ELSE false END,
+  c.interfaces = infaces, c.fields = fields;
+
+CALL apoc.load.csv($path, {skip:1, limit:1, header:true,
+mapping:{
+  hasSuperClass: {type:'boolean'},
+  hasInterfaces: {type:'boolean'},
+  isInterface: {type:'boolean'},
+}})
+YIELD map
+RETURN *;
+
+WITH  AS path
+CALL apoc.periodic.iterate('CALL apoc.load.csv(\''+$path+'\', {header:true, mapping:{ hasSuperClass: {type:\'boolean\'}, hasInterfaces: {type:\'boolean\'}, isInterface: {type:\'boolean\'}, interfaces: {array:true, arraySep:\'|\'}, fields: {array:true, arraySep:\'|\'}}}) YIELD map AS row RETURN row','MERGE (c:Class {uuid:row.uuid}) ON CREATE SET c = row', {batchSize:1000, iterateList:true, parallel:true})
+
+CALL apoc.periodic.iterate('CALL apoc.load.csv(\''+$path+'\', {header:true, mapping:{ isStatic: {type:\'boolean\'}}}) YIELD map AS row RETURN row','MERGE (m:Method {uuid:row.uuid}) ON CREATE SET m = row', {batchSize:1000, iterateList:true, parallel:true})
+
+CALL apoc.periodic.iterate('CALL apoc.load.csv(\''+$path+'\', {header:true}) YIELD map AS row RETURN row','MATCH (source:Class) MERGE (m:Method {uuid:row.uuid}) ON CREATE SET m = row', {batchSize:1000, iterateList:true, parallel:true})
+
+CALL apoc.periodic.iterate('CALL apoc.load.csv(\''+$path+'\', {header:true}) YIELD map AS row RETURN row','MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:EXTENDS {uuid: row.uuid}]->(c2)', {batchSize:1000, iterateList:true, parallel:true})
+
+CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/extends.csv', {header:true}) YIELD map AS row RETURN row","MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:EXTENDS {uuid: row.uuid}]->(c2)", {batchSize:1000, iterateList:true, parallel:true})
+CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/interfaces.csv', {header:true}) YIELD map AS row RETURN row","MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:INTERFACE {uuid: row.uuid}]->(c2)", {batchSize:1000, iterateList:true, parallel:true})
+CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/has.csv', {header:true}) YIELD map AS row RETURN row","MATCH (c:Class {uuid: row.classRef}) MATCH (m:Method {uuid: row.MethodRef}) MERGE (c)-[e:HAS {uuid: row.uuid}]->(m)", {batchSize:1000, iterateList:true, parallel:true})
+
+
+MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:EXTENDS {uuid: row.uuid}]->(c2) RETURN *

@@ -2,7 +2,6 @@ package tabby.util;
 
 import lombok.extern.slf4j.Slf4j;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -168,25 +167,4 @@ public class ClassLoaderUtils {
         }
     }
 
-    public static void main(String[] args) throws IOException {
-        String userDir = System.getProperty("user.dir");
-
-        String target = String.join(File.separator, userDir, "lib");
-
-        List<Path> paths = FileUtils.getTargetDirectoryJarFiles(target);
-        ClassLoader classLoader = getClassLoader(paths.toArray(new Path[0]));
-        log.info(classLoader.toString());
-        ClassResourceEnumerator classResourceEnumerator = new ClassResourceEnumerator(classLoader);
-        List<ClassResourceEnumerator.ClassResource> filtered = new ArrayList<>();
-//        Collection<ClassResourceEnumerator.ClassResource> resources = classResourceEnumerator.getRuntimeClasses();
-//        for(ClassResourceEnumerator.ClassResource resource: resources){
-////            log.info(resource.getName());
-//            if(!resource.getName().startsWith("fj/") && !resource.getName().startsWith("soot/")){
-//                filtered.add(resource);
-//            }
-//        }
-//        log.info(resources.size()+"");
-        log.info(filtered.size()+"");
-//        classes.forEach(x -> log.info(x.getName()));
-    }
 }
