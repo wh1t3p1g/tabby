@@ -41,6 +41,7 @@ public class MethodReference {
     private String returnType;
 
     private transient ClassRefHandle classRef;
+    private transient SootMethod cachedMethod;
 
     @Relationship(type="CALL", direction = "UNDIRECTED")
     private Set<Call> callEdge = new HashSet<>();
@@ -49,7 +50,7 @@ public class MethodReference {
         return new MethodRefHandle(classRef, name, signature);
     }
 
-    // 后续添加分析后的数据字段
+    // TODO 后续添加分析后的数据字段
     public static MethodReference newInstance(String name, String signature){
         MethodReference methodRef = new MethodReference();
         methodRef.setName(name);
@@ -72,6 +73,7 @@ public class MethodReference {
                 methodRef.getParameters().add(GlobalConfiguration.GSON.toJson(param));
             }
         }
+        methodRef.setCachedMethod(method);
         return methodRef;
     }
 

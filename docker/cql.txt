@@ -41,5 +41,5 @@ CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents
 CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/interfaces.csv', {header:true}) YIELD map AS row RETURN row","MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:INTERFACE {uuid: row.uuid}]->(c2)", {batchSize:1000, iterateList:true, parallel:true})
 CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/has.csv', {header:true}) YIELD map AS row RETURN row","MATCH (c:Class {uuid: row.classRef}) MATCH (m:Method {uuid: row.MethodRef}) MERGE (c)-[e:HAS {uuid: row.uuid}]->(m)", {batchSize:1000, iterateList:true, parallel:true})
 
-
+CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/calls.csv', {header:true}) YIELD map AS row RETURN row","MATCH (m1:Method {uuid: row.source}) MATCH (m2:Method {uuid: row.target}) MERGE (m1)-[e:CALL {uuid: row.uuid, lineNum: row.lineNum, realCallType: row.realCallType}]->(m2)", {batchSize:1000, iterateList:true, parallel:true})
 MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:EXTENDS {uuid: row.uuid}]->(c2) RETURN *

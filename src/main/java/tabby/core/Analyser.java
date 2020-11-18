@@ -5,12 +5,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.*;
 import soot.options.Options;
+import tabby.config.GlobalConfiguration;
+import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.dal.cache.CacheHelper;
 import tabby.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -28,6 +31,8 @@ public class Analyser {
     private CacheHelper cacheHelper;
     @Autowired
     private ClassInfoScanner classInfoScanner;
+    @Autowired
+    private CallGraphScanner callGraphScanner;
 
     /**
      * 运行当前soot分析
@@ -65,8 +70,11 @@ public class Analyser {
                 Options.v().set_process_dir(getJdkDependencies());
                 cacheHelper.loadRuntimeClasses(getJdkDependencies(), true);
             }else{
-                Options.v().set_process_dir(FileUtils.getTargetDirectoryJarFiles(path));
-                cacheHelper.loadRuntimeClasses(FileUtils.getTargetDirectoryJarFiles(path), false);
+                List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
+                Options.v().set_soot_classpath(String.join(File.pathSeparator, getJdkDependencies()));
+                targets.addAll(getJdkDependencies());
+                Options.v().set_process_dir(targets);
+                cacheHelper.loadRuntimeClasses(targets, false);
             }
 
             Main.v().autoSetOptions();
@@ -78,9 +86,11 @@ public class Analyser {
             // 类信息抽取
             classInfoScanner.run(cacheHelper.getRuntimeClasses());
             // 函数调用分析
+            PackManager.v().runPacks();
+            callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
             //            PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "off");
-//            PackManager.v().runPacks();
-
+            classInfoScanner.save();
+            clean(); // clean caches
         }catch (CompilationDeathException e){
             if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
                 throw e;
@@ -100,5 +110,19 @@ public class Analyser {
         jdk.add(jdk.get(0).replace("rt.jar","ext/zipfs.jar"));
         // TODO jdk其他的jar包是否也需要分析？
         return jdk;
+    }
+
+    public void clean(){
+        try {
+            File cacheDir = new File(GlobalConfiguration.CACHE_PATH);
+            File[] files = cacheDir.listFiles();
+            if(files != null){
+                for(File file: files){
+                    Files.deleteIfExists(file.toPath());
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

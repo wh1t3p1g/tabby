@@ -26,7 +26,7 @@ public class GlobalConfiguration {
             new String[]{"uuid", "name", "signature", "isStatic", "hasParameters", "parameters", "returnType"},// method
             new String[]{"uuid", "source", "target"}, // extend/interfaces/
             new String[]{"uuid", "classRef", "MethodRef"}, // has
-            new String[]{"uuid", "source", "target", "lineNum"} // call
+            new String[]{"uuid", "source", "target", "lineNum", "realCallType"} // call
 
     ));
 

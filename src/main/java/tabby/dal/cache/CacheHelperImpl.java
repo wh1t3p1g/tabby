@@ -187,15 +187,16 @@ public class CacheHelperImpl implements CacheHelper{
         File file = new File(path);
         if(!file.exists()) return;
         FileReader reader = null;
-        Object obj = null;
         try{
             reader = new FileReader(file);
-            if(path.contains("runtime.dat")){
+            if(path.contains("runtime.json")){
                 runtimeClasses = GlobalConfiguration.GSON.fromJson(reader, List.class);
             }else if(path.contains("class.dat")){
-                savedClassRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
+                // do nothing
+//                savedClassRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
             }else if(path.contains("method.dat")){
-                savedMethodRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
+                // do nothing
+//                savedMethodRefs = GlobalConfiguration.GSON.fromJson(reader, Map.class);
             }
         } catch (FileNotFoundException e) {
             e.printStackTrace();

@@ -26,7 +26,7 @@ import java.util.Map;
 @Data
 @Slf4j
 @Component
-public class ClassInfoScanner {
+public class ClassInfoScanner implements Scanner<List<String>> {
 
     @Autowired
     private CacheHelper cacheHelper;
@@ -35,12 +35,14 @@ public class ClassInfoScanner {
     @Autowired
     private MethodRefService methodRefService;
 
+    @Override
     public void run(List<String> classes){
         collect(classes);
         build();
-        save();
+//        save();
     }
 
+    @Override
     public void collect(List<String> classes){
         if(classes.isEmpty()) return;
 
@@ -49,6 +51,7 @@ public class ClassInfoScanner {
         log.info("collect "+classes.size()+" classes information. DONE!");
     }
 
+    @Override
     public void build(){
         if(cacheHelper.getSavedClassRefs().isEmpty()) return;
         Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>(cacheHelper.getSavedClassRefs());
@@ -76,11 +79,12 @@ public class ClassInfoScanner {
         });
     }
 
+    @Override
     public void save(){
         log.info("start to save cache to neo4j database!");
         // clear cache runtime classes
 //        cacheHelper.getRuntimeClasses().clear();
-        classRefService.clear();
+        classRefService.clear(); // TODO 初始化图数据库 正式版去掉
         // save cache to csv
         cacheHelper.saveToCSV();
         // load csv data to neo4j
@@ -92,6 +96,11 @@ public class ClassInfoScanner {
         log.info("load csv data to neo4j finished!");
     }
 
+    /**
+     * 根据单个类进行类信息收集
+     * @param classname 待收集的类名
+     * @return 具体的类信息
+     */
     private ClassReference collect(String classname){
         ClassReference classRef = null;
         try{
@@ -105,7 +114,7 @@ public class ClassInfoScanner {
             }
         }catch (Exception e){
             // class not found
-            log.debug(classname+" class not found!");
+//            log.debug(classname+" class not found!");
         }
 //        if(classRef == null){// 无法找到相应的类，只存储一个classname
         // // TODO 是否需要去存储没办法找到的类 存疑？
@@ -114,4 +123,6 @@ public class ClassInfoScanner {
 //        }
         return classRef;
     }
+
+
 }
