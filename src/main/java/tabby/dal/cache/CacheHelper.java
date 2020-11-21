@@ -1,9 +1,9 @@
 package tabby.dal.cache;
 
+import soot.SootMethodRef;
 import tabby.dal.bean.ref.ClassReference;
 import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
-import tabby.dal.bean.ref.handle.MethodRefHandle;
 
 import java.util.List;
 import java.util.Map;
@@ -33,9 +33,9 @@ public interface CacheHelper {
 
     ClassReference loadClassRefByHandle(ClassRefHandle handle);
 
-    MethodReference loadMethodRef(ClassRefHandle classReference, String name, String signature);
+    MethodReference loadMethodRef(String signature);
 
-    MethodReference loadMethodRefByHandle(MethodRefHandle handle);
+    MethodReference loadMethodRef(SootMethodRef sootMethodRef);
 
     void loadRuntimeClasses(List<String> jars, boolean fileFirst);
 
@@ -43,5 +43,5 @@ public interface CacheHelper {
 
     Map<ClassRefHandle, ClassReference> getSavedClassRefs();
 
-    Map<MethodRefHandle, MethodReference> getSavedMethodRefs();
+    Map<String, MethodReference> getSavedMethodRefs();
 }

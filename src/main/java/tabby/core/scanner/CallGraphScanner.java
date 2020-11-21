@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import soot.Modifier;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
@@ -38,15 +39,17 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
     @Override
     public void collect(List<MethodReference> targets) {
-        log.info("start to build call graph!");
+        log.info("Start to build call graph!");
         targets.forEach(this::collect);
-        log.info("build call graph DONE!");
+        log.info("Build call graph DONE!");
     }
 
     public void collect(MethodReference methodRef){
         try{
+            if(methodRef.isSink()) return; // sink点为不动点，无需分析该函数内的调用情况
             SootMethod method = methodRef.getCachedMethod();
-            JimpleBody body = (JimpleBody) method.getActiveBody();
+            if(method.isAbstract() || Modifier.isNative(method.getModifiers())) return;// native/抽象函数没有具体的body
+            JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             invokeStmtSwitcher.setSource(methodRef);
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;
@@ -57,6 +60,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
             }
         }catch (RuntimeException e){
 //            e.printStackTrace();
+            log.debug(methodRef.getSignature() + " not found");
         }
     }
 

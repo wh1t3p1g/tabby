@@ -16,9 +16,9 @@ public interface MethodRefRepository extends Neo4jRepository<MethodReference, UU
 
     MethodReference findMethodReferenceBySignature(String signature);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping:{ isStatic: {type:'boolean'}, hasParameters:{type:'boolean'}, parameters:{array:true, arraySep:'|'}}}) YIELD map AS row RETURN row\", \"MERGE(m:Method {uuid:row.uuid} ) ON CREATE SET m = row\", {batchSize:1000, iterateList:true, parallel:true})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping:{ isStatic: {type:'boolean'}, hasParameters:{type:'boolean'}, isSink: { type: 'boolean'}, parameters:{array:true, arraySep:'|'}}}) YIELD map AS row RETURN row\", \"MERGE(m:Method {uuid:row.uuid} ) ON CREATE SET m = row\", {batchSize:1000, iterateList:true, parallel:true})")
     void loadMethodRefFromCSV(String path);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH ( m1:Method {uuid:row.source} ) MATCH ( m2:Method {uuid:row.target }) MERGE (m1)-[e:CALL {uuid:row.uuid, lineNum:row.lineNum, realCallType:row.realCallType }]->(m2)\", {batchSize:1000, iterateList:true, parallel:false})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH ( m1:Method {uuid:row.source} ) MATCH ( m2:Method {uuid:row.target }) MERGE (m1)-[e:CALL {uuid:row.uuid, lineNum:row.lineNum, realCallType:row.realCallType, invokerType: row.invokerType }]->(m2)\", {batchSize:1000, iterateList:true, parallel:false})")
     void loadCallEdgeFromCSV(String path);
 }

@@ -1,6 +1,10 @@
 package tabby.util;
 
+import tabby.config.GlobalConfiguration;
+
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
@@ -39,5 +43,25 @@ public class FileUtils {
     public static boolean fileExists(String path){
         File file = new File(path);
         return file.exists();
+    }
+
+    /**
+     * 获取json格式的文件，并解析出具体的对象
+     * 如果文件不存在，则返回null
+     * @param path json文件路径
+     * @param type 需要还原的对象类型
+     * @return 还原后的对象，或null
+     */
+    public static Object getJsonContent(String path, Class<?> type){
+        File file = new File(path);
+        if(!file.exists()) return null;
+        FileReader reader = null;
+        try {
+            reader = new FileReader(file);
+            return GlobalConfiguration.GSON.fromJson(reader, type);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+        return null;
     }
 }

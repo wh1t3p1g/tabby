@@ -4,11 +4,14 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import soot.SootClass;
+import soot.SootMethod;
+import soot.SootMethodRef;
+import soot.util.NumberedString;
 import tabby.config.GlobalConfiguration;
 import tabby.dal.bean.ref.ClassReference;
 import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
-import tabby.dal.bean.ref.handle.MethodRefHandle;
 import tabby.dal.service.ClassRefService;
 import tabby.dal.service.MethodRefService;
 import tabby.util.CSVUtils;
@@ -40,7 +43,7 @@ public class CacheHelperImpl implements CacheHelper{
     // 临时保存类信息和函数信息，这些数据结构仅在第一阶段发生改变
     // 第二阶段的数据流分析中仅添加函数信息中的call信息
     private Map<ClassRefHandle, ClassReference> savedClassRefs = new HashMap<>();
-    private Map<MethodRefHandle, MethodReference> savedMethodRefs = new HashMap<>();
+    private Map<String, MethodReference> savedMethodRefs = new HashMap<>();
 
     @Override
     public <T> void add(T ref) {
@@ -49,7 +52,7 @@ public class CacheHelperImpl implements CacheHelper{
             savedClassRefs.put(classRef.getHandle(), classRef);
         }else if(ref instanceof MethodReference){
             MethodReference methodRef = (MethodReference) ref;
-            savedMethodRefs.put(methodRef.getHandle(), methodRef);
+            savedMethodRefs.put(methodRef.getSignature(), methodRef);
         }
     }
 
@@ -60,7 +63,7 @@ public class CacheHelperImpl implements CacheHelper{
             savedClassRefs.remove(classRef.getHandle());
         }else if(ref instanceof MethodReference){
             MethodReference methodRef = (MethodReference) ref;
-            savedMethodRefs.remove(methodRef.getHandle());
+            savedMethodRefs.remove(methodRef.getSignature());
         }
     }
 
@@ -87,8 +90,8 @@ public class CacheHelperImpl implements CacheHelper{
             }
         }else if(ref instanceof MethodReference){
             MethodReference methodRef = (MethodReference) ref;
-            if(savedMethodRefs.containsKey(methodRef.getHandle())){
-                savedMethodRefs.replace(methodRef.getHandle(), methodRef);
+            if(savedMethodRefs.containsKey(methodRef.getSignature())){
+                savedMethodRefs.replace(methodRef.getSignature(), methodRef);
                 return;
             }
         }
@@ -163,7 +166,7 @@ public class CacheHelperImpl implements CacheHelper{
                     hasEdges.add(has.toCSV());
                 });
             });
-            savedMethodRefs.forEach((handle, methodRef) -> {
+            savedMethodRefs.forEach((signature, methodRef) -> {
                 methodRefs.add(methodRef.toCSV());
                 methodRef.getCallEdge().forEach(call -> {
                     callEdges.add(call.toCSV());
@@ -215,13 +218,67 @@ public class CacheHelperImpl implements CacheHelper{
     }
 
     @Override
-    public MethodReference loadMethodRef(ClassRefHandle classReference, String name, String signature) {
-        MethodRefHandle handle = new MethodRefHandle(classReference, name, signature);
-        return loadMethodRefByHandle(handle);
+    public MethodReference loadMethodRef(String signature) {
+        return savedMethodRefs.getOrDefault(signature, null);
     }
 
+    /**
+     * 当前函数解决soot调用函数不准确的问题
+     * soot的invoke表达式会将父类、接口等函数都归宿到当前类函数上，导致无法找到相应的methodRef
+     * 解决这个问题，通过往父类、接口找相应的内容
+     * @param sootMethodRef
+     * @return
+     */
     @Override
-    public MethodReference loadMethodRefByHandle(MethodRefHandle handle) {
-        return savedMethodRefs.getOrDefault(handle, null);
+    public MethodReference loadMethodRef(SootMethodRef sootMethodRef){
+        MethodReference target = loadMethodRef(sootMethodRef.getSignature());
+        if(target != null){
+            return target;
+        }
+        SootClass cls = sootMethodRef.getDeclaringClass();
+        SootClass tmpCls = cls;
+        while(tmpCls.hasSuperclass()){
+            SootClass superCls = tmpCls.getSuperclass();
+            target = findMethodRef(superCls, sootMethodRef.getSubSignature());
+            if(target != null){
+                return target;
+            }
+            tmpCls = superCls;
+        }
+        if(cls.getInterfaceCount() > 0){
+            return findMethodRefFromInterfaces(cls, sootMethodRef.getSubSignature());
+        }
+        return null;
+    }
+
+    private MethodReference findMethodRefFromInterfaces(SootClass cls, NumberedString subSignature){
+        MethodReference target = null;
+        for(SootClass interCls:cls.getInterfaces()){
+            target = findMethodRef(interCls, subSignature);
+            if(target != null){
+                return target;
+            }else if(interCls.getInterfaceCount() > 0){
+                target = findMethodRefFromInterfaces(interCls, subSignature);
+                if(target != null){
+                    return target;
+                }
+            }
+        }
+        return null;
+    }
+
+    private MethodReference findMethodRef(SootClass cls, NumberedString subSignature){
+        MethodReference target = null;
+        try{
+            SootMethod targetMethod = cls.getMethod(subSignature);
+            target = loadMethodRef(targetMethod.getSignature());
+            if(target != null){
+                return target;
+            }
+        }catch (RuntimeException e){
+//                e.printStackTrace();
+            // 当前类没找到函数，继续往父类找
+        }
+        return null;
     }
 }

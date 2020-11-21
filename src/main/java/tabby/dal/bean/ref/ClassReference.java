@@ -9,6 +9,7 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootClass;
 import tabby.config.GlobalConfiguration;
+import tabby.core.data.RulesContainer;
 import tabby.dal.bean.edge.Extend;
 import tabby.dal.bean.edge.Has;
 import tabby.dal.bean.edge.Interfaces;
@@ -73,7 +74,7 @@ public class ClassReference{
         return new ClassRefHandle(this.name);
     }
 
-    public static ClassReference parse(SootClass cls){
+    public static ClassReference parse(SootClass cls, RulesContainer rulesContainer){
         ClassReference classRef = newInstance(cls.getName());
         classRef.setInterface(cls.isInterface());
         // 提取父类信息
@@ -103,6 +104,7 @@ public class ClassReference{
         if(cls.getMethodCount() > 0){
             cls.getMethods().forEach((method) -> {
                 MethodReference methodRef = MethodReference.parse(classRef.getHandle(), method);
+                methodRef.setSink(rulesContainer.isSink(classRef.getName(), methodRef.getName()));
                 Has has = Has.newInstance(classRef, methodRef);
                 classRef.getHasEdge().add(has);
             });

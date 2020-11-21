@@ -80,9 +80,7 @@ public class Analyser {
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
 
-//            if (!Options.v().oaat()) {
-//                PackManager.v().writeOutput();
-//            }
+
             // 类信息抽取
             classInfoScanner.run(cacheHelper.getRuntimeClasses());
             // 函数调用分析
@@ -91,6 +89,9 @@ public class Analyser {
             //            PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "off");
             classInfoScanner.save();
             clean(); // clean caches
+//            if (!Options.v().oaat()) {
+//                PackManager.v().writeOutput();
+//            }
         }catch (CompilationDeathException e){
             if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
                 throw e;
@@ -105,10 +106,17 @@ public class Analyser {
     public List<String> getJdkDependencies(){
         List<String> jdk = new ArrayList<>(Arrays.asList(Scene.v().defaultClassPath().split(":")));
         jdk.add(jdk.get(0).replace("rt.jar","jsse.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","management-agent.jar"));
         jdk.add(jdk.get(0).replace("rt.jar","charsets.jar"));
         jdk.add(jdk.get(0).replace("rt.jar","ext/sunec.jar"));
         jdk.add(jdk.get(0).replace("rt.jar","ext/zipfs.jar"));
-        // TODO jdk其他的jar包是否也需要分析？
+        jdk.add(jdk.get(0).replace("rt.jar","ext/cldrdata.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/dnsns.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/jaccess.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/localedata.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/nashorn.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/sunjce_provider.jar"));
+        jdk.add(jdk.get(0).replace("rt.jar","ext/sunpkcs11.jar"));
         return jdk;
     }
 

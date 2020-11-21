@@ -36,6 +36,8 @@ public class MethodReference {
 
     private boolean hasParameters = false;
 
+    private boolean isSink = false;
+
     private Set<String> parameters = new HashSet<>();
 
     private String returnType;
@@ -84,6 +86,7 @@ public class MethodReference {
         csv.add(signature);
         csv.add(Boolean.toString(isStatic));
         csv.add(Boolean.toString(hasParameters));
+        csv.add(Boolean.toString(isSink));
         csv.add(String.join("|", parameters));
         csv.add(returnType);
         return csv;

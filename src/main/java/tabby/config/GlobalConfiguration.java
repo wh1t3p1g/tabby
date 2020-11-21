@@ -13,6 +13,8 @@ import java.util.List;
  */
 public class GlobalConfiguration {
 
+    public static String RULES_PATH = String.join(File.separator, System.getProperty("user.dir"), "rules");
+    public static String SINKS_PATH = String.join(File.separator, RULES_PATH, "sinks.json");
     public static String CACHE_PATH = String.join(File.separator, System.getProperty("user.dir"), "docker", "cache");
     public static String RUNTIME_CACHE_PATH = String.join(File.separator, CACHE_PATH, "runtime.json");
     public static String CLASSES_CACHE_PATH = String.join(File.separator,CACHE_PATH, "classes.csv");
@@ -23,10 +25,10 @@ public class GlobalConfiguration {
     public static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "interfaces.csv");
     public static List<String[]> CSV_HEADERS = new ArrayList<>(Arrays.asList(
             new String[]{"uuid", "name", "superClass", "interfaces", "isInterface", "hasSuperClass", "hasInterfaces", "fields"},// class
-            new String[]{"uuid", "name", "signature", "isStatic", "hasParameters", "parameters", "returnType"},// method
+            new String[]{"uuid", "name", "signature", "isStatic", "hasParameters", "isSink", "parameters", "returnType"},// method
             new String[]{"uuid", "source", "target"}, // extend/interfaces/
             new String[]{"uuid", "classRef", "MethodRef"}, // has
-            new String[]{"uuid", "source", "target", "lineNum", "realCallType"} // call
+            new String[]{"uuid", "source", "target", "lineNum", "realCallType", "invokerType"} // call
 
     ));
 

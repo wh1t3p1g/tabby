@@ -40,10 +40,11 @@ public class SootConfiguration {
         Options.v().set_output_format(Options.output_format_jimple); // 输出Jimple格式
         Options.v().set_validate(true);
         Options.v().set_whole_program(true);// 开启 过程间分析
+        Options.v().set_no_writeout_body_releasing(true);
 
         // 设置自定义的package
-        PhaseOptions.v().setPhaseOption("bb", "off");
-        PhaseOptions.v().setPhaseOption("jj.ls", "on");
+//        PhaseOptions.v().setPhaseOption("bb", "off");
+        PhaseOptions.v().setPhaseOption("jj", "on");
 
 //        PhaseOptions.v().setPhaseOption("jtp.callGraphTransformer", "off");
     }
