@@ -6,14 +6,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.Scene;
 import soot.SootClass;
+import soot.SootMethod;
+import soot.SootMethodRef;
 import tabby.core.data.RulesContainer;
+import tabby.dal.bean.edge.Alias;
 import tabby.dal.bean.edge.Extend;
 import tabby.dal.bean.edge.Interfaces;
 import tabby.dal.bean.ref.ClassReference;
+import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
 import tabby.dal.cache.CacheHelper;
-import tabby.dal.service.ClassRefService;
-import tabby.dal.service.MethodRefService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -32,17 +34,12 @@ public class ClassInfoScanner implements Scanner<List<String>> {
     @Autowired
     private CacheHelper cacheHelper;
     @Autowired
-    private ClassRefService classRefService;
-    @Autowired
-    private MethodRefService methodRefService;
-    @Autowired
     private RulesContainer rulesContainer;
 
     @Override
     public void run(List<String> classes){
         collect(classes);
         build();
-//        save();
     }
 
     @Override
@@ -59,27 +56,49 @@ public class ClassInfoScanner implements Scanner<List<String>> {
         if(cacheHelper.getSavedClassRefs().isEmpty()) return;
         Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>(cacheHelper.getSavedClassRefs());
         clonedClassRefs.forEach((handle, classRef) -> {
-            // build superclass relationship
-            if(classRef.isHasSuperClass()){
-                ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
-                if(superClassRef == null){ // cache中没有 默认为新类
-                    superClassRef = collect(classRef.getSuperClass());
-                }
-                Extend extend =  Extend.newInstance(classRef, superClassRef);
-                classRef.setExtendEdge(extend);
-            }
-            // build interfaces relationship
-            if(classRef.isHasInterfaces()){
-                classRef.getInterfaces().forEach((intface) -> {
-                    ClassReference interfaceClassRef = cacheHelper.loadClassRef(intface);
-                    if(interfaceClassRef == null){
-                        interfaceClassRef = collect(intface);
-                    }
-                    Interfaces interfaces = Interfaces.newInstance(classRef, interfaceClassRef);
-                    classRef.getInterfaceEdge().add(interfaces);
-                });
-            }
+            buildRelationships(classRef);
         });
+    }
+
+    private void buildRelationships(ClassReference classRef){
+        if(classRef.isInitialed())return;
+        // build superclass relationship
+        if(classRef.isHasSuperClass()){
+            ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
+            if(superClassRef == null){ // cache中没有 默认为新类
+                superClassRef = collect(classRef.getSuperClass());
+                buildRelationships(superClassRef);
+            }
+            Extend extend =  Extend.newInstance(classRef, superClassRef);
+            classRef.setExtendEdge(extend);
+        }
+        // build interfaces relationship
+        if(classRef.isHasInterfaces()){
+            classRef.getInterfaces().forEach((intface) -> {
+                ClassReference interfaceClassRef = cacheHelper.loadClassRef(intface);
+                if(interfaceClassRef == null){
+                    interfaceClassRef = collect(intface);
+                    buildRelationships(interfaceClassRef);
+                }
+                Interfaces interfaces = Interfaces.newInstance(classRef, interfaceClassRef);
+                classRef.getInterfaceEdge().add(interfaces);
+            });
+        }
+
+        // build alias relationship
+        classRef.getHasEdge().forEach(has -> {
+            MethodReference sourceRef = has.getMethodRef();
+            if(sourceRef.isInitialed()) return;
+            SootMethod sootMethod = sourceRef.getCachedMethod();
+            SootMethodRef sootMethodRef = sootMethod.makeRef();
+            MethodReference targetRef = cacheHelper.loadMethodRefFromFatherNodes(sootMethodRef);
+            if(targetRef != null){
+                Alias alias = Alias.newInstance(sourceRef, targetRef);
+                sourceRef.setAliasEdge(alias);
+            }
+            sourceRef.setInitialed(true);
+        });
+        classRef.setInitialed(true);
     }
 
     @Override
@@ -87,15 +106,10 @@ public class ClassInfoScanner implements Scanner<List<String>> {
         log.info("Start to save cache to neo4j database!");
         // clear cache runtime classes
         cacheHelper.getRuntimeClasses().clear();
-        classRefService.clear(); // TODO 初始化图数据库 正式版去掉
         // save cache to csv
         cacheHelper.saveToCSV();
         // load csv data to neo4j
-        log.info("Load "+ cacheHelper.getSavedMethodRefs().size()+ " method reference cache");
-        methodRefService.importMethodRef();
-        log.info("Load "+ cacheHelper.getSavedClassRefs().size() +" class reference cache");
-        classRefService.importClassRef();
-        classRefService.buildEdge();
+        cacheHelper.saveToNeo4j();
         log.info("Load csv data to neo4j finished!");
     }
 
@@ -121,6 +135,4 @@ public class ClassInfoScanner implements Scanner<List<String>> {
         }
         return classRef;
     }
-
-
 }

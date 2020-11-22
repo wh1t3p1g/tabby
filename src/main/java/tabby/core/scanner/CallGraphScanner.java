@@ -46,7 +46,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
     public void collect(MethodReference methodRef){
         try{
-            if(methodRef.isSink()) return; // sink点为不动点，无需分析该函数内的调用情况
+            if(methodRef.isSink() || methodRef.isIgnore()) return; // sink点为不动点，无需分析该函数内的调用情况
             SootMethod method = methodRef.getCachedMethod();
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())) return;// native/抽象函数没有具体的body
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();

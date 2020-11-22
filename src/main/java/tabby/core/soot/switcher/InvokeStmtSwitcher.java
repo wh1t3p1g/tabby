@@ -40,7 +40,7 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
-        if(isNecessaryEdge("static", v)){
+        if(isNecessaryEdge("StaticInvoke", v)){
             SootMethodRef sootMethodRef = v.getMethodRef();
             ClassRefHandle classRefHandle = new ClassRefHandle(sootMethodRef.getDeclaringClass().getName());
 
@@ -100,7 +100,8 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
                 cacheHelper.add(target);
             }
         }
-        if(source != null){
+
+        if(source != null && !target.isIgnore()){
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classRefHandle.getName());
             call.setInvokerType(invokerType);
@@ -109,7 +110,7 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
     }
 
     public <T> boolean isNecessaryEdge(String type, T v){
-        if ("static".equals(type)) { // 对于静态函数调用，只关注 函数参数可控的情况
+        if ("StaticInvoke".equals(type)) { // 对于静态函数调用，只关注 函数参数可控的情况
             StaticInvokeExpr invokeExpr = (StaticInvokeExpr) v;
             if (invokeExpr.getArgCount() == 0) {
                 return false;
@@ -117,11 +118,12 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
             List<Value> values = invokeExpr.getArgs();
             for (Value value : values) {
                 if (value instanceof JimpleLocal ||
-                        value instanceof StringConstant) { // Class.forName(xxx) 这种情况
+                        ("forName".equals(invokeExpr.getMethodRef().getName()) && value instanceof StringConstant)) { // Class.forName(xxx) 这种情况
                     return true;
                 }
             }
         }
+
         return false;
     }
 }

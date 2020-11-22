@@ -139,8 +139,13 @@ public class CacheHelperImpl implements CacheHelper{
 
     @Override
     public void saveToNeo4j(){
-        // TODO
+        classRefService.clear(); // TODO 初始化图数据库 正式版去掉
 
+        log.info("Load "+ getSavedMethodRefs().size()+ " method reference cache");
+        methodRefService.importMethodRef();
+        log.info("Load "+ getSavedClassRefs().size() +" class reference cache");
+        classRefService.importClassRef();
+        classRefService.buildEdge();
     }
 
     @Override
@@ -152,6 +157,7 @@ public class CacheHelperImpl implements CacheHelper{
             Collection<List<String>> hasEdges = new ArrayList<>();
             Collection<List<String>> interfacesEdges = new ArrayList<>();
             Collection<List<String>> callEdges = new ArrayList<>();
+            Collection<List<String>> aliasEdges = new ArrayList<>();
             savedClassRefs.forEach((handle, classRef) -> {
                 classRefs.add(classRef.toCSV());
                 if(classRef.isHasSuperClass() && classRef.getExtendEdge() != null){
@@ -171,6 +177,9 @@ public class CacheHelperImpl implements CacheHelper{
                 methodRef.getCallEdge().forEach(call -> {
                     callEdges.add(call.toCSV());
                 });
+                if(methodRef.getAliasEdge() != null){
+                    aliasEdges.add(methodRef.getAliasEdge().toCSV());
+                }
             });
             CSVUtils.save(CLASSES_CACHE_PATH, CSV_HEADERS.get(0), classRefs);
             CSVUtils.save(METHODS_CACHE_PATH, CSV_HEADERS.get(1), methodRefs);
@@ -178,6 +187,7 @@ public class CacheHelperImpl implements CacheHelper{
             CSVUtils.save(HAS_RELATIONSHIP_CACHE_PATH, CSV_HEADERS.get(3), hasEdges);
             CSVUtils.save(INTERFACE_RELATIONSHIP_CACHE_PATH, CSV_HEADERS.get(2), interfacesEdges);
             CSVUtils.save(CALL_RELATIONSHIP_CACHE_PATH, CSV_HEADERS.get(4), callEdges);
+            CSVUtils.save(ALIAS_RELATIONSHIP_CACHE_PATH, CSV_HEADERS.get(5), aliasEdges);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -226,6 +236,7 @@ public class CacheHelperImpl implements CacheHelper{
      * 当前函数解决soot调用函数不准确的问题
      * soot的invoke表达式会将父类、接口等函数都归宿到当前类函数上，导致无法找到相应的methodRef
      * 解决这个问题，通过往父类、接口找相应的内容
+     * 这里找到的是第一个找到的函数
      * @param sootMethodRef
      * @return
      */
@@ -235,6 +246,13 @@ public class CacheHelperImpl implements CacheHelper{
         if(target != null){
             return target;
         }
+
+        return loadMethodRefFromFatherNodes(sootMethodRef);
+    }
+
+    @Override
+    public MethodReference loadMethodRefFromFatherNodes(SootMethodRef sootMethodRef){
+        MethodReference target = null;
         SootClass cls = sootMethodRef.getDeclaringClass();
         SootClass tmpCls = cls;
         while(tmpCls.hasSuperclass()){

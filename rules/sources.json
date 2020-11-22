@@ -1,0 +1,4 @@
+{
+  "java.lang.Object": [{"name": "hashCode", "param": []},{"name": "toString", "param": []}],
+  "java.lang.Comparable": [{"name": "compareTo", "param": []}]
+}

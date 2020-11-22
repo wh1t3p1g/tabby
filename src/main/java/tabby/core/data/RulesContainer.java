@@ -21,9 +21,11 @@ import java.util.Map;
 public class RulesContainer {
 
     private Map<String, List<Map<String, Object>>> sinks = new HashMap<>();
+    private Map<String, List<String>> ignores = new HashMap<>();
 
     public RulesContainer() throws FileNotFoundException {
         loadSinks();
+        loadIgnores();
     }
 
     public boolean isSink(String classname, String method){
@@ -38,6 +40,13 @@ public class RulesContainer {
         return false;
     }
 
+    public boolean isIgnore(String classname, String method){
+        if(ignores.containsKey(classname)){
+            return ignores.get(classname).contains(method);
+        }
+        return false;
+    }
+
     @SuppressWarnings({"unchecked"})
     private void loadSinks() throws FileNotFoundException {
         sinks = (Map<String, List<Map<String, Object>>>) FileUtils.getJsonContent(GlobalConfiguration.SINKS_PATH, Map.class);
@@ -45,5 +54,14 @@ public class RulesContainer {
             throw new FileNotFoundException("Sink File Not Found");
         }
         log.info("load "+ sinks.size() +" sinks success!");
+    }
+
+    @SuppressWarnings({"unchecked"})
+    private void loadIgnores() throws FileNotFoundException {
+        ignores = (Map<String, List<String>>) FileUtils.getJsonContent(GlobalConfiguration.IGNORES_PATH, Map.class);
+        if(ignores == null){
+            throw new FileNotFoundException("Ignore File Not Found");
+        }
+        log.info("load "+ ignores.size() +" ignore success!");
     }
 }

@@ -32,10 +32,9 @@ public class TabbyApplication {
     CommandLineRunner run(){
         return args -> {
             SootConfiguration.initSootOption();
-//            Analyser.runSootAnalysis(null);
-//            Analyser.runSootAnalysis(new String[]{"cases", "testcases"});
             String path = String.join(File.separator, System.getProperty("user.dir"), "cases", "jars");
             analyser.runSootAnalysis(path, false);
+
         };
     }
 }

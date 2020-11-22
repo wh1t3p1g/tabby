@@ -37,6 +37,8 @@ public interface CacheHelper {
 
     MethodReference loadMethodRef(SootMethodRef sootMethodRef);
 
+    MethodReference loadMethodRefFromFatherNodes(SootMethodRef sootMethodRef);
+
     void loadRuntimeClasses(List<String> jars, boolean fileFirst);
 
     List<String> getRuntimeClasses();

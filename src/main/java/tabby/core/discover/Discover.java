@@ -5,4 +5,6 @@ package tabby.core.discover;
  * @since 2020/11/21
  */
 public interface Discover {
+
+    void run();
 }

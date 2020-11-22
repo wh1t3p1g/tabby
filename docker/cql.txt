@@ -43,3 +43,27 @@ CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents
 
 CALL apoc.periodic.iterate("CALL apoc.load.csv('file:///Users/wh1t3P1g/Documents/GitHub/tabby/docker/cache/calls.csv', {header:true}) YIELD map AS row RETURN row","MATCH (m1:Method {uuid: row.source}) MATCH (m2:Method {uuid: row.target}) MERGE (m1)-[e:CALL {uuid: row.uuid, lineNum: row.lineNum, realCallType: row.realCallType}]->(m2)", {batchSize:1000, iterateList:true, parallel:true})
 MATCH (c1:Class {uuid: row.source}) MATCH (c2:Class {uuid: row.target}) MERGE (c1)-[e:EXTENDS {uuid: row.uuid}]->(c2) RETURN *
+
+向上查找
+
+查找当前类的所有父类和接口
+match (c1:Class {name:"com.sun.rowset.JdbcRowSetImpl"}) -[:EXTENDS|INTERFACE*]->(c2:Class) return *
+
+查找当前类的所有父类和接口，返回除了当前对象外的，所有对象名
+match p=(c1:Class {name:"com.sun.rowset.JdbcRowSetImpl"}) -[:EXTENDS|INTERFACE*]->(c2:Class)  return distinct c2.name
+
+查找父类或接口中存在某函数的对象名
+match p=(c1:Class {name:"com.sun.rowset.JdbcRowSetImpl"}) -[:EXTENDS|INTERFACE*]->(c2:Class) match (c2)-[:HAS]->(m:Method {subSignature:"xxx cancelRowUpdates"}) return c2.name
+
+向下查找
+
+查找当前对象的子类，实现了某函数的 对象名
+
+
+在获得当前函数调用后，需要向上向下都进行查找，然后在进一步发散查找下一个节点
+
+建立其同一棵树上的相同函数的依赖边，然后由neo4j进行source-》sink的查找
+
+relationships(p) 返回所有的关系边
+
+match p=(m2:Method {name:"hashCode"}) -[:CALL|ALIAS*]-> (m1:Method {isSink:true, name:"invoke"}) return m1,m2 limit 1

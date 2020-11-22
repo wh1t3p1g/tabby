@@ -9,6 +9,7 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootMethod;
 import tabby.config.GlobalConfiguration;
+import tabby.dal.bean.edge.Alias;
 import tabby.dal.bean.edge.Call;
 import tabby.dal.bean.ref.handle.ClassRefHandle;
 import tabby.dal.bean.ref.handle.MethodRefHandle;
@@ -31,6 +32,7 @@ public class MethodReference {
     private String name;
 
     private String signature;
+    private String subSignature;
 
     private boolean isStatic = false;
 
@@ -42,11 +44,20 @@ public class MethodReference {
 
     private String returnType;
 
+
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;
+    private transient boolean isInitialed = false;
+    private transient boolean isIgnore = false;
 
     @Relationship(type="CALL", direction = "UNDIRECTED")
     private Set<Call> callEdge = new HashSet<>();
+
+    /**
+     * 父类函数、接口函数的依赖边
+     */
+    @Relationship(type="ALIAS", direction = "UNDIRECTED")
+    private Alias aliasEdge;
 
     public MethodRefHandle getHandle() {
         return new MethodRefHandle(classRef, name, signature);
@@ -63,6 +74,7 @@ public class MethodReference {
 
     public static MethodReference parse(ClassRefHandle handle, SootMethod method){
         MethodReference methodRef = newInstance(method.getName(), method.getSignature());
+        methodRef.setSubSignature(method.getSubSignature());
         methodRef.setStatic(method.isStatic());
         methodRef.setClassRef(handle);
         methodRef.setReturnType(method.getReturnType().toString());
@@ -84,6 +96,7 @@ public class MethodReference {
         csv.add(uuid.toString());
         csv.add(name);
         csv.add(signature);
+        csv.add(subSignature);
         csv.add(Boolean.toString(isStatic));
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));

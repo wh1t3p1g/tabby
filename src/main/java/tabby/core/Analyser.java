@@ -80,15 +80,14 @@ public class Analyser {
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
 
-
             // 类信息抽取
             classInfoScanner.run(cacheHelper.getRuntimeClasses());
             // 函数调用分析
             PackManager.v().runPacks();
             callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
-            //            PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "off");
             classInfoScanner.save();
             clean(); // clean caches
+
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }

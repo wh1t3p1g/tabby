@@ -39,7 +39,7 @@ public class ClassReference{
     private boolean isInterface = false;
     private boolean hasSuperClass = false;
     private boolean hasInterfaces = false;
-
+    private transient boolean isInitialed = false;
     /**
      * [[name, modifiers, type],...]
      */
@@ -105,6 +105,7 @@ public class ClassReference{
             cls.getMethods().forEach((method) -> {
                 MethodReference methodRef = MethodReference.parse(classRef.getHandle(), method);
                 methodRef.setSink(rulesContainer.isSink(classRef.getName(), methodRef.getName()));
+                methodRef.setIgnore(rulesContainer.isIgnore(classRef.getName(), methodRef.getName()));
                 Has has = Has.newInstance(classRef, methodRef);
                 classRef.getHasEdge().add(has);
             });
