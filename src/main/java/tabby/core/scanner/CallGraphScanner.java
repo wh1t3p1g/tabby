@@ -10,7 +10,11 @@ import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-import tabby.core.soot.switcher.InvokeStmtSwitcher;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.UnitGraph;
+import tabby.core.data.Context;
+import tabby.core.soot.switcher.InvokeExprSwitcher;
+import tabby.core.soot.toolkit.VarsPointsToAnalysis;
 import tabby.dal.bean.ref.MethodReference;
 import tabby.dal.cache.CacheHelper;
 
@@ -29,7 +33,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
     @Autowired
     private CacheHelper cacheHelper;
     @Autowired
-    private InvokeStmtSwitcher invokeStmtSwitcher;
+    private InvokeExprSwitcher invokeExprSwitcher;
 
     @Override
     public void run(List<MethodReference> targets) {
@@ -46,21 +50,37 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
     public void collect(MethodReference methodRef){
         try{
-            if(methodRef.isSink() || methodRef.isIgnore()) return; // sink点为不动点，无需分析该函数内的调用情况
             SootMethod method = methodRef.getCachedMethod();
-            if(method.isAbstract() || Modifier.isNative(method.getModifiers())) return;// native/抽象函数没有具体的body
+            if(methodRef.isSink() || methodRef.isIgnore() || method.isAbstract() || Modifier.isNative(method.getModifiers())){
+                methodRef.setInitialed(true);
+                methodRef.setPolluted(methodRef.isSink());
+                return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
+            }
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-            invokeStmtSwitcher.setSource(methodRef);
+            UnitGraph graph = new BriefUnitGraph(body);
+            if(methodRef.getName().equals("case8")){
+
+                VarsPointsToAnalysis analysis = new VarsPointsToAnalysis(graph);
+                analysis.setCacheHelper(cacheHelper);
+                Context context = Context.newInstance(methodRef.getSignature(), body);
+                analysis.setContext(context);
+                analysis.doAnalysis();
+                context.clear();
+            }
+
+//            invokeExprSwitcher.setAnalysis(analysis);
+            invokeExprSwitcher.setSource(methodRef);
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){
+                    invokeExprSwitcher.setUnit(unit);
                     InvokeExpr invokeExpr = stmt.getInvokeExpr();
-                    invokeExpr.apply(invokeStmtSwitcher);
+                    invokeExpr.apply(invokeExprSwitcher);
                 }
             }
         }catch (RuntimeException e){
-//            e.printStackTrace();
-            log.debug(methodRef.getSignature() + " not found");
+            e.printStackTrace();
+//            log.debug(methodRef.getSignature() + " not found");
         }
     }
 

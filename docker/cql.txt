@@ -67,3 +67,17 @@ match p=(c1:Class {name:"com.sun.rowset.JdbcRowSetImpl"}) -[:EXTENDS|INTERFACE*]
 relationships(p) 返回所有的关系边
 
 match p=(m2:Method {name:"hashCode"}) -[:CALL|ALIAS*]-> (m1:Method {isSink:true, name:"invoke"}) return m1,m2 limit 1
+match (source:Method {name:"readObject"}) match (sink:Method {name:"invoke",isSink:true}) call apoc.path.spanningTree(source, {relationshipFilter:"CALL|ALIAS", minLevel:1,endNodes:[sink],bfs:true,limit:1}) YIELD path
+RETURN path, length(path) AS hops
+
+match (source:Method {name:"readObject"}) call apoc.path.spanningTree(source, {relationshipFilter:"CALL|ALIAS", minLevel:1, maxLevel:5, bfs:true,limit:1}) YIELD path
+RETURN path, length(path) AS hops
+
+match (source:Method {name:"readObject"}) call apoc.path.subgraphAll(source, {relationshipFilter:"CALL|ALIAS", bfs:true,limit:1}) YIELD nodes, relationships
+RETURN nodes, relationships
+
+match p=(c1:Class)-[:EXTENDS|INTERFACE*]->(c2:Class {name:"java.io.Serializable"})
+match (source:Method {name:"hashCode"})
+match (sink:Method {name:"invoke",isSink:true})
+call apoc.path.spanningTree(source, {relationshipFilter:"CALL>|ALIAS",endNodes:[sink],bfs:true,limit:1}) YIELD path
+RETURN path, length(path) AS hops limit 1

@@ -23,7 +23,7 @@ import java.util.*;
 @Getter
 @Setter
 @NodeEntity(label="Method")
-public class MethodReference {
+public class MethodReference implements Comparable<MethodReference>{
 
     @Id
     @Convert(UuidStringConverter.class)
@@ -42,6 +42,16 @@ public class MethodReference {
 
     private Set<String> parameters = new HashSet<>();
 
+    /**
+     * 如果函数体内 存在函数调用 递归分析
+     * 暂不采用 逆拓扑 来分析
+     */
+    private boolean isPolluted = false;
+    /**
+     * 可污染点为 函数返回-1 类属性0 函数参数1-n
+     */
+    private Set<Integer> pollutedPosition = new HashSet<>();
+
     private String returnType;
 
 
@@ -50,7 +60,7 @@ public class MethodReference {
     private transient boolean isInitialed = false;
     private transient boolean isIgnore = false;
 
-    @Relationship(type="CALL", direction = "UNDIRECTED")
+    @Relationship(type="CALL")
     private Set<Call> callEdge = new HashSet<>();
 
     /**
@@ -103,5 +113,10 @@ public class MethodReference {
         csv.add(String.join("|", parameters));
         csv.add(returnType);
         return csv;
+    }
+
+    @Override
+    public int compareTo(MethodReference o) {
+        return callEdge.size() - o.getCallEdge().size();
     }
 }

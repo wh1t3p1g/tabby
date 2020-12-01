@@ -9,6 +9,7 @@ import tabby.dal.bean.ref.handle.MethodRefHandle;
 import tabby.dal.repository.MethodRefRepository;
 import tabby.util.FileUtils;
 
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -34,5 +35,21 @@ public class MethodRefService {
         if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
             methodRefRepository.loadMethodRefFromCSV(GlobalConfiguration.METHODS_CACHE_PATH);
         }
+    }
+
+    public List<String> findAllByOutingCount(int outing, int skip, int limit){
+        return methodRefRepository.findAllMethodRefByOutingCount(outing, skip, limit);
+    }
+
+    public int countAllByOutingCount(int outing){
+        return methodRefRepository.countAllMethodRefByOutingCount(outing);
+    }
+
+    public List<String> findAllSinks(){
+        return methodRefRepository.findAllSinks();
+    }
+
+    public List<String> findAllByInvokedMethodSignature(String signature){
+        return methodRefRepository.findAllByInvokedMethodSignature(signature);
     }
 }

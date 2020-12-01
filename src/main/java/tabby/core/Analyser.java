@@ -72,7 +72,7 @@ public class Analyser {
             }else{
                 List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
                 Options.v().set_soot_classpath(String.join(File.pathSeparator, getJdkDependencies()));
-                targets.addAll(getJdkDependencies());
+//                targets.addAll(getJdkDependencies());
                 Options.v().set_process_dir(targets);
                 cacheHelper.loadRuntimeClasses(targets, false);
             }
@@ -85,9 +85,10 @@ public class Analyser {
             // 函数调用分析
             PackManager.v().runPacks();
             callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
-            classInfoScanner.save();
-            clean(); // clean caches
+//            classInfoScanner.save();
+//            clean(); // clean caches
 
+//            System.out.println(sortedMethodRefs.size());
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }

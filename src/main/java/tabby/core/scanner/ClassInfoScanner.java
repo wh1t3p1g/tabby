@@ -66,7 +66,13 @@ public class ClassInfoScanner implements Scanner<List<String>> {
         if(classRef.isHasSuperClass()){
             ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
             if(superClassRef == null){ // cache中没有 默认为新类
+                if(classRef.getSuperClass().toString().equals("java.lang.ClassLoader")){
+                    System.out.println(1);
+                }
                 superClassRef = collect(classRef.getSuperClass());
+                if(superClassRef == null){
+                    System.out.println(1);
+                }
                 buildRelationships(superClassRef);
             }
             Extend extend =  Extend.newInstance(classRef, superClassRef);
@@ -88,7 +94,6 @@ public class ClassInfoScanner implements Scanner<List<String>> {
         // build alias relationship
         classRef.getHasEdge().forEach(has -> {
             MethodReference sourceRef = has.getMethodRef();
-            if(sourceRef.isInitialed()) return;
             SootMethod sootMethod = sourceRef.getCachedMethod();
             SootMethodRef sootMethodRef = sootMethod.makeRef();
             MethodReference targetRef = cacheHelper.loadMethodRefFromFatherNodes(sootMethodRef);
@@ -96,7 +101,6 @@ public class ClassInfoScanner implements Scanner<List<String>> {
                 Alias alias = Alias.newInstance(sourceRef, targetRef);
                 sourceRef.setAliasEdge(alias);
             }
-            sourceRef.setInitialed(true);
         });
         classRef.setInitialed(true);
     }
@@ -131,6 +135,7 @@ public class ClassInfoScanner implements Scanner<List<String>> {
             }
         }catch (Exception e){
             // class not found
+//            e.printStackTrace();
 //            log.debug(classname+" class not found!");
         }
         return classRef;

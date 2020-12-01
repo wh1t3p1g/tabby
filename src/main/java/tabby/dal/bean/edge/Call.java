@@ -2,18 +2,18 @@ package tabby.dal.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Id;
 import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
+import soot.Unit;
+import soot.Value;
 import tabby.dal.bean.ref.MethodReference;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -52,11 +52,21 @@ public class Call {
      */
     private String realCallType;
 
+    private transient Value base;
+    private transient List<Value> params = new ArrayList<>();
+    private transient Unit unit;
+
+    /**
+     * 当 target的pollutedPosition == 当前source的call边的pollutedPosition 时
+     * isPolluted == true
+     */
+    private boolean isPolluted = false;
+
     /**
      * 当前调用函数时，所填充的参数位置
      * 例如 a.b(c,d,e) 此时 c可控，则填充1，表示第一个参数可以被污染
      */
-    private Set<Integer> pollutedPosition;
+    private Set<Integer> pollutedPosition = new HashSet<>();
 
     public static Call newInstance(MethodReference source, MethodReference target){
         Call call = new Call();
@@ -75,5 +85,28 @@ public class Call {
         csv.add(realCallType);
         csv.add(invokerType);
         return csv;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Call call = (Call) o;
+
+        return source.getHandle().equals(call.getSource().getHandle())
+                && target.getHandle().equals(call.getTarget().getHandle())
+                && ((realCallType == null && call.getRealCallType() == null) || (realCallType != null && realCallType.equals(call.getRealCallType())))
+                && ((invokerType == null && call.getInvokerType() == null) || (invokerType != null && invokerType.equals(call.getInvokerType())));
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder()
+                .append(source)
+                .append(target)
+                .append(realCallType)
+                .append(invokerType)
+                .toHashCode();
     }
 }

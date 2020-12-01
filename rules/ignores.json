@@ -1,4 +1,5 @@
 {
   "java.io.PrintStream": ["print"],
-  "java.lang.StringBuilder": ["toString","append"]
+  "java.lang.StringBuilder": ["toString","append"],
+  "java.io.ObjectInputStream": ["defaultReadObject"]
 }

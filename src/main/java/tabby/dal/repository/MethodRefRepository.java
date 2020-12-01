@@ -2,9 +2,11 @@ package tabby.dal.repository;
 
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import tabby.dal.bean.ref.MethodReference;
 
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -15,6 +17,18 @@ import java.util.UUID;
 public interface MethodRefRepository extends Neo4jRepository<MethodReference, UUID> {
 
     MethodReference findMethodReferenceBySignature(String signature);
+
+    @Query("match (m:Method {isSink:true}) return m.signature")
+    List<String> findAllSinks();
+
+    @Query("match (m:Method) -[:CALL]-> (target:Method {signature: $signature}) return m.signature")
+    List<String> findAllByInvokedMethodSignature(String signature);
+
+    @Query("match (m:Method) where size((m)-[:CALL]->()) = $outing  return m.signature skip $skip limit $limit")
+    List<String> findAllMethodRefByOutingCount(int outing, int skip, int limit);
+
+    @Query("match (m:Method) where size((m)-[:CALL]->()) = $outing  return count(m)")
+    int countAllMethodRefByOutingCount(@Param("outing") int outing);
 
     @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping:{ isStatic: {type:'boolean'}, hasParameters:{type:'boolean'}, isSink: { type: 'boolean'}, parameters:{array:true, arraySep:'|'}}}) YIELD map AS row RETURN row\", \"MERGE(m:Method {uuid:row.uuid} ) ON CREATE SET m = row\", {batchSize:5000, iterateList:true, parallel:true})")
     void loadMethodRefFromCSV(String path);

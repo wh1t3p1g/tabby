@@ -3,7 +3,7 @@
   "java.io.FileOutputStream": [{"name": "<init>", "param": [0]}],
   "java.nio.file.Files": [{"name": "newInputStream", "param": [0]},{"name": "newOutputStream", "param": [0]},{"name": "newBufferedReader","param": [0]},{"name": "newBufferedWriter", "param": [0]}],
   "java.lang.Class": [{"name": "forName", "param": [0]}, {"name": "getMethod", "param": [0,1]}],
-  "java.lang.reflect.Method": [{"name": "invoke", "param": [0]}],
+  "java.lang.reflect.Method": [{"name": "invoke", "param": [-1,0]}],
   "java.net.URLClassLoader": [{"name": "newInstance", "param": [0]}],
   "java.lang.Runtime": [{"name": "exec", "param": [0]}],
   "java.lang.ProcessBuilder": [{"name": "<init>", "param": [0]}],

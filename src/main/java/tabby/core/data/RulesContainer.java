@@ -7,9 +7,7 @@ import tabby.config.GlobalConfiguration;
 import tabby.util.FileUtils;
 
 import java.io.FileNotFoundException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -38,6 +36,18 @@ public class RulesContainer {
             }
         }
         return false;
+    }
+
+    public Set<Integer> getSinkParamPosition(String classname, String method){
+        if(sinks.containsKey(classname)){
+            List<Map<String, Object>> functions = sinks.get(classname);
+            for(Map<String, Object> function:functions){
+                if(method.equals(function.get("name"))){
+                    return new HashSet<Integer>((List)function.get("param"));
+                }
+            }
+        }
+        return null;
     }
 
     public boolean isIgnore(String classname, String method){

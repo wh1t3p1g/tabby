@@ -7,10 +7,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.SootClass;
 import soot.SootMethodRef;
+import soot.Unit;
 import soot.Value;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
 import tabby.core.data.RulesContainer;
+import tabby.core.soot.toolkit.VarsPointsToAnalysis;
 import tabby.dal.bean.edge.Call;
 import tabby.dal.bean.edge.Has;
 import tabby.dal.bean.ref.ClassReference;
@@ -29,9 +31,11 @@ import java.util.List;
 @Getter
 @Slf4j
 @Component
-public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
+public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     private MethodReference source;
+    private Unit unit;
+    private VarsPointsToAnalysis analysis;
 
     @Autowired
     private CacheHelper cacheHelper;
@@ -70,11 +74,6 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
         buildCallRelationship(classRefHandle, sootMethodRef, "InterfaceInvoke");
     }
 
-    @Override
-    public void defaultCase(Object v) {
-        super.defaultCase(v);
-    }
-
     public void buildCallRelationship(ClassRefHandle classRefHandle, SootMethodRef sootMethodRef, String invokerType){
         MethodReference target = cacheHelper.loadMethodRef(sootMethodRef);// 递归父类，接口 查找目标函数
         MethodReference source = cacheHelper.loadMethodRef(this.source.getSignature());
@@ -82,9 +81,9 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
             // 为了保证target函数的存在，重建methodRef
             // 解决 ClassInfoScanner阶段，函数信息收集不完全的问题
             ClassReference classRef = cacheHelper.loadClassRef(sootMethodRef.getDeclaringClass().getName());
-            if(classRef == null){
+            if(classRef == null){// lambda 的情况
                 SootClass cls = sootMethodRef.getDeclaringClass();
-                log.debug("Rebuild class " + cls.getName());
+//                log.debug("Rebuild class " + cls.getName());
                 classRef = ClassReference.parse(cls, rulesContainer);
                 cacheHelper.add(classRef);
                 classRef.getHasEdge().forEach((has) -> {
@@ -93,7 +92,7 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
             }
             target = cacheHelper.loadMethodRef(sootMethodRef);
             if(target == null){
-                log.debug("Rebuild method " + sootMethodRef.getSignature());
+//                log.debug("Rebuild method " + sootMethodRef.getSignature());
                 target = MethodReference.parse(classRef.getHandle(), sootMethodRef.resolve());
                 Has has = Has.newInstance(classRef, target);
                 classRef.getHasEdge().add(has);
@@ -105,6 +104,10 @@ public class InvokeStmtSwitcher extends AbstractJimpleValueSwitch {
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classRefHandle.getName());
             call.setInvokerType(invokerType);
+//            Set<Integer> pos = analysis.mayPolluted(unit, invokerType);
+//            call.setPolluted(!pos.isEmpty());
+//            call.setPollutedPosition(pos);
+            call.setUnit(unit);
             source.getCallEdge().add(call);
         }
     }

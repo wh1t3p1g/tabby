@@ -104,7 +104,15 @@ public class ClassReference{
         if(cls.getMethodCount() > 0){
             cls.getMethods().forEach((method) -> {
                 MethodReference methodRef = MethodReference.parse(classRef.getHandle(), method);
-                methodRef.setSink(rulesContainer.isSink(classRef.getName(), methodRef.getName()));
+                boolean isSink = rulesContainer.isSink(classRef.getName(), methodRef.getName());
+                methodRef.setSink(isSink);
+
+                if(isSink){
+                    methodRef.setPolluted(true);
+                    methodRef.setPollutedPosition(rulesContainer.getSinkParamPosition(classRef.getName(), methodRef.getName()));
+                    methodRef.setInitialed(true);
+                }
+
                 methodRef.setIgnore(rulesContainer.isIgnore(classRef.getName(), methodRef.getName()));
                 Has has = Has.newInstance(classRef, methodRef);
                 classRef.getHasEdge().add(has);
