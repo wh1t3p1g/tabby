@@ -42,3 +42,5 @@ mvnw*
 logs/
 cache/*
 lib/*
+
+*.json
