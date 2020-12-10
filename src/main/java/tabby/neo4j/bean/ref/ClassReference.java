@@ -1,4 +1,4 @@
-package tabby.dal.bean.ref;
+package tabby.neo4j.bean.ref;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,10 +10,10 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootClass;
 import tabby.config.GlobalConfiguration;
 import tabby.core.data.RulesContainer;
-import tabby.dal.bean.edge.Extend;
-import tabby.dal.bean.edge.Has;
-import tabby.dal.bean.edge.Interfaces;
-import tabby.dal.bean.ref.handle.ClassRefHandle;
+import tabby.neo4j.bean.edge.Extend;
+import tabby.neo4j.bean.edge.Has;
+import tabby.neo4j.bean.edge.Interfaces;
+import tabby.neo4j.bean.ref.handle.ClassRefHandle;
 
 import java.util.*;
 

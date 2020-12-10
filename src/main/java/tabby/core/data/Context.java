@@ -45,7 +45,7 @@ public class Context {
         this.depth = depth;
         this.preContext = preContext;
         this.localMap = new HashMap<>();
-        this.globalMap = new HashMap<>();
+        globalMap = new HashMap<>();
         this.queries = new HashMap<>();
     }
 

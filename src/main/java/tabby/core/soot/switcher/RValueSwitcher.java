@@ -9,7 +9,7 @@ import soot.Value;
 import soot.jimple.*;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.cache.CacheHelper;
 
 import java.util.HashSet;
 import java.util.Set;

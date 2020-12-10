@@ -15,8 +15,8 @@ import soot.toolkits.graph.UnitGraph;
 import tabby.core.data.Context;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
 import tabby.core.soot.toolkit.VarsPointsToAnalysis;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.cache.CacheHelper;
 
 import java.util.List;
 
@@ -58,8 +58,8 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
             }
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
+            // TODO 指针分析测试
             if(methodRef.getName().equals("case8")){
-
                 VarsPointsToAnalysis analysis = new VarsPointsToAnalysis(graph);
                 analysis.setCacheHelper(cacheHelper);
                 Context context = Context.newInstance(methodRef.getSignature(), body);
@@ -79,7 +79,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 }
             }
         }catch (RuntimeException e){
-            e.printStackTrace();
+//            e.printStackTrace();
 //            log.debug(methodRef.getSignature() + " not found");
         }
     }

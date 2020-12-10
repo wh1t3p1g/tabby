@@ -1,4 +1,4 @@
-package tabby.dal.bean.edge;
+package tabby.neo4j.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
-import tabby.dal.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.ClassReference;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -1,4 +1,4 @@
-package tabby.dal.cache;
+package tabby.neo4j.cache;
 
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
@@ -9,11 +9,11 @@ import soot.SootMethod;
 import soot.SootMethodRef;
 import soot.util.NumberedString;
 import tabby.config.GlobalConfiguration;
-import tabby.dal.bean.ref.ClassReference;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.bean.ref.handle.ClassRefHandle;
-import tabby.dal.service.ClassRefService;
-import tabby.dal.service.MethodRefService;
+import tabby.neo4j.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.handle.ClassRefHandle;
+import tabby.neo4j.service.ClassRefService;
+import tabby.neo4j.service.MethodRefService;
 import tabby.util.CSVUtils;
 import tabby.util.ClassLoaderUtils;
 import tabby.util.ClassResourceEnumerator;

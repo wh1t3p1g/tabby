@@ -1,4 +1,4 @@
-package tabby.dal.bean.ref.handle;
+package tabby.neo4j.bean.ref.handle;
 
 import java.util.Objects;
 

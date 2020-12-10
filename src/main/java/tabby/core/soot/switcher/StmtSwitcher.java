@@ -9,8 +9,8 @@ import soot.toolkits.graph.UnitGraph;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.toolkit.VarsPointsToAnalysis;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.cache.CacheHelper;
 
 import java.util.List;
 import java.util.Map;

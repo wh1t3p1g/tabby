@@ -1,9 +1,9 @@
-package tabby.dal.cache;
+package tabby.neo4j.cache;
 
 import soot.SootMethodRef;
-import tabby.dal.bean.ref.ClassReference;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.bean.ref.handle.ClassRefHandle;
+import tabby.neo4j.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.handle.ClassRefHandle;
 
 import java.util.List;
 import java.util.Map;

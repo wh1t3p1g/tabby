@@ -1,4 +1,4 @@
-package tabby.dal.bean.ref;
+package tabby.neo4j.bean.ref;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -9,10 +9,10 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootMethod;
 import tabby.config.GlobalConfiguration;
-import tabby.dal.bean.edge.Alias;
-import tabby.dal.bean.edge.Call;
-import tabby.dal.bean.ref.handle.ClassRefHandle;
-import tabby.dal.bean.ref.handle.MethodRefHandle;
+import tabby.neo4j.bean.edge.Alias;
+import tabby.neo4j.bean.edge.Call;
+import tabby.neo4j.bean.ref.handle.ClassRefHandle;
+import tabby.neo4j.bean.ref.handle.MethodRefHandle;
 
 import java.util.*;
 
@@ -48,12 +48,11 @@ public class MethodReference implements Comparable<MethodReference>{
      */
     private boolean isPolluted = false;
     /**
-     * 可污染点为 函数返回-1 类属性0 函数参数1-n
+     *
      */
-    private Set<Integer> pollutedPosition = new HashSet<>();
+    private Set<Integer> relatedPosition = new HashSet<>();
 
     private String returnType;
-
 
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;

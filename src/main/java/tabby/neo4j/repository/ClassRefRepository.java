@@ -1,9 +1,9 @@
-package tabby.dal.repository;
+package tabby.neo4j.repository;
 
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
-import tabby.dal.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.ClassReference;
 
 import java.util.UUID;
 

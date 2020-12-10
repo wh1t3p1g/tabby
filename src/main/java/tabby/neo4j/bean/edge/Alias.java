@@ -1,4 +1,4 @@
-package tabby.dal.bean.edge;
+package tabby.neo4j.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -8,7 +8,7 @@ import org.neo4j.ogm.annotation.RelationshipEntity;
 import org.neo4j.ogm.annotation.StartNode;
 import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
-import tabby.dal.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.MethodReference;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -16,29 +16,29 @@ import java.util.UUID;
 
 /**
  * @author wh1t3P1g
- * @since 2020/10/10
+ * @since 2020/11/22
  */
 @Getter
 @Setter
-@RelationshipEntity(type="EXTEND")
-public class Extend {
+@RelationshipEntity(type="ALIAS")
+public class Alias {
 
     @Id
     @Convert(UuidStringConverter.class)
     private UUID uuid;
 
     @StartNode
-    private ClassReference source;
+    private MethodReference source;
 
     @EndNode
-    private ClassReference target;
+    private MethodReference target;
 
-    public static Extend newInstance(ClassReference source, ClassReference target){
-        Extend extend = new Extend();
-        extend.setUuid(UUID.randomUUID());
-        extend.setSource(source);
-        extend.setTarget(target);
-        return extend;
+    public static Alias newInstance(MethodReference source, MethodReference target){
+        Alias alias = new Alias();
+        alias.setUuid(UUID.randomUUID());
+        alias.setSource(source);
+        alias.setTarget(target);
+        return alias;
     }
 
     public List<String> toCSV(){

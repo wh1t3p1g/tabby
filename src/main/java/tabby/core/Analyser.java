@@ -8,7 +8,7 @@ import soot.options.Options;
 import tabby.config.GlobalConfiguration;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.cache.CacheHelper;
 import tabby.util.FileUtils;
 
 import java.io.File;

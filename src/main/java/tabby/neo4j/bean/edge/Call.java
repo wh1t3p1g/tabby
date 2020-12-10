@@ -1,4 +1,4 @@
-package tabby.dal.bean.edge;
+package tabby.neo4j.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -11,7 +11,7 @@ import org.neo4j.ogm.annotation.typeconversion.Convert;
 import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.Unit;
 import soot.Value;
-import tabby.dal.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.MethodReference;
 
 import java.util.*;
 
@@ -57,14 +57,9 @@ public class Call {
     private transient Unit unit;
 
     /**
-     * 当 target的pollutedPosition == 当前source的call边的pollutedPosition 时
-     * isPolluted == true
-     */
-    private boolean isPolluted = false;
-
-    /**
      * 当前调用函数时，所填充的参数位置
      * 例如 a.b(c,d,e) 此时 c可控，则填充1，表示第一个参数可以被污染
+     *                  a可控，则填充0
      */
     private Set<Integer> pollutedPosition = new HashSet<>();
 

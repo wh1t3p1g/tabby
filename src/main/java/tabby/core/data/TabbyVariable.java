@@ -22,6 +22,7 @@ public class TabbyVariable {
     private Local origin;
     private boolean isPolluted = false;
     private boolean dependOnMethod = false;
+    private boolean isPhantom = false;
 
     private TabbyVariable(){
 

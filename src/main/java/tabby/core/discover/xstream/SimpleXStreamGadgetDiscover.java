@@ -4,10 +4,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.SootMethod;
 import tabby.config.GlobalConfiguration;
-import tabby.core.discover.Discover;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.cache.CacheHelper;
-import tabby.dal.service.MethodRefService;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.cache.CacheHelper;
+import tabby.neo4j.service.MethodRefService;
 
 import java.util.HashMap;
 import java.util.List;
@@ -19,7 +18,7 @@ import java.util.Map;
  */
 @SuppressWarnings({"unchecked"})
 @Component
-public class SimpleXStreamGadgetDiscover implements Discover {
+public class SimpleXStreamGadgetDiscover {
     private static Map<String, List<Map<String, Object>>> SOURCES = new HashMap<>();
 
     @Autowired
@@ -27,7 +26,6 @@ public class SimpleXStreamGadgetDiscover implements Discover {
     @Autowired
     private CacheHelper cacheHelper;
 
-    @Override
     public void run() {
         // 1. find all sinks functions
         List<String> sinkMethodSig = methodRefService.findAllSinks();

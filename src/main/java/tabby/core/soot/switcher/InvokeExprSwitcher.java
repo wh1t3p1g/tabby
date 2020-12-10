@@ -13,12 +13,12 @@ import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
 import tabby.core.data.RulesContainer;
 import tabby.core.soot.toolkit.VarsPointsToAnalysis;
-import tabby.dal.bean.edge.Call;
-import tabby.dal.bean.edge.Has;
-import tabby.dal.bean.ref.ClassReference;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.bean.ref.handle.ClassRefHandle;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.bean.edge.Call;
+import tabby.neo4j.bean.edge.Has;
+import tabby.neo4j.bean.ref.ClassReference;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.handle.ClassRefHandle;
+import tabby.neo4j.cache.CacheHelper;
 
 import java.util.List;
 
@@ -104,6 +104,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classRefHandle.getName());
             call.setInvokerType(invokerType);
+            // TODO 是否需要在这边对每个函数调用做分析，分析当前调用是否 对象可控？参数可控？
 //            Set<Integer> pos = analysis.mayPolluted(unit, invokerType);
 //            call.setPolluted(!pos.isEmpty());
 //            call.setPollutedPosition(pos);

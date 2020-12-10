@@ -1,10 +1,10 @@
-package tabby.dal.repository;
+package tabby.neo4j.repository;
 
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
-import tabby.dal.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.MethodReference;
 
 import java.util.List;
 import java.util.UUID;

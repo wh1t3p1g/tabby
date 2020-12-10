@@ -27,9 +27,9 @@ public class TabbyValue implements Serializable {
     private List<TabbyVariable> elements;
 
     // method return
+    private boolean isMethodReturn = false;
     private String methodSignature;
     private Set<Integer> controllableArgs = new HashSet<>();
-    private boolean isMethodReturn = false;
     private TabbyVariable base;
 
     // param

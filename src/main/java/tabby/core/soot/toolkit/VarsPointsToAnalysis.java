@@ -14,8 +14,8 @@ import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.StmtSwitcher;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.cache.CacheHelper;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.cache.CacheHelper;
 
 import java.util.*;
 

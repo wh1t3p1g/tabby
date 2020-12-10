@@ -1,12 +1,12 @@
-package tabby.dal.service;
+package tabby.neo4j.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheConfig;
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
-import tabby.dal.bean.ref.MethodReference;
-import tabby.dal.bean.ref.handle.MethodRefHandle;
-import tabby.dal.repository.MethodRefRepository;
+import tabby.neo4j.bean.ref.MethodReference;
+import tabby.neo4j.bean.ref.handle.MethodRefHandle;
+import tabby.neo4j.repository.MethodRefRepository;
 import tabby.util.FileUtils;
 
 import java.util.List;

@@ -1,4 +1,4 @@
-package tabby.dal.bean.ref.handle;
+package tabby.neo4j.bean.ref.handle;
 
 /**
  * @author wh1t3P1g
