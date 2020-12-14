@@ -5,14 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.Modifier;
-import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-import soot.jimple.spark.ondemand.DemandCSPointsTo;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.UnitGraph;
+import tabby.core.data.Context;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
+import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -35,7 +37,6 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
     @Override
     public void run(List<MethodReference> targets) {
-        invokeExprSwitcher.setPta((DemandCSPointsTo) Scene.v().getPointsToAnalysis());
         collect(targets);
         // TODO 逆拓扑排序 并分析 这里分析讲简化记录获取的内容
         build();
@@ -56,10 +57,18 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 methodRef.setPolluted(methodRef.isSink());
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
-            JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             invokeExprSwitcher.setSource(methodRef);
 
+            JimpleBody body = (JimpleBody) method.retrieveActiveBody();
+            UnitGraph graph = new BriefUnitGraph(body);
+            Context context = Context.newInstance(method.getSignature());
+            if("case8".equals(methodRef.getName())){
+                PollutedVarsPointsToAnalysis pta = PollutedVarsPointsToAnalysis.makeDefault(methodRef, graph, cacheHelper, context);
+                context.clear();
+            }
+
             for(Unit unit: body.getUnits()){
+                // TODO pta check
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){
                     invokeExprSwitcher.setUnit(unit);

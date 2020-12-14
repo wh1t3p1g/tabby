@@ -1,7 +1,10 @@
 package tabby.core.data;
 
 import lombok.Data;
-import soot.*;
+import soot.ArrayType;
+import soot.SootFieldRef;
+import soot.Type;
+import soot.Value;
 import soot.jimple.FieldRef;
 
 import java.io.Serializable;
@@ -14,66 +17,35 @@ import java.util.*;
 @Data
 public class TabbyValue implements Serializable {
 
-    private Value origin;
-    private Type type;
-    private String typeName;
-    // field
-    private boolean isStatic = false;
-    private boolean isField = false;
-    private String staticFieldDeclaringClass;
-    private Map<SootFieldRef, TabbyVariable> fieldMap;
-
-    // array
-    private List<TabbyVariable> elements;
-    private boolean isArray = false;
-    private boolean isFixedArray = false;
-    private boolean isDynamicArray = false;
-
-    // method return
-    private boolean isMethodReturn = false;
-    private String methodSignature;
-    private Set<Integer> controllableArgs = new HashSet<>();
-    private TabbyVariable base;
-
-    // param
+    // status
+    private boolean isThis = false;
     private boolean isParam = false;
-    private int paramIndex;
-    private Set<Integer> polluted = new HashSet<>(); // 标记可能污染的点，由下一层函数分析后决定，跟gadgetinspector一样 0表示对象的类属性，1-n 表示函数参数位置
+    private boolean isField = false;
+    private boolean isArray = false;
+    private boolean isStatic = false;
+    private boolean isPolluted = false;
 
-    private Set<String> relatedType = new HashSet<>();
+    // fields
+    private Map<SootFieldRef, TabbyVariable> fieldMap = new HashMap<>();
+
+    // arrays
+    private Map<Integer, TabbyVariable> elements = new HashMap<>();
+
+    // params
+    private int paramIndex;
+    // polluted positions like param-0,param-1,field-name1,this
+    private String relatedType;
 
     public TabbyValue(){}
 
-    private TabbyValue(Value value) {
-        this.origin = value;
-        this.type = value != null ? value.getType(): null;
-        this.typeName = type == null ? null : type.toString();
-
-        if (type instanceof RefLikeType) {
-            fieldMap = new HashMap<>();
-        }
-        if (type instanceof ArrayType) {
-            elements = Collections.emptyList();
-            isArray = true;
-        }
+    public static TabbyValue newInstance(Value value){
+        TabbyValue val = new TabbyValue();
+        val.setArray(isArrayType(value.getType()));
         if (value instanceof FieldRef){
             FieldRef fr = (FieldRef) value;
-            isField = true;
-            isStatic = fr.getFieldRef().isStatic();
-            if(isStatic){
-                staticFieldDeclaringClass = fr.getFieldRef().declaringClass().toString();
-            }
+            val.setField(true);
+            val.setStatic(fr.getFieldRef().isStatic());
         }
-    }
-
-    public static TabbyValue newInstance(Value value){
-        return new TabbyValue(value);
-    }
-
-    public static TabbyValue newInstance(SootMethod method){
-        TabbyValue val = new TabbyValue();
-        val.setMethodReturn(true);
-        val.setMethodSignature(method.getSignature());
         return val;
     }
 
@@ -85,39 +57,33 @@ public class TabbyValue implements Serializable {
     public TabbyValue clone(boolean deepClone, List<TabbyVariable> clonedVars){
         // try to clone value
         TabbyValue newValue = new TabbyValue();
-        newValue.setType(type);
-        newValue.setTypeName(typeName);
         newValue.setField(isField);
+        newValue.setArray(isArray);
+        newValue.setParam(isParam);
+        newValue.setPolluted(isPolluted);
         newValue.setStatic(isStatic);
-        newValue.setOrigin(origin);
-        newValue.setControllableArgs(controllableArgs);
-        newValue.setPolluted(polluted);
-        newValue.setMethodSignature(methodSignature);
-        newValue.setMethodReturn(isMethodReturn);
-        newValue.setRelatedType(new HashSet<>(relatedType));
-        if(base != null){
-            newValue.setBase(deepClone ? base.clone(deepClone, clonedVars) : base);
-        }
+        newValue.setParamIndex(paramIndex);
+        newValue.setRelatedType(relatedType);
         // try to clone elements and fieldMap
         if(deepClone){
-            if(newValue.isArray() && elements != null){
-                newValue.setElements(new ArrayList<>(elements.size()));
-                for (TabbyVariable element : elements) {
-                    newValue.getElements().add(element != null ? element.clone(deepClone, clonedVars) : null);
-                }
-            }
-            if(hasFields()){
-                newValue.setFieldMap(new HashMap<>());
-                for (Map.Entry<SootFieldRef, TabbyVariable> entry : fieldMap.entrySet()) {
-                    SootFieldRef sfr = entry.getKey();
-                    TabbyVariable field = entry.getValue();
-                    newValue.getFieldMap().put(sfr, field != null ? field.clone(deepClone, clonedVars) : null);
-                }
+            Map<Integer, TabbyVariable> newElements = new HashMap<>();
+            Map<SootFieldRef, TabbyVariable> newFields = new HashMap<>();
+
+            for(Map.Entry<Integer, TabbyVariable> entry:newElements.entrySet()){
+                TabbyVariable var = entry.getValue();
+                newElements.put(entry.getKey(), var != null ? var.clone(deepClone, clonedVars) : null);
             }
 
+            for (Map.Entry<SootFieldRef, TabbyVariable> entry : fieldMap.entrySet()) {
+                SootFieldRef sfr = entry.getKey();
+                TabbyVariable field = entry.getValue();
+                newFields.put(sfr, field != null ? field.clone(deepClone, clonedVars) : null);
+            }
+            newValue.setElements(newElements);
+            newValue.setFieldMap(newFields);
         }else{
             if(elements != null){
-                newValue.setElements(new ArrayList<>(elements));
+                newValue.setElements(new HashMap<>(elements));
             }
             if(fieldMap != null){
                 newValue.setFieldMap(new HashMap<>(fieldMap));
@@ -127,80 +93,41 @@ public class TabbyValue implements Serializable {
         return newValue;
     }
 
-    public void asFixedArray(int size) {
-        if (!isArray) {
-            throw new IllegalStateException("not a array: " + toString());
-        }
-        elements = new ArrayList<>(size);
-        isFixedArray = true;
-        for (int i = size; i > 0; i--) {
-            elements.add(null);
-        }
-    }
-
-    public void asDynamicArray(){
-        if (!isArray) {
-            throw new IllegalStateException("not a array: " + toString());
-        }
-        elements = new ArrayList<>();
-        isDynamicArray = true;
-    }
-
     public boolean hasFields(){
         return fieldMap != null && !fieldMap.isEmpty();
     }
 
+    public boolean hasElements(){
+        return elements != null && !elements.isEmpty();
+    }
+
     public void addElement(int index, TabbyVariable var){
-        if(elements != null){
-            if(isFixedArray && elements.size() > index){
-                elements.add(index, var);
-            }else if(isDynamicArray){
-                if(elements.size() < index){
-                    int size = elements.size();
-                    for(int i=size; i<= index;i++){
-                        elements.add(i, null);
-                    }
-                }
-                elements.add(index, var);
-            }
+        if(elements != null && isArray){
+            elements.put(index, var);
         }
     }
 
     public void removeElement(int index){
-        if(elements != null && elements.size() > index){
-            elements.add(index, null);
+        if(elements != null){
+            elements.remove(index);
         }
     }
 
     public TabbyVariable getElement(int index){
-        if(elements != null && elements.size() > index){
-            return elements.get(index);
+        if(elements != null){
+            return elements.getOrDefault(index, null);
         }
         return null;
     }
 
-    /**
-     * a.f = variable
-     * @param sfr
-     * @param var
-     */
-    public void assign(SootFieldRef sfr, TabbyVariable var){
-        if(fieldMap != null){
-            fieldMap.put(sfr, var.clone(false, new ArrayList<>()));
+    public static boolean isArrayType(Type type){
+        if(type instanceof ArrayType){
+            return true;
+        }else if("java.util.List".equals(type.toString())
+                    && "java.util.Collection".equals(type.toString())
+        ){
+            return true;
         }
-    }
-
-    /**
-     * a[i] = variable
-     * @param index
-     * @param var
-     */
-    public void assign(int index, TabbyVariable var){
-        if(!isArray()){
-            throw new IllegalStateException("not a array: " + toString());
-        }
-        if(elements != null && index < elements.size()){
-            elements.add(index, var.clone(false, new ArrayList<>()));
-        }
+        return false;
     }
 }

@@ -61,14 +61,15 @@ public class ClassInfoScanner implements Scanner<List<String>> {
     }
 
     private void buildRelationships(ClassReference classRef){
+        if(classRef == null) return;
         if(classRef.isInitialed())return;
         // build superclass relationship
         if(classRef.isHasSuperClass()){
             ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
             if(superClassRef == null){ // cache中没有 默认为新类
-                if(classRef.getSuperClass().toString().equals("java.lang.ClassLoader")){
-                    System.out.println(1);
-                }
+//                if(classRef.getSuperClass().toString().equals("java.lang.ClassLoader")){
+//                    System.out.println(1);
+//                }
                 superClassRef = collect(classRef.getSuperClass());
                 if(superClassRef == null){
                     System.out.println(1);
@@ -100,8 +101,6 @@ public class ClassInfoScanner implements Scanner<List<String>> {
             if(targetRef != null){
                 Alias alias = Alias.newInstance(sourceRef, targetRef);
                 sourceRef.setAliasEdge(alias);
-//                sourceRef.getCachedAliasMethodRefs().add(targetRef);
-//                targetRef.getCachedAliasMethodRefs().add(sourceRef);
             }
         });
         classRef.setInitialed(true);

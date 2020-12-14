@@ -17,25 +17,23 @@ import java.util.Map;
 public class TabbyVariable {
 
     private String name;
-    private int aliasId; // 变量索引
+    private Type type;
+    private String typeName;
     private TabbyValue value;
-    private Local origin;
-    private boolean isPolluted = false;
-    private boolean dependOnMethod = false;
-    private boolean isPhantom = false;
+    private Value origin;
 
     private TabbyVariable(){
-
     }
 
     private TabbyVariable(Value sootValue, TabbyValue tabbyValue){
         name = sootValue.toString();
-        if(sootValue instanceof Local){
-            origin = (Local) sootValue;
-        }else if(sootValue instanceof FieldRef){
-            name = ((FieldRef) sootValue).getFieldRef().name();
+        type = sootValue.getType();
+        typeName = type.toString();
+        if(sootValue instanceof FieldRef){
+            name = typeName + "." + ((FieldRef) sootValue).getFieldRef().name();
         }
         value = tabbyValue;
+        origin = sootValue;
     }
 
     /**
@@ -46,37 +44,6 @@ public class TabbyVariable {
     public static TabbyVariable newInstance(Value sootValue){
         TabbyValue tabbyValue = TabbyValue.newInstance(sootValue);
         return new TabbyVariable(sootValue, tabbyValue);
-    }
-
-    /**
-     * 初始化一个没有value的变量
-     * @param local
-     * @return
-     */
-    public static TabbyVariable newInstance(Local local){
-        TabbyVariable var = new TabbyVariable();
-        var.setOrigin(local);
-        var.setName(local.getName());
-        return var;
-    }
-
-    public static TabbyVariable newInstance(SootFieldRef fieldRef){
-        TabbyVariable var = new TabbyVariable();
-        var.setName(fieldRef.name());
-        TabbyValue val = new TabbyValue();
-        val.setType(fieldRef.type());
-        val.setTypeName(fieldRef.type().toString());
-        val.setField(true);
-        val.setStatic(fieldRef.isStatic());
-        var.setValue(val);
-        return var;
-    }
-
-    public static TabbyVariable newInstance(SootMethod method){
-        TabbyVariable var = new TabbyVariable();
-        var.setName("value from "+method.getName());
-        var.setValue(TabbyValue.newInstance(method));
-        return var;
     }
 
     public TabbyVariable clone(boolean deepClone, List<TabbyVariable> clonedVars){
@@ -90,11 +57,9 @@ public class TabbyVariable {
         // try to clone value
         clonedVar = new TabbyVariable();
         clonedVar.setName(name);
+        clonedVar.setType(type);
         clonedVar.setOrigin(origin);
         clonedVar.setValue(value != null ? value.clone(deepClone, clonedVars) : null);
-        clonedVar.setAliasId(aliasId);
-        clonedVar.setPolluted(isPolluted);
-        clonedVar.setDependOnMethod(dependOnMethod);
         return clonedVar;
     }
 
@@ -106,7 +71,6 @@ public class TabbyVariable {
         if(var.getValue() != null){
             this.value = var.getValue().clone(false, new ArrayList<>());
         }
-        isPolluted = var.isPolluted();
     }
 
     public TabbyVariable getField(SootFieldRef sfr){
@@ -118,7 +82,7 @@ public class TabbyVariable {
 
     public void addField(SootFieldRef sfr, TabbyVariable var){
         if(value != null){
-            value.getRelatedType().addAll(var.value.getRelatedType());
+            value.setRelatedType(var.value.getRelatedType());
             if(value.getFieldMap() != null){
                 value.getFieldMap().put(sfr, var);
             }else{
@@ -137,25 +101,47 @@ public class TabbyVariable {
         }
     }
 
-    public TabbyVariable getElement(int index){
-        if(value != null && value.getType() instanceof ArrayType){
-            return value.getElement(index);
+
+    public boolean isPolluted(){
+        if(value != null){
+            return value.isPolluted();
+        }
+        return false;
+    }
+
+    public TabbyVariable findFieldVarByName(String name){
+        String fieldName = typeName + "." + name;
+        if(value.hasFields()){
+            for(TabbyVariable var:value.getFieldMap().values()){
+                if(fieldName.equals(var.getName())){
+                    return var;
+                }
+            }
         }
         return null;
     }
 
-    public void addElement(int index, TabbyVariable var){ // 只要数组中的某个值可控，那么默认当前变量可控
-        if(value != null && value.getType() instanceof ArrayType){
-            isPolluted = isPolluted() || var.isPolluted();
-            value.addElement(index, var);
+    public void modify(String position, String related){
+        if(value == null) return;
+        if(position.startsWith("param") || position.equals("return")){
+            if("clear".equals(related)){
+                value.setPolluted(false);
+                value.setRelatedType(null);
+            }else{
+                value.setRelatedType(related);
+            }
+        }else if(position.startsWith("this")){
+            String name = position.split("\\.")[1];
+            TabbyVariable fieldVar = findFieldVarByName(name);
+            if(fieldVar != null){
+                if("clear".equals(related)){
+                    fieldVar.value.setPolluted(false);
+                    fieldVar.value.setRelatedType(null);
+                }else{
+                    fieldVar.value.setRelatedType(related);
+                }
+            }
         }
+
     }
-
-    public void removeElement(int index){
-        if(value != null && value.getType() instanceof ArrayType){
-            value.removeElement(index);
-        }
-    }
-
-
 }

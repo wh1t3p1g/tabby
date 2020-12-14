@@ -1,11 +1,9 @@
 package tabby.core.data;
 
 import lombok.Data;
-import soot.Body;
 import soot.Local;
 import soot.Value;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -20,51 +18,45 @@ import java.util.Map;
 @Data
 public class Context {
 
-    private String methodSignature; // 当前函数签名
-    private List<Value> args; // 当前函数参数
-    private TabbyVariable returnVar; // 当前函数返回值
 
-    private TabbyVariable base; // 当出现函数调用a.b()时，存储当前的函数a
-    private Context preContext;// 如果当前函数为被调用的函数，那么preMainContext指向之前的函数context
+    private String methodSignature; // 当前函数签名
+    private TabbyVariable baseVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
+    private Map<Local, TabbyVariable> args = new HashMap<>();
+    private Context preContext;// 如果当前函数为被调用的函数，那么preContext指向之前的函数context
     private int depth; // 当前函数调用深度，限制无限循环的情况
     // 经过flowThough 函数时，拷贝 in集合
     private Map<Local, TabbyVariable> localMap;
-    public static Map<Value, TabbyVariable> globalMap;
-    // 映射Id与Local的关系,通过Id找到Local，然后通过Local 找当前的localMap里local可能对应的值
-    private Map<Integer, Local> queries;
-    private TabbyVariable thisVar;
+    public static Map<Value, TabbyVariable> globalMap = new HashMap<>();
+    // return 后需要修改的内容,主要针对入参的修正
+    // 比如 param-0:["clear", null] 表示当前的函数参数param0的可控状态清楚
+    //     param-0:["replace", [relateTypes]] 表示当前的函数参数param0的可控状态需要换成当前的这个relateTypes
+    private Map<String, List<Object>> returnActions = new HashMap<>();
+    // 用于return给当前
+    private TabbyVariable returnVar;
 
     public Context(){
         this.localMap = new HashMap<>();
     }
 
-    public Context(String methodSignature, List<Value> args, TabbyVariable base, Context preContext,  int depth) {
+    public Context(String methodSignature, Context preContext, int depth) {
         this.methodSignature = methodSignature;
-        this.args = args == null? new ArrayList<>() : args;
-        this.base = base;
         this.depth = depth;
         this.preContext = preContext;
         this.localMap = new HashMap<>();
-        globalMap = new HashMap<>();
-        this.queries = new HashMap<>();
     }
 
-    public static Context newInstance(String methodSignature, Body body) {
-        Context context = new Context(methodSignature,  new ArrayList<>(body.getParameterLocals()), null, null,0);
-        return context;
+    public static Context newInstance(String methodSignature) {
+        return new Context(methodSignature,null,0);
     }
 
     /**
      * 创建一个子函数域
      */
-    public Context createSubContext(String methodSignature, List<Value> args, TabbyVariable base) {
-        Context subContext = new Context(methodSignature, args, base,this,depth + 1);
-        return subContext;
+    public Context createSubContext(String methodSignature) {
+        return new Context(methodSignature, this,depth + 1);
     }
 
-
-
-    public TabbyVariable getVariable(Local local) {
+    public TabbyVariable getLocalVariable(Local local) {
         return localMap.get(local);
     }
 
@@ -75,6 +67,7 @@ public class Context {
             return globalMap.getOrDefault(value, null);
         }
     }
+
     /**
      * 根据local取出所有可能的variable
      * @param sootValue
@@ -96,39 +89,26 @@ public class Context {
             }
         }
         return var;
-
     }
 
     public void bindThis(Value value) {
-        if(thisVar == null){
-            thisVar = TabbyVariable.newInstance(value);
+        if(baseVar == null){
+            baseVar = TabbyVariable.newInstance(value);
         }
-        thisVar.getValue().getRelatedType().add("this");
-        thisVar.setPolluted(true); // 默认当前实例是可控的，比如在反序列化中this的field是可以被伪造的
-        bindLocalAndVariable((Local) value, thisVar.clone(false, new ArrayList<>()));
+        baseVar.getValue().setRelatedType("this");
+        baseVar.getValue().setThis(true);
+        baseVar.getValue().setPolluted(true); // 默认当前实例是可控的，比如在反序列化中this的field是可以被伪造的
+        bindLocalAndVariable((Local) value, baseVar);
     }
 
     public void bindArg(Local local, int paramIndex) {// 仅用在函数调用处，绑定下一层的变量信息
-        if (paramIndex >= 0 && paramIndex < args.size()) {
-            Value argValue = args.get(paramIndex);
-            if (argValue instanceof Local) {
-                TabbyVariable value = preContext == null? null: preContext.getVariable((Local)argValue); // 查找上层函数对应的变量
-                TabbyVariable var;
-                if (value != null) {
-                    var = value.clone(false, new ArrayList<>());
-                } else {
-                    var = TabbyVariable.newInstance(argValue);
-
-                }
-                var.setPolluted(true); // 默认函数参数同样可控
-                if(var.getValue() != null){
-                    var.getValue().setParam(true);
-                    var.getValue().setParamIndex(paramIndex);
-                    var.getValue().getRelatedType().add("param-"+paramIndex);
-                }
-                bindLocalAndVariable(local, var);
-            }
-        }
+        TabbyVariable paramVar = TabbyVariable.newInstance(local);
+        paramVar.getValue().setParam(true);
+        paramVar.getValue().setParamIndex(paramIndex);
+        paramVar.getValue().setPolluted(true);
+        paramVar.getValue().setRelatedType("param-"+paramIndex);
+        args.put(local, paramVar);
+        bindLocalAndVariable(local, paramVar);
     }
 
     /**
@@ -164,7 +144,6 @@ public class Context {
         }
         return false;
     }
-
 
     public void clear(){
         globalMap.clear();

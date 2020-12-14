@@ -3,17 +3,15 @@ package tabby.core.soot.toolkit;
 import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
-import soot.Modifier;
-import soot.SootMethod;
 import soot.Unit;
-import soot.jimple.JimpleBody;
-import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.DirectedGraph;
-import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
+import tabby.core.soot.switcher.stmt.SimpleStmtSwitcher;
 import tabby.core.soot.switcher.stmt.StmtSwitcher;
+import tabby.core.soot.switcher.value.SimpleLeftValueSwitcher;
+import tabby.core.soot.switcher.value.SimpleRightValueSwitcher;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -28,19 +26,20 @@ import java.util.*;
  */
 @Setter
 @Getter
-public class VarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, TabbyVariable>> {
+public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, TabbyVariable>> {
 
     private Context context; // 同一函数内共享的上下文内容
     private CacheHelper cacheHelper;
     private Map<Local,TabbyVariable> emptyMap;
     private StmtSwitcher stmtSwitcher;
+    private MethodReference methodRef;
 
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
      *
      * @param graph
      */
-    public VarsPointsToAnalysis(DirectedGraph<Unit> graph) {
+    public PollutedVarsPointsToAnalysis(DirectedGraph<Unit> graph) {
         super(graph);
         emptyMap = new HashMap<>();
     }
@@ -51,12 +50,12 @@ public class VarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, T
 
     @Override
     protected void flowThrough(Map<Local,TabbyVariable> in, Unit d, Map<Local,TabbyVariable> out) {
-//        context.setLocalMap(new HashMap<>(in));
-//        stmtSwitcher.setContext(context);
-//        stmtSwitcher.setCacheHelper(cacheHelper);
-//        d.apply(stmtSwitcher);
-        //DumbPointerAnalysis.v().reachingObjects((Local) d.getUseBoxes().get(1).getValue())
-//        out.putAll(context.getLocalMap());
+        context.setLocalMap(new HashMap<>(in));
+        stmtSwitcher.setContext(context);
+        stmtSwitcher.setCacheHelper(cacheHelper);
+
+        d.apply(stmtSwitcher);
+        out.putAll(context.getLocalMap());
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
         //      Identity statement p := @this checked
@@ -131,23 +130,22 @@ public class VarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, T
         return ret;
     }
 
-    public void analysisInvokedMethod(TabbyVariable base, SootMethod method){
-        MethodReference methodRef = cacheHelper.loadMethodRef(method.getSignature());
-        if(methodRef == null) return; // 只分析当前cache存在的函数
-        if(method.isAbstract() || Modifier.isNative(method.getModifiers())) return;
-        if(methodRef.isInitialed()) return; // 不重复分析
-        try{
-            JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-            UnitGraph graph = new BriefUnitGraph(body);
-            VarsPointsToAnalysis analysis = new VarsPointsToAnalysis(graph);
-
-            Context subContext = context.createSubContext(method.getSignature(), new ArrayList<>(body.getParameterLocals()), base);
-            subContext.setThisVar(TabbyVariable.newInstance(body.getThisLocal()));
-            analysis.setContext(subContext);
-            analysis.setCacheHelper(cacheHelper);
-            analysis.doAnalysis();
-        }catch (RuntimeException e){
-            // do nothing
-        }
+    public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
+                                                           DirectedGraph<Unit> graph,
+                                                           CacheHelper cacheHelper, Context context){
+        PollutedVarsPointsToAnalysis analysis = new PollutedVarsPointsToAnalysis(graph);
+        // 配置switchers
+        StmtSwitcher switcher = new SimpleStmtSwitcher();
+        switcher.setMethodRef(methodRef);
+        switcher.setLeftValueSwitcher(new SimpleLeftValueSwitcher());
+        switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
+        // 配置pta依赖
+        analysis.setCacheHelper(cacheHelper);
+        analysis.setStmtSwitcher(switcher);
+        analysis.setContext(context);
+        analysis.setMethodRef(methodRef);
+        // 进行分析
+        analysis.doAnalysis();
+        return analysis;
     }
 }

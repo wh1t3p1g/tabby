@@ -3,15 +3,21 @@ package tabby.core.soot.switcher.stmt;
 import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
+import soot.SootMethod;
 import soot.Value;
 import soot.ValueBox;
 import soot.jimple.*;
+import soot.jimple.internal.JimpleLocalBox;
+import soot.toolkits.graph.BriefUnitGraph;
+import soot.toolkits.graph.UnitGraph;
+import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
+import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
+import tabby.neo4j.bean.ref.MethodReference;
 
-import java.util.ArrayList;
-import java.util.HashSet;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Set;
+import java.util.Map;
 
 /**
  * 粗略的域敏感分析，遵循以下原则：
@@ -31,32 +37,52 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
 
     @Override
     public void caseInvokeStmt(InvokeStmt stmt) {
-        InvokeExpr invokeExpr = stmt.getInvokeExpr();
-        if(invokeExpr instanceof StaticInvokeExpr)return; // 静态函数调用是影响不了当前变量状态的
+        // extract baseVar and args
+        InvokeExpr ie = stmt.getInvokeExpr();
+        TabbyVariable baseVar = null;
+        Map<Integer, TabbyVariable> args = new HashMap<>();
+        for(int i=0; i<ie.getArgCount(); i++){
+            TabbyVariable var = context.getOrAdd(ie.getArg(i));
+            args.put(i, var);
+        }
         List<ValueBox> valueBoxes = stmt.getUseBoxes();
-        Set<String> relatedType = new HashSet<>();
-        List<TabbyVariable> notPollutedVars = new ArrayList<>();
-        for(ValueBox box: valueBoxes){
+        for(ValueBox box:valueBoxes){
             Value value = box.getValue();
-            if(value instanceof Local){
-                TabbyVariable var = context.getOrAdd(value);
-                if(var.isPolluted()){
-                    relatedType.addAll(var.getValue().getRelatedType());
-                }else{
-                    notPollutedVars.add(var);
-                }
+            if(box instanceof JimpleLocalBox){
+                baseVar = context.getOrAdd(value);
+                break;
             }
         }
-        if(relatedType.isEmpty() || notPollutedVars.isEmpty()) return;
-        // 状态传递
-        for(TabbyVariable var: notPollutedVars){
-            var.setPolluted(true);
-            var.getValue().getRelatedType().addAll(relatedType);
+        // do method call back actions
+        MethodReference methodRef = cacheHelper.loadMethodRef(ie.getMethod().getSignature());
+        if(!methodRef.isInitialed()){
+            // do call method analysis
+            doMethodAnalysis(ie.getMethod(), methodRef);
+            methodRef = cacheHelper.loadMethodRef(ie.getMethod().getSignature()); // refresh
+        }
+
+        for(Map.Entry<String, String> entry:methodRef.getRelatedPosition().entrySet()){
+            String position = entry.getKey();
+            String newRelated = entry.getValue();
+            if(position.startsWith("param")){ // 修正入参
+                int paramIndex = Integer.valueOf(position.split("-")[1]);
+                TabbyVariable paramVar = args.get(paramIndex);
+                if(paramVar != null){
+                    paramVar.modify(position, newRelated);
+                }
+            }else if(position.startsWith("this")){ // 修正当前baseVar的类属性
+                if(baseVar != null){
+                    baseVar.modify(position, newRelated);
+                }
+            }else if(position.equals("return")){ // 修正返回值
+                // 当前无左值
+            }
         }
     }
 
     @Override
     public void caseAssignStmt(AssignStmt stmt) {
+        // TODO 重写
         Value lop = stmt.getLeftOp();
         Value rop = stmt.getRightOp();
         TabbyVariable rvar = null;
@@ -112,5 +138,14 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
+    }
+
+    public void doMethodAnalysis(SootMethod method, MethodReference methodRef){
+        if(context.isInRecursion(method.getSignature())) return; // 递归不分析
+
+        JimpleBody body = (JimpleBody) method.retrieveActiveBody();
+        UnitGraph graph = new BriefUnitGraph(body);
+        Context subContext = context.createSubContext(method.getSignature());
+        PollutedVarsPointsToAnalysis pta = PollutedVarsPointsToAnalysis.makeDefault(methodRef, graph, cacheHelper, subContext);
     }
 }

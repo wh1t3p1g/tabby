@@ -30,48 +30,30 @@ public class MethodReference implements Comparable<MethodReference>{
     private UUID uuid;
 
     private String name;
-
     private String signature;
     private String subSignature;
-
-    private boolean isStatic = false;
-
-    private boolean hasParameters = false;
-
-    private boolean isSink = false;
-
+    private String returnType;
     private Set<String> parameters = new HashSet<>();
 
-    /**
-     * 如果函数体内 存在函数调用 递归分析
-     * 暂不采用 逆拓扑 来分析
-     */
+    private boolean isSink = false;
+    private boolean isStatic = false;
     private boolean isPolluted = false;
-    /**
-     * 相对位置，当前函数可能污染的位置/来源
-     * 比如有
-     * this,param-0,param-1......
-     * 则表明，当前函数内部，其返回值/内部逻辑中，存在this，param-0这些位置存在受污染的可能性
-     * 比如
-     * function A func(A a){
-     *     return a;
-     * }
-     * 则 relatedPosition -> param-0 , 那么在实际调用func的地方，就可以进行判断了
-     * 如
-     * function void func1(A a){
-     *     c = b.func(a)
-     *     exec(c)
-     * }
-     * 此时如果a可控，对应param-0，那么当前func1也是可以污染的
-     */
-    private Set<String> relatedPosition = new HashSet<>();
-    /**
-     * 返回值对应的位置/来源
-     * 此处主要用作污染传递
-     */
-    private String returnRelatedPosition;
-    private String returnType;
+    private boolean hasParameters = false;
 
+    /**
+     * 污染传递点，主要标记2种类型，this和param
+     * 其他函数可以依靠relatedPosition，来判断当前位置是否是通路
+     * old=new
+     * param-0=other value
+     *      param-0=param-1,param-0=this.field
+     * return=other value
+     *      return=param-0,return=this.field
+     * this.field=other value
+     * 提示经过当前函数调用后，当前函数参数和返回值的relateType会发生如下变化
+     */
+    private Map<String, String> relatedPosition = new HashMap<>();
+
+    private transient Map<String, List<Object>> returnActions = new HashMap<>();
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;
     private transient Set<MethodReference> cachedAliasMethodRefs = new HashSet<>();
@@ -129,7 +111,7 @@ public class MethodReference implements Comparable<MethodReference>{
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));
         csv.add(String.join("|", parameters));
-        csv.add(String.join("|", relatedPosition));
+        csv.add(GlobalConfiguration.GSON.toJson(relatedPosition));
         csv.add(returnType);
         return csv;
     }

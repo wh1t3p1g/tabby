@@ -90,7 +90,7 @@ public class Analyser {
             callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
 //            classInfoScanner.save();
             clean(); // clean caches
-            discover.run();
+//            discover.run();
 //            System.out.println(sortedMethodRefs.size());
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
