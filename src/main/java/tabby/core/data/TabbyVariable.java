@@ -118,6 +118,7 @@ public class TabbyVariable {
 
     public void addField(SootFieldRef sfr, TabbyVariable var){
         if(value != null){
+            value.getRelatedType().addAll(var.value.getRelatedType());
             if(value.getFieldMap() != null){
                 value.getFieldMap().put(sfr, var);
             }else{

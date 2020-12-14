@@ -227,6 +227,12 @@ public class CacheHelperImpl implements CacheHelper{
         return savedClassRefs.getOrDefault(handle, null);
     }
 
+    public Set<MethodReference> loadAliasMethodRef(String signature){
+        Set<MethodReference> methodRefs = new HashSet<>();
+        MethodReference currentMethodRef = loadMethodRef(signature);
+        return null;
+    }
+
     @Override
     public MethodReference loadMethodRef(String signature) {
         return savedMethodRefs.getOrDefault(signature, null);

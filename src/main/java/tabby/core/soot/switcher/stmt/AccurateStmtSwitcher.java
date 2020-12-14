@@ -1,4 +1,4 @@
-package tabby.core.soot.switcher;
+package tabby.core.soot.switcher.stmt;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -10,11 +10,10 @@ import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.toolkit.VarsPointsToAnalysis;
 import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.cache.CacheHelper;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author wh1t3P1g
@@ -22,15 +21,26 @@ import java.util.Set;
  */
 @Setter
 @Getter
-public class StmtSwitcher extends AbstractStmtSwitch {
-
-    private Context context;
-    private CacheHelper cacheHelper;
+public class AccurateStmtSwitcher extends SimpleStmtSwitcher {
 
     @Override
     public void caseInvokeStmt(InvokeStmt stmt) {
         // a.func() a可控
         // a.func(b,c) b,c 可控
+        // 不考虑 a不可控 且入参也同样不可控的情况
+        // 而且当前只进行了调用，并不会去影响其他变量
+        // 除非有可控的两种情况出现
+        // 这里我们也主要去处理这两个情况
+        boolean flag = false;
+        Map<Local, TabbyVariable> args = new HashMap<>();
+        InvokeExpr ie = stmt.getInvokeExpr();
+        for(Value value:ie.getArgs()){
+            TabbyVariable var = context.getVariable(value);
+            args.put((Local)value, var);
+            if(!flag && var.isPolluted()){
+                flag = true;
+            }
+        }
         super.caseInvokeStmt(stmt);
     }
 
@@ -46,9 +56,10 @@ public class StmtSwitcher extends AbstractStmtSwitch {
         Value rop = stmt.getRightOp();
         TabbyVariable rvar = null;
         boolean unbind = false;
-        RValueSwitcher valueSwitcher = new RValueSwitcher(context, cacheHelper);
-        rop.apply(valueSwitcher);
-        Object result = valueSwitcher.getResult();
+        rightValueSwitcher.setContext(context);
+        rightValueSwitcher.setCacheHelper(cacheHelper);
+        rop.apply(rightValueSwitcher);
+        Object result = rightValueSwitcher.getResult();
         if(result instanceof TabbyVariable){
             rvar = (TabbyVariable) result;
         }
@@ -57,37 +68,16 @@ public class StmtSwitcher extends AbstractStmtSwitch {
         }
         // 处理左值
         if(rvar != null || unbind){
-            LValueSwitcher lValueSwitcher = new LValueSwitcher(context, rvar, unbind);
-            lop.apply(lValueSwitcher);
-        }
-    }
-
-    @Override
-    public void caseIdentityStmt(IdentityStmt stmt) { // Identity statement p := @this
-        Value lop = stmt.getLeftOp();
-        Value rop = stmt.getRightOp();
-        if(rop instanceof ThisRef){
-            context.bindThis(lop);
-        }else if(rop instanceof ParameterRef){
-            ParameterRef pr = (ParameterRef)rop;
-            context.bindArg((Local)lop, pr.getIndex());
+            leftValueSwitcher.setContext(context);
+            leftValueSwitcher.setRvar(rvar);
+            leftValueSwitcher.setUnbind(unbind);
+            lop.apply(leftValueSwitcher);
         }
     }
 
     @Override
     public void caseIfStmt(IfStmt stmt) {
         super.caseIfStmt(stmt);
-    }
-
-    @Override
-    public void caseReturnStmt(ReturnStmt stmt) {
-        Value value = stmt.getOp();
-        TabbyVariable var = null;
-        if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return; // 只要有一种return的情况是可控的，就认为函数返回是可控的
-        RValueSwitcher valueSwitcher = new RValueSwitcher(context, cacheHelper);
-        value.apply(valueSwitcher);
-        var = (TabbyVariable) valueSwitcher.getResult();
-        context.setReturnVar(var);
     }
 
     @Override
@@ -174,20 +164,20 @@ public class StmtSwitcher extends AbstractStmtSwitch {
                     InvokeExpr invokeExpr = stmt.getInvokeExpr();
                     MethodReference invokedMethodRef = cacheHelper.loadMethodRef(invokeExpr.getMethodRef().getSignature());
                     if(invokedMethodRef != null && invokedMethodRef.isInitialed() && invokedMethodRef.isPolluted()){
-                        Set<Integer> pollutedPosition = invokedMethodRef.getPollutedPosition();
-                        pollutedPosition.forEach(position -> {
-                            Value value = invokeExpr.getArg(position);
-                            TabbyVariable var = null;
-                            if(value instanceof Local){
-                                var = localMap.getOrDefault(value, null);
-                            }else{
-                                var = Context.globalMap.getOrDefault(value, null);
-                            }
-                            if(var != null && var.isPolluted()){
-                                invokedMethodRef.setPolluted(true);
-
-                            }
-                        });
+//                        Set<Integer> pollutedPosition = invokedMethodRef.getPollutedPosition();
+//                        pollutedPosition.forEach(position -> {
+//                            Value value = invokeExpr.getArg(position);
+//                            TabbyVariable var = null;
+//                            if(value instanceof Local){
+//                                var = localMap.getOrDefault(value, null);
+//                            }else{
+//                                var = Context.globalMap.getOrDefault(value, null);
+//                            }
+//                            if(var != null && var.isPolluted()){
+//                                invokedMethodRef.setPolluted(true);
+//
+//                            }
+//                        });
                     }
                 }else if(unit instanceof ReturnStmt){
 

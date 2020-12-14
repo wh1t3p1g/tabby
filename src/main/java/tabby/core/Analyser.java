@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import soot.*;
 import soot.options.Options;
 import tabby.config.GlobalConfiguration;
+import tabby.core.discover.xstream.SimpleXStreamGadgetDiscover;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.neo4j.cache.CacheHelper;
@@ -15,7 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,6 +33,8 @@ public class Analyser {
     private ClassInfoScanner classInfoScanner;
     @Autowired
     private CallGraphScanner callGraphScanner;
+    @Autowired
+    private SimpleXStreamGadgetDiscover discover;
 
     /**
      * 运行当前soot分析
@@ -67,11 +69,12 @@ public class Analyser {
         try{
             cacheHelper.clear("all");
             if(isOnlyJDK){
+                setClassPath(null);
                 Options.v().set_process_dir(getJdkDependencies());
                 cacheHelper.loadRuntimeClasses(getJdkDependencies(), true);
             }else{
                 List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
-                Options.v().set_soot_classpath(String.join(File.pathSeparator, getJdkDependencies()));
+                setClassPath(targets);
 //                targets.addAll(getJdkDependencies());
                 Options.v().set_process_dir(targets);
                 cacheHelper.loadRuntimeClasses(targets, false);
@@ -85,9 +88,9 @@ public class Analyser {
             // 函数调用分析
             PackManager.v().runPacks();
             callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
-            classInfoScanner.save();
+//            classInfoScanner.save();
             clean(); // clean caches
-
+            discover.run();
 //            System.out.println(sortedMethodRefs.size());
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
@@ -104,20 +107,33 @@ public class Analyser {
     }
 
     public List<String> getJdkDependencies(){
-        List<String> jdk = new ArrayList<>(Arrays.asList(Scene.v().defaultClassPath().split(":")));
-        jdk.add(jdk.get(0).replace("rt.jar","jsse.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","management-agent.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","charsets.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/sunec.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/zipfs.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/cldrdata.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/dnsns.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/jaccess.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/localedata.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/nashorn.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/sunjce_provider.jar"));
-        jdk.add(jdk.get(0).replace("rt.jar","ext/sunpkcs11.jar"));
+        String classpath = System.getProperty("sun.boot.class.path")
+                + File.pathSeparator + System.getProperty("java.class.path");
+        String[] classpathes = classpath.split(File.pathSeparator);
+        List<String> jdk = new ArrayList<>();
+        for(String cp:classpathes){
+            if((cp.contains("/jre/")||cp.contains("Home/lib/")) && FileUtils.fileExists(cp)){
+                jdk.add(cp);
+            }
+        }
         return jdk;
+    }
+
+    private void setClassPath(List<String> targets)
+    {
+        String classpath = System.getProperty("sun.boot.class.path")
+                + File.pathSeparator + System.getProperty("java.class.path");
+        String[] classpathes = classpath.split(File.pathSeparator);
+        List<String> exists = new ArrayList<>();
+        for(String cp:classpathes){
+            if(FileUtils.fileExists(cp)){
+                exists.add(cp);
+            }
+        }
+        if(targets != null){
+            exists.addAll(targets);
+        }
+        Scene.v().setSootClassPath(String.join(File.pathSeparator, exists));
     }
 
     public void clean(){

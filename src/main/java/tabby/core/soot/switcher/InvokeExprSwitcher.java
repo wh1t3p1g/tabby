@@ -1,16 +1,16 @@
 package tabby.core.soot.switcher;
 
+import com.google.common.graph.GraphBuilder;
+import com.google.common.graph.MutableGraph;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.SootClass;
-import soot.SootMethodRef;
-import soot.Unit;
-import soot.Value;
+import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
+import soot.jimple.spark.ondemand.DemandCSPointsTo;
 import tabby.core.data.RulesContainer;
 import tabby.core.soot.toolkit.VarsPointsToAnalysis;
 import tabby.neo4j.bean.edge.Call;
@@ -37,10 +37,14 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
     private Unit unit;
     private VarsPointsToAnalysis analysis;
 
+    private DemandCSPointsTo pta;
+    private MutableGraph<String> graph = GraphBuilder.directed().build();
+
     @Autowired
     private CacheHelper cacheHelper;
     @Autowired
     private RulesContainer rulesContainer;
+
 
     @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
@@ -104,10 +108,22 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classRefHandle.getName());
             call.setInvokerType(invokerType);
+            graph.putEdge(source.getSignature(), target.getSignature());
             // TODO 是否需要在这边对每个函数调用做分析，分析当前调用是否 对象可控？参数可控？
 //            Set<Integer> pos = analysis.mayPolluted(unit, invokerType);
 //            call.setPolluted(!pos.isEmpty());
 //            call.setPollutedPosition(pos);
+            if("case8".equals(source.getName())){
+                System.out.println(1);
+            }
+
+            for(ValueBox box:unit.getUseBoxes()){
+                Value value = box.getValue();
+                if(value instanceof Local){
+                    PointsToSet pts = pta.reachingObjects((Local) value);
+                    pts.possibleTypes();
+                }
+            }
             call.setUnit(unit);
             source.getCallEdge().add(call);
         }

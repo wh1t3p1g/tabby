@@ -38,16 +38,16 @@ public class RulesContainer {
         return false;
     }
 
-    public Set<Integer> getSinkParamPosition(String classname, String method){
+    public Set<String> getSinkParamPosition(String classname, String method){
         if(sinks.containsKey(classname)){
             List<Map<String, Object>> functions = sinks.get(classname);
             for(Map<String, Object> function:functions){
                 if(method.equals(function.get("name"))){
-                    return new HashSet<Integer>((List)function.get("param"));
+                    return new HashSet<String>((List)function.get("related"));
                 }
             }
         }
-        return null;
+        return new HashSet<>();
     }
 
     public boolean isIgnore(String classname, String method){

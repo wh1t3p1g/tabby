@@ -1,12 +1,14 @@
-package tabby.core.soot.switcher;
+package tabby.core.soot.switcher.value;
 
 import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
 import soot.SootFieldRef;
 import soot.Value;
-import soot.jimple.*;
-import tabby.core.data.Context;
+import soot.jimple.ArrayRef;
+import soot.jimple.InstanceFieldRef;
+import soot.jimple.IntConstant;
+import soot.jimple.StaticFieldRef;
 import tabby.core.data.TabbyVariable;
 
 /**
@@ -15,17 +17,7 @@ import tabby.core.data.TabbyVariable;
  */
 @Getter
 @Setter
-public class LValueSwitcher extends AbstractJimpleValueSwitch {
-
-    private Context context;
-    private TabbyVariable rvar;
-    private boolean unbind = false;
-
-    public LValueSwitcher(Context context, TabbyVariable rvar, boolean unbind) {
-        this.context = context;
-        this.rvar = rvar;
-        this.unbind = unbind;
-    }
+public class SimpleLeftValueSwitcher extends ValueSwitcher {
 
     public void caseArrayRef(ArrayRef v) {
         Value baseValue = v.getBase();
@@ -37,6 +29,10 @@ public class LValueSwitcher extends AbstractJimpleValueSwitch {
                 baseVar.removeElement(index);
             }else{
                 baseVar.addElement(index, rvar);
+                if(rvar.isPolluted()){
+                    baseVar.setPolluted(true);
+                    baseVar.getValue().getRelatedType().addAll(rvar.getValue().getRelatedType());
+                }
             }
         }else if(indexValue instanceof Local){
             // 存在lvar = a[i2] 这种情况，暂无法推算处i2的值是什么，存在缺陷这部分
@@ -69,15 +65,14 @@ public class LValueSwitcher extends AbstractJimpleValueSwitch {
             TabbyVariable baseVar = context.getOrAdd(base);
             var = baseVar.getField(sootFieldRef);
             if(var == null){
-                TabbyVariable newFieldVar = TabbyVariable.newInstance(sootFieldRef);
-                newFieldVar.setPolluted(baseVar.isPolluted());
-                baseVar.addField(sootFieldRef, newFieldVar);
-                var = newFieldVar;
+                var = TabbyVariable.newInstance(sootFieldRef);
+                var.setPolluted(baseVar.isPolluted());
             }
             if(unbind){
                 var.removeField(sootFieldRef);
             }else{
                 var.assign(rvar);
+                baseVar.addField(sootFieldRef, var);
             }
         }
     }

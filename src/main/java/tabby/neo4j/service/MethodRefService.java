@@ -52,4 +52,8 @@ public class MethodRefService {
     public List<String> findAllByInvokedMethodSignature(String signature){
         return methodRefRepository.findAllByInvokedMethodSignature(signature);
     }
+
+    public MethodRefRepository getRepository(){
+        return methodRefRepository;
+    }
 }

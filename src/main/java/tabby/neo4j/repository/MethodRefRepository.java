@@ -18,6 +18,12 @@ public interface MethodRefRepository extends Neo4jRepository<MethodReference, UU
 
     MethodReference findMethodReferenceBySignature(String signature);
 
+    @Query("match (m:Method {signature: $signature}) -[:ALIAS*]- (m1:Method) return m1.signature")
+    List<String> findAllAliasMethods(String signature);
+
+    @Query("match (m:Method {signature:$sig}) <-[:CALL]- (m1:Method) return m1.signature")
+    List<String> findAllCall(String sig);
+
     @Query("match (m:Method {isSink:true}) return m.signature")
     List<String> findAllSinks();
 

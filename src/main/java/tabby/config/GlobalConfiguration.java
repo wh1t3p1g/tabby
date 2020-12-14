@@ -27,7 +27,7 @@ public class GlobalConfiguration {
     public static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "interfaces.csv");
     public static List<String[]> CSV_HEADERS = new ArrayList<>(Arrays.asList(
             new String[]{"uuid", "name", "superClass", "interfaces", "isInterface", "hasSuperClass", "hasInterfaces", "fields"},// class
-            new String[]{"uuid", "name", "signature", "subSignature", "isStatic", "hasParameters", "isSink", "parameters", "returnType"},// method
+            new String[]{"uuid", "name", "signature", "subSignature", "isStatic", "hasParameters", "isSink", "parameters", "relatedPosition", "returnType"},// method
             new String[]{"uuid", "source", "target"}, // extend/interfaces/
             new String[]{"uuid", "classRef", "MethodRef"}, // has
             new String[]{"uuid", "source", "target", "lineNum", "realCallType", "invokerType"}, // call

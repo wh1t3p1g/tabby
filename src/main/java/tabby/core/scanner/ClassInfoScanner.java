@@ -100,6 +100,8 @@ public class ClassInfoScanner implements Scanner<List<String>> {
             if(targetRef != null){
                 Alias alias = Alias.newInstance(sourceRef, targetRef);
                 sourceRef.setAliasEdge(alias);
+//                sourceRef.getCachedAliasMethodRefs().add(targetRef);
+//                targetRef.getCachedAliasMethodRefs().add(sourceRef);
             }
         });
         classRef.setInitialed(true);

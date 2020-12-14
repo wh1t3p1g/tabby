@@ -25,6 +25,9 @@ public class TabbyValue implements Serializable {
 
     // array
     private List<TabbyVariable> elements;
+    private boolean isArray = false;
+    private boolean isFixedArray = false;
+    private boolean isDynamicArray = false;
 
     // method return
     private boolean isMethodReturn = false;
@@ -36,6 +39,8 @@ public class TabbyValue implements Serializable {
     private boolean isParam = false;
     private int paramIndex;
     private Set<Integer> polluted = new HashSet<>(); // 标记可能污染的点，由下一层函数分析后决定，跟gadgetinspector一样 0表示对象的类属性，1-n 表示函数参数位置
+
+    private Set<String> relatedType = new HashSet<>();
 
     public TabbyValue(){}
 
@@ -49,6 +54,7 @@ public class TabbyValue implements Serializable {
         }
         if (type instanceof ArrayType) {
             elements = Collections.emptyList();
+            isArray = true;
         }
         if (value instanceof FieldRef){
             FieldRef fr = (FieldRef) value;
@@ -88,6 +94,7 @@ public class TabbyValue implements Serializable {
         newValue.setPolluted(polluted);
         newValue.setMethodSignature(methodSignature);
         newValue.setMethodReturn(isMethodReturn);
+        newValue.setRelatedType(new HashSet<>(relatedType));
         if(base != null){
             newValue.setBase(deepClone ? base.clone(deepClone, clonedVars) : base);
         }
@@ -121,17 +128,22 @@ public class TabbyValue implements Serializable {
     }
 
     public void asFixedArray(int size) {
-        if (!isArray()) {
+        if (!isArray) {
             throw new IllegalStateException("not a array: " + toString());
         }
         elements = new ArrayList<>(size);
+        isFixedArray = true;
         for (int i = size; i > 0; i--) {
             elements.add(null);
         }
     }
 
-    public boolean isArray(){
-        return type instanceof ArrayType;
+    public void asDynamicArray(){
+        if (!isArray) {
+            throw new IllegalStateException("not a array: " + toString());
+        }
+        elements = new ArrayList<>();
+        isDynamicArray = true;
     }
 
     public boolean hasFields(){
@@ -139,8 +151,18 @@ public class TabbyValue implements Serializable {
     }
 
     public void addElement(int index, TabbyVariable var){
-        if(elements != null && elements.size() > index){
-            elements.add(index, var);
+        if(elements != null){
+            if(isFixedArray && elements.size() > index){
+                elements.add(index, var);
+            }else if(isDynamicArray){
+                if(elements.size() < index){
+                    int size = elements.size();
+                    for(int i=size; i<= index;i++){
+                        elements.add(i, null);
+                    }
+                }
+                elements.add(index, var);
+            }
         }
     }
 

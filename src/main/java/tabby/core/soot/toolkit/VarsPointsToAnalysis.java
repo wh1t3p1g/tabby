@@ -13,7 +13,7 @@ import soot.toolkits.graph.UnitGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
-import tabby.core.soot.switcher.StmtSwitcher;
+import tabby.core.soot.switcher.stmt.StmtSwitcher;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -33,6 +33,7 @@ public class VarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, T
     private Context context; // 同一函数内共享的上下文内容
     private CacheHelper cacheHelper;
     private Map<Local,TabbyVariable> emptyMap;
+    private StmtSwitcher stmtSwitcher;
 
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
@@ -50,12 +51,12 @@ public class VarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, T
 
     @Override
     protected void flowThrough(Map<Local,TabbyVariable> in, Unit d, Map<Local,TabbyVariable> out) {
-        context.setLocalMap(new HashMap<>(in));
-        StmtSwitcher switcher = new StmtSwitcher();
-        switcher.setContext(context);
-        switcher.setCacheHelper(cacheHelper);
-        d.apply(switcher);
-        out.putAll(context.getLocalMap());
+//        context.setLocalMap(new HashMap<>(in));
+//        stmtSwitcher.setContext(context);
+//        stmtSwitcher.setCacheHelper(cacheHelper);
+//        d.apply(stmtSwitcher);
+        //DumbPointerAnalysis.v().reachingObjects((Local) d.getUseBoxes().get(1).getValue())
+//        out.putAll(context.getLocalMap());
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
         //      Identity statement p := @this checked

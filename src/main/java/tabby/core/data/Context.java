@@ -103,6 +103,7 @@ public class Context {
         if(thisVar == null){
             thisVar = TabbyVariable.newInstance(value);
         }
+        thisVar.getValue().getRelatedType().add("this");
         thisVar.setPolluted(true); // 默认当前实例是可控的，比如在反序列化中this的field是可以被伪造的
         bindLocalAndVariable((Local) value, thisVar.clone(false, new ArrayList<>()));
     }
@@ -117,11 +118,13 @@ public class Context {
                     var = value.clone(false, new ArrayList<>());
                 } else {
                     var = TabbyVariable.newInstance(argValue);
+
                 }
                 var.setPolluted(true); // 默认函数参数同样可控
                 if(var.getValue() != null){
                     var.getValue().setParam(true);
                     var.getValue().setParamIndex(paramIndex);
+                    var.getValue().getRelatedType().add("param-"+paramIndex);
                 }
                 bindLocalAndVariable(local, var);
             }

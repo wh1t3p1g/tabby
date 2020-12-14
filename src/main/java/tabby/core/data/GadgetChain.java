@@ -1,6 +1,7 @@
 package tabby.core.data;
 
 import lombok.Data;
+import tabby.neo4j.bean.ref.MethodReference;
 
 import java.util.LinkedList;
 
@@ -11,24 +12,30 @@ import java.util.LinkedList;
 @Data
 public class GadgetChain {
 
-    private LinkedList<GadgetChain> next;
+    private LinkedList<GadgetChain> next = new LinkedList<>();
 
-    private String data;
+    private String method;
+    private String obj;
+    private MethodReference methodRef;
 
-    private GadgetChain head;
+    private GadgetChain preNode;
+    private String invokerType;
 
-    private GadgetChain end;
-
-    public GadgetChain(GadgetChain head, String data){
-        this.head = head;
-        this.data = data;
-        this.head.setEnd(this);
+    public GadgetChain(GadgetChain preNode){
+        this.preNode = preNode;
     }
 
-    public GadgetChain(String data){
-        this.head = this;
-        this.data = data;
-        this.head.setEnd(this);
+    public GadgetChain(){
+    }
+
+    public boolean isInRecursion(String invokeSignature) {
+        if (invokeSignature.equals(method)) {
+            return true;
+        }
+        if (preNode != null) {
+            return preNode.isInRecursion(invokeSignature);
+        }
+        return false;
     }
 
     public boolean hasNext(){
@@ -39,16 +46,22 @@ public class GadgetChain {
         if(sb == null){
             sb = new StringBuffer();
         }
-        sb.append(data);
-        sb.append("\n");
-        if(hasNext()){
-            for (GadgetChain gadgetChain : next) {
-                StringBuffer sb1 = new StringBuffer();
-                sb1.append(sb.toString());
-                gadgetChain.print(sb1);
-            }
+        sb.append(toString()).append("\n");
+        if(preNode != null){
+            StringBuffer sb1 = new StringBuffer();
+            sb1.append(sb.toString());
+            preNode.print(sb1);
         }else{
             System.out.print(sb);
         }
+    }
+
+    @Override
+    public String toString() {
+        return "GadgetChain{" +
+                "method='" + method + '\'' +
+                ", obj='" + obj + '\'' +
+                ", invokerType='" + invokerType + '\'' +
+                '}';
     }
 }

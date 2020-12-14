@@ -48,14 +48,33 @@ public class MethodReference implements Comparable<MethodReference>{
      */
     private boolean isPolluted = false;
     /**
-     *
+     * 相对位置，当前函数可能污染的位置/来源
+     * 比如有
+     * this,param-0,param-1......
+     * 则表明，当前函数内部，其返回值/内部逻辑中，存在this，param-0这些位置存在受污染的可能性
+     * 比如
+     * function A func(A a){
+     *     return a;
+     * }
+     * 则 relatedPosition -> param-0 , 那么在实际调用func的地方，就可以进行判断了
+     * 如
+     * function void func1(A a){
+     *     c = b.func(a)
+     *     exec(c)
+     * }
+     * 此时如果a可控，对应param-0，那么当前func1也是可以污染的
      */
-    private Set<Integer> relatedPosition = new HashSet<>();
-
+    private Set<String> relatedPosition = new HashSet<>();
+    /**
+     * 返回值对应的位置/来源
+     * 此处主要用作污染传递
+     */
+    private String returnRelatedPosition;
     private String returnType;
 
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;
+    private transient Set<MethodReference> cachedAliasMethodRefs = new HashSet<>();
     private transient boolean isInitialed = false;
     private transient boolean isIgnore = false;
 
@@ -110,6 +129,7 @@ public class MethodReference implements Comparable<MethodReference>{
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));
         csv.add(String.join("|", parameters));
+        csv.add(String.join("|", relatedPosition));
         csv.add(returnType);
         return csv;
     }

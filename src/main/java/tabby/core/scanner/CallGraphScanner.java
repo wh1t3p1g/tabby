@@ -5,16 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.Modifier;
+import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.UnitGraph;
-import tabby.core.data.Context;
+import soot.jimple.spark.ondemand.DemandCSPointsTo;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
-import tabby.core.soot.toolkit.VarsPointsToAnalysis;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -37,7 +35,9 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
     @Override
     public void run(List<MethodReference> targets) {
+        invokeExprSwitcher.setPta((DemandCSPointsTo) Scene.v().getPointsToAnalysis());
         collect(targets);
+        // TODO 逆拓扑排序 并分析 这里分析讲简化记录获取的内容
         build();
     }
 
@@ -57,19 +57,8 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-            UnitGraph graph = new BriefUnitGraph(body);
-            // TODO 指针分析测试
-            if(methodRef.getName().equals("case8")){
-                VarsPointsToAnalysis analysis = new VarsPointsToAnalysis(graph);
-                analysis.setCacheHelper(cacheHelper);
-                Context context = Context.newInstance(methodRef.getSignature(), body);
-                analysis.setContext(context);
-                analysis.doAnalysis();
-                context.clear();
-            }
-
-//            invokeExprSwitcher.setAnalysis(analysis);
             invokeExprSwitcher.setSource(methodRef);
+
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){

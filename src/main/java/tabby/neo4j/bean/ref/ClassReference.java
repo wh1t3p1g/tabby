@@ -109,7 +109,7 @@ public class ClassReference{
 
                 if(isSink){
                     methodRef.setPolluted(true);
-                    methodRef.setPollutedPosition(rulesContainer.getSinkParamPosition(classRef.getName(), methodRef.getName()));
+                    methodRef.setRelatedPosition(rulesContainer.getSinkParamPosition(classRef.getName(), methodRef.getName()));
                     methodRef.setInitialed(true);
                 }
 
