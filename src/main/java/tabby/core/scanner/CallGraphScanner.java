@@ -14,6 +14,7 @@ import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import tabby.core.data.Context;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
+import tabby.core.soot.switcher.Switcher;
 import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
@@ -38,7 +39,6 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
     @Override
     public void run(List<MethodReference> targets) {
         collect(targets);
-        // TODO 逆拓扑排序 并分析 这里分析讲简化记录获取的内容
         build();
     }
 
@@ -60,10 +60,9 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
             invokeExprSwitcher.setSource(methodRef);
 
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-            UnitGraph graph = new BriefUnitGraph(body);
             Context context = Context.newInstance(method.getSignature());
             if("case8".equals(methodRef.getName())){
-                PollutedVarsPointsToAnalysis pta = PollutedVarsPointsToAnalysis.makeDefault(methodRef, graph, cacheHelper, context);
+                Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
                 context.clear();
             }
 
@@ -77,7 +76,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 }
             }
         }catch (RuntimeException e){
-//            e.printStackTrace();
+            e.printStackTrace();
 //            log.debug(methodRef.getSignature() + " not found");
         }
     }

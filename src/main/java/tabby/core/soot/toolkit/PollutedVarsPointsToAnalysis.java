@@ -86,10 +86,10 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
             if(variable == null) return;
             if(out.containsKey(local)){
                 if(!out.get(local).isPolluted() && variable.isPolluted()){ // 聚合时仅保留可控变量
-                    out.put(local, variable.clone(true, new ArrayList<>()));
+                    out.put(local, variable.deepClone(new ArrayList<>()));
                 }
             }else{
-                out.put(local, variable.clone(true, new ArrayList<>()));
+                out.put(local, variable.deepClone(new ArrayList<>()));
             }
         });
     }
@@ -97,7 +97,9 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     @Override
     protected void copy(Map<Local,TabbyVariable> source, Map<Local,TabbyVariable> dest) {
         dest.clear();
-        dest.putAll(source);
+        source.forEach((local, variable) -> {
+            dest.put(local, variable.deepClone(new ArrayList<>()));
+        });
     }
 
     /**

@@ -44,8 +44,11 @@ public class RulesContainer {
             List<Map<String, Object>> functions = sinks.get(classname);
             for(Map<String, Object> function:functions){
                 if(method.equals(function.get("name"))){
-                    Set<String> set = new HashSet<>((List)function.get("related"));
-                    for(String str:set){
+                    List<String> list = (List)function.get("related");
+                    if(list == null){
+                        continue;
+                    }
+                    for(String str:list){
                         retMap.put(str, "evil");
                     }
                     return retMap;

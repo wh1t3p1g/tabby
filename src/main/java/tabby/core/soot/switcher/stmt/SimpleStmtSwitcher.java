@@ -3,21 +3,10 @@ package tabby.core.soot.switcher.stmt;
 import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
-import soot.SootMethod;
 import soot.Value;
-import soot.ValueBox;
 import soot.jimple.*;
-import soot.jimple.internal.JimpleLocalBox;
-import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.UnitGraph;
-import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
-import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
-import tabby.neo4j.bean.ref.MethodReference;
-
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import tabby.core.soot.switcher.Switcher;
 
 /**
  * 粗略的域敏感分析，遵循以下原则：
@@ -39,50 +28,11 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
     public void caseInvokeStmt(InvokeStmt stmt) {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
-        TabbyVariable baseVar = null;
-        Map<Integer, TabbyVariable> args = new HashMap<>();
-        for(int i=0; i<ie.getArgCount(); i++){
-            TabbyVariable var = context.getOrAdd(ie.getArg(i));
-            args.put(i, var);
-        }
-        List<ValueBox> valueBoxes = stmt.getUseBoxes();
-        for(ValueBox box:valueBoxes){
-            Value value = box.getValue();
-            if(box instanceof JimpleLocalBox){
-                baseVar = context.getOrAdd(value);
-                break;
-            }
-        }
-        // do method call back actions
-        MethodReference methodRef = cacheHelper.loadMethodRef(ie.getMethod().getSignature());
-        if(!methodRef.isInitialed()){
-            // do call method analysis
-            doMethodAnalysis(ie.getMethod(), methodRef);
-            methodRef = cacheHelper.loadMethodRef(ie.getMethod().getSignature()); // refresh
-        }
-
-        for(Map.Entry<String, String> entry:methodRef.getRelatedPosition().entrySet()){
-            String position = entry.getKey();
-            String newRelated = entry.getValue();
-            if(position.startsWith("param")){ // 修正入参
-                int paramIndex = Integer.valueOf(position.split("-")[1]);
-                TabbyVariable paramVar = args.get(paramIndex);
-                if(paramVar != null){
-                    paramVar.modify(position, newRelated);
-                }
-            }else if(position.startsWith("this")){ // 修正当前baseVar的类属性
-                if(baseVar != null){
-                    baseVar.modify(position, newRelated);
-                }
-            }else if(position.equals("return")){ // 修正返回值
-                // 当前无左值
-            }
-        }
+        Switcher.doInvokeExprAnalysis(ie, cacheHelper, context);
     }
 
     @Override
     public void caseAssignStmt(AssignStmt stmt) {
-        // TODO 重写
         Value lop = stmt.getLeftOp();
         Value rop = stmt.getRightOp();
         TabbyVariable rvar = null;
@@ -94,7 +44,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         if(result instanceof TabbyVariable){
             rvar = (TabbyVariable) result;
         }
-        if(rop instanceof Constant){
+        if(rop instanceof Constant && !(rop instanceof StringConstant)){
             unbind = true;
         }
         // 处理左值
@@ -128,24 +78,64 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
 //        super.caseRetStmt(stmt);
 //    }
 
+
+    @Override
+    public void caseReturnVoidStmt(ReturnVoidStmt stmt) {
+//        for(TabbyVariable arg:context.getArgs().values()){
+//            if(arg == null) continue;
+//            String position = "param-"+arg.getValue().getParamIndex();
+//            if(arg.isPolluted()){
+//                if(!position.equals(arg.getValue().getRelatedType())){
+//                    context.getReturnActions().put(position, arg.getValue().getRelatedType());
+//                }
+//            }else{
+//                context.getReturnActions().put(position, "clear");
+//            }
+//            for(TabbyVariable argField:arg.getFieldMap().values()){
+//                if(argField == null) continue;
+//                String fieldPosition = position + "|" + argField.getName();
+//                if(argField.isPolluted()){
+//                    if(!argField.getValue().getRelatedType().equals(position)){
+//                        context.getReturnActions().put(fieldPosition, arg.getValue().getRelatedType());
+//                    }
+//                }else{
+//                    context.getReturnActions().put(fieldPosition, "clear");
+//                }
+//            }
+//        }
+//        if(context.getBaseVar() != null){
+//            TabbyVariable baseVar = context.getBaseVar();
+//            for(TabbyVariable thisField:baseVar.getFieldMap().values()){
+//                if(thisField == null) continue;
+//                String fieldPosition = "this|" + thisField.getName();
+//                if(thisField.isPolluted()){
+//                    if(!thisField.getValue().getRelatedType().equals(fieldPosition)){
+//                        context.getReturnActions().put(fieldPosition, baseVar.getValue().getRelatedType());
+//                    }
+//                }else{
+//                    context.getReturnActions().put(fieldPosition, "clear");
+//                }
+//            }
+//        }
+    }
+
     @Override
     public void caseReturnStmt(ReturnStmt stmt) {
         Value value = stmt.getOp();
         TabbyVariable var = null;
-        if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return; // 只要有一种return的情况是可控的，就认为函数返回是可控的
+        // 近似处理 只要有一种return的情况是可控的，就认为函数返回是可控的
+        // 并结算当前的入参区别
+        if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return;
         rightValueSwitcher.setContext(context);
         rightValueSwitcher.setCacheHelper(cacheHelper);
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
+//        // 结算
+//        if(var.isPolluted()){
+//            context.getReturnActions().put("return", var.getValue().getRelatedType());
+//        }
+        caseReturnVoidStmt(null);
     }
 
-    public void doMethodAnalysis(SootMethod method, MethodReference methodRef){
-        if(context.isInRecursion(method.getSignature())) return; // 递归不分析
-
-        JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-        UnitGraph graph = new BriefUnitGraph(body);
-        Context subContext = context.createSubContext(method.getSignature());
-        PollutedVarsPointsToAnalysis pta = PollutedVarsPointsToAnalysis.makeDefault(methodRef, graph, cacheHelper, subContext);
-    }
 }

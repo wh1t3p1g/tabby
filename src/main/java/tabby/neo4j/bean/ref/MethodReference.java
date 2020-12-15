@@ -53,7 +53,6 @@ public class MethodReference implements Comparable<MethodReference>{
      */
     private Map<String, String> relatedPosition = new HashMap<>();
 
-    private transient Map<String, List<Object>> returnActions = new HashMap<>();
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;
     private transient Set<MethodReference> cachedAliasMethodRefs = new HashSet<>();

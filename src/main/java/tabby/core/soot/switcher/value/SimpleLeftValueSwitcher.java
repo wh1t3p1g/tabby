@@ -19,35 +19,24 @@ import tabby.core.data.TabbyVariable;
 @Setter
 public class SimpleLeftValueSwitcher extends ValueSwitcher {
 
-    public void caseArrayRef(ArrayRef v) {
-        Value baseValue = v.getBase();
-        Value indexValue = v.getIndex();
-        TabbyVariable baseVar = context.getOrAdd(baseValue);
-        if (indexValue instanceof IntConstant) {
-            int index = ((IntConstant) indexValue).value;
-            if(unbind){
-                baseVar.removeElement(index);
-            }else{
-                baseVar.addElement(index, rvar);
-                if(rvar.isPolluted()){
-                    baseVar.setPolluted(true);
-                    baseVar.getValue().getRelatedType().addAll(rvar.getValue().getRelatedType());
-                }
-            }
-        }else if(indexValue instanceof Local){
-            // 存在lvar = a[i2] 这种情况，暂无法推算处i2的值是什么，存在缺陷这部分
-        }
-    }
-
+    /**
+     * case a = rvar
+     * @param v
+     */
     public void caseLocal(Local v) {
+        TabbyVariable var = context.getOrAdd(v);
+
         if(unbind){
-            context.unbind(v);
+            var.clearVariableStatus();
         }else{
-            TabbyVariable var = context.getOrAdd(v);
             var.assign(rvar);
         }
     }
 
+    /**
+     * case Class.field = rvar
+     * @param v
+     */
     public void caseStaticFieldRef(StaticFieldRef v) {
         TabbyVariable var = context.getOrAdd(v);
         if(unbind){
@@ -57,22 +46,45 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
         }
     }
 
+    /**
+     * case a[index] = rvar
+     * @param v
+     */
+    public void caseArrayRef(ArrayRef v) {
+        Value baseValue = v.getBase();
+        Value indexValue = v.getIndex();
+        TabbyVariable baseVar = context.getOrAdd(baseValue);
+
+        if (indexValue instanceof IntConstant) {
+            int index = ((IntConstant) indexValue).value;
+            if(unbind){
+                baseVar.clearElementStatus(index);
+            }else{
+                baseVar.assign(index, rvar);
+            }
+        }else if(indexValue instanceof Local){
+            // 存在lvar = a[i2] 这种情况，暂无法推算处i2的值是什么，存在缺陷这部分；近似处理，添加到最后一个位置上
+            int size = baseVar.getValue().getElements().size();
+            if(!unbind){
+                baseVar.assign(size, rvar);
+            }// 忽略可控性消除
+        }
+    }
+
+    /**
+     * case a.f = rvar
+     * @param v
+     */
     public void caseInstanceFieldRef(InstanceFieldRef v) {
-        TabbyVariable var = null;
         SootFieldRef sootFieldRef = v.getFieldRef();
         Value base = v.getBase();
         if(base instanceof Local){
             TabbyVariable baseVar = context.getOrAdd(base);
-            var = baseVar.getField(sootFieldRef);
-            if(var == null){
-                var = TabbyVariable.newInstance(sootFieldRef);
-                var.setPolluted(baseVar.isPolluted());
-            }
+            TabbyVariable fieldVar = baseVar.getOrAddField(baseVar, sootFieldRef);
             if(unbind){
-                var.removeField(sootFieldRef);
+                fieldVar.clearVariableStatus();
             }else{
-                var.assign(rvar);
-                baseVar.addField(sootFieldRef, var);
+                fieldVar.assign(rvar);
             }
         }
     }
