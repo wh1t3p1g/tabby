@@ -75,7 +75,7 @@ public class Analyser {
             }else{
                 List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
                 setClassPath(targets);
-//                targets.addAll(getJdkDependencies());
+                targets.addAll(getJdkDependencies());
                 Options.v().set_process_dir(targets);
                 cacheHelper.loadRuntimeClasses(targets, false);
             }

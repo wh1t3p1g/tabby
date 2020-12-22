@@ -10,9 +10,7 @@ import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-import tabby.core.data.Context;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
-import tabby.core.soot.switcher.Switcher;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -58,10 +56,10 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
             System.out.println(method.getSignature());
 // TODO <java.math.MutableBigInteger: java.math.MutableBigInteger modInverse(java.math.MutableBigInteger)>
 //            if ("<java.math.MutableBigInteger: java.math.MutableBigInteger modInverse(java.math.MutableBigInteger)>".equals(method.getSignature())) {
-                Context context = Context.newInstance(method.getSignature());
-                context.setHeadMethodContext(true);
-                Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
-                context.clear();
+//                Context context = Context.newInstance(method.getSignature());
+//                context.setHeadMethodContext(true);
+//                Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
+//                context.clear();
 //            }
 
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();

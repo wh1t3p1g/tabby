@@ -44,9 +44,9 @@ public class SootConfiguration {
         // 设置自定义的package
 //        PhaseOptions.v().setPhaseOption("bb", "off");
         PhaseOptions.v().setPhaseOption("cg","on");
-        PhaseOptions.v().setPhaseOption("cg.spark","on");
+//        PhaseOptions.v().setPhaseOption("cg.spark","on");
 //        PhaseOptions.v().setPhaseOption("jj", "on");
-        PhaseOptions.v().setPhaseOption("cg.spark", "cs-demand:true");
+//        PhaseOptions.v().setPhaseOption("cg.spark", "cs-demand:true");
 //        enableSpark();
 
 //        PhaseOptions.v().setPhaseOption("jtp.callGraphTransformer", "off");
