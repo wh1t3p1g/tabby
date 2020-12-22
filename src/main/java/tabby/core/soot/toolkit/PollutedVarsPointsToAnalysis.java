@@ -33,6 +33,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     private Map<Local,TabbyVariable> emptyMap;
     private StmtSwitcher stmtSwitcher;
     private MethodReference methodRef;
+    private Set<Unit> blockStack = new HashSet<>(); // 存储已调用分析过的Unit，防止循环分析
 
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
@@ -50,12 +51,13 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected void flowThrough(Map<Local,TabbyVariable> in, Unit d, Map<Local,TabbyVariable> out) {
-        context.setLocalMap(new HashMap<>(in));
+//        System.out.println(d);
+        context.setLocalMap(in);
         stmtSwitcher.setContext(context);
         stmtSwitcher.setCacheHelper(cacheHelper);
-
         d.apply(stmtSwitcher);
         out.putAll(context.getLocalMap());
+//        System.out.println(d);
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
         //      Identity statement p := @this checked
@@ -84,7 +86,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         out.putAll(in2);
         in1.forEach((local, variable) -> {
             if(variable == null) return;
-            if(out.containsKey(local)){
+            if(out.containsKey(local)){ // 遇到相同变量，保留可控变量，如果均可控，则直接保留out的
                 if(!out.get(local).isPolluted() && variable.isPolluted()){ // 聚合时仅保留可控变量
                     out.put(local, variable.deepClone(new ArrayList<>()));
                 }

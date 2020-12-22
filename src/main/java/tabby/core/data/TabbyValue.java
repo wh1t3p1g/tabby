@@ -1,74 +1,69 @@
 package tabby.core.data;
 
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import soot.ArrayType;
-import soot.SootFieldRef;
+import soot.Local;
 import soot.Type;
 import soot.Value;
-import soot.jimple.FieldRef;
 
 import java.io.Serializable;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.UUID;
 
 /**
  * @author wh1t3P1g
  * @since 2020/11/26
  */
-@Data
+@Getter
+@Setter
 public class TabbyValue implements Serializable {
 
-    private String uuid = UUID.randomUUID().toString();
+    private String uuid;
     private Type type;
     private String typeName;
     private Value origin;
     // status
-
-
     private boolean isArray = false;
-
     private boolean isField = false;
     private boolean isStatic = false;
-    // params
-
 
     // polluted
     private boolean isPolluted = false;
     // polluted positions like param-0,param-1,field-name1,this
     private String relatedType;
-    private String preRelatedType;
 
-    // fields
-    private Map<SootFieldRef, TabbyVariable> fieldMap = new HashMap<>();
-    // arrays
-    private Map<Integer, TabbyVariable> elements = new HashMap<>();
+    private TabbyVariable relatedVar = null;
 
-    public TabbyValue(){}
+    public TabbyValue(){
+        uuid = UUID.randomUUID().toString();
+    }
 
-    public TabbyValue(Value value){
+    public TabbyValue(String uuid){
+        if("".equals(uuid)){
+            this.uuid = UUID.randomUUID().toString();
+        }else{
+            this.uuid = uuid;
+        }
+    }
+
+    public TabbyValue(Local value){
+        uuid = UUID.randomUUID().toString();
         type = value.getType();
         typeName = type.toString();
         origin = value;
 
         isArray = isArrayType(value.getType());
-
-        if (value instanceof FieldRef){
-            FieldRef fr = (FieldRef) value;
-            isField = true;
-            isStatic = fr.getFieldRef().isStatic();
-        }
     }
 
-    public static TabbyValue newInstance(Value value){
+    public static TabbyValue newInstance(Local value){
         return new TabbyValue(value);
     }
 
-    public TabbyValue deepClone(List<TabbyVariable> clonedVars){
+    public TabbyValue deepClone(){
         // try to clone value
-        TabbyValue newValue = new TabbyValue();
-        newValue.setUuid(uuid);
+        TabbyValue newValue = new TabbyValue(uuid);
         newValue.setPolluted(isPolluted);
         newValue.setRelatedType(relatedType);
         newValue.setField(isField);
@@ -77,22 +72,8 @@ public class TabbyValue implements Serializable {
         newValue.setType(type);
         newValue.setTypeName(typeName);
         newValue.setOrigin(origin);
+//        newValue.setRelatedVar(relatedVar);
 
-        Map<Integer, TabbyVariable> newElements = new HashMap<>();
-        Map<SootFieldRef, TabbyVariable> newFields = new HashMap<>();
-
-        for(Map.Entry<Integer, TabbyVariable> entry : elements.entrySet()){
-            TabbyVariable var = entry.getValue();
-            newElements.put(entry.getKey(), var != null ? var.deepClone(clonedVars) : null);
-        }
-
-        for (Map.Entry<SootFieldRef, TabbyVariable> entry : fieldMap.entrySet()) {
-            SootFieldRef sfr = entry.getKey();
-            TabbyVariable field = entry.getValue();
-            newFields.put(sfr, field != null ? field.deepClone(clonedVars) : null);
-        }
-        newValue.setElements(newElements);
-        newValue.setFieldMap(newFields);
         return newValue;
     }
 
@@ -107,4 +88,19 @@ public class TabbyValue implements Serializable {
         return false;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TabbyValue that = (TabbyValue) o;
+
+        return new EqualsBuilder().append(isArray, that.isArray).append(isField, that.isField).append(isStatic, that.isStatic).append(isPolluted, that.isPolluted).append(type, that.type).append(typeName, that.typeName).append(origin, that.origin).append(relatedType, that.relatedType).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(type).append(typeName).append(origin).append(isArray).append(isField).append(isStatic).append(isPolluted).append(relatedType).toHashCode();
+    }
 }

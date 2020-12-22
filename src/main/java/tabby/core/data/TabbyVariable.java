@@ -1,22 +1,24 @@
 package tabby.core.data;
 
-import lombok.Data;
-import soot.Local;
-import soot.SootFieldRef;
-import soot.Value;
+import lombok.Getter;
+import lombok.Setter;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
+import soot.*;
 import soot.jimple.FieldRef;
+import soot.jimple.StaticFieldRef;
 
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
  * @since 2020/11/26
  */
-@Data
+@Getter
+@Setter
 public class TabbyVariable {
 
-    private String uuid = UUID.randomUUID().toString();
+    private String uuid;
     private String name;
     private Value origin;
     private boolean isThis = false;
@@ -25,8 +27,20 @@ public class TabbyVariable {
     // 上面的内容，在变量生成的时候就不会改变了
     // 后续会改变的是，当前参数的value
     private TabbyValue value;
+    private TabbyVariable owner = null;
+
+    // fields
+    private Map<String, TabbyVariable> fieldMap = new HashMap<>();
+    // arrays
+    private Map<Integer, TabbyVariable> elements = new HashMap<>();
+
 
     private TabbyVariable(){
+        uuid = UUID.randomUUID().toString();
+    }
+
+    private TabbyVariable(String uuid){
+        this.uuid = uuid;
     }
 
     private TabbyVariable(Value sootValue, TabbyValue tabbyValue){
@@ -38,49 +52,73 @@ public class TabbyVariable {
         }else{
             name = sootValue.toString();
         }
+        uuid = UUID.randomUUID().toString();
         value = tabbyValue;
         origin = sootValue;
     }
 
-    /**
-     * 初始化一个有value的变量
-     * @param sootValue
-     * @return
-     */
-    public static TabbyVariable newInstance(Value sootValue){
-        TabbyValue tabbyValue = TabbyValue.newInstance(sootValue);
-        return new TabbyVariable(sootValue, tabbyValue);
-    }
+    public static TabbyVariable makeSpecialLocalInstance(Local local, String relatedType){
+        TabbyValue tabbyValue = TabbyValue.newInstance(local);
+        TabbyVariable tabbyVariable = new TabbyVariable(local, tabbyValue);
 
-    public static TabbyVariable makeFieldInstance(TabbyVariable baseVar, SootFieldRef fieldRef){
-        TabbyValue tabbyValue = new TabbyValue();
-        TabbyVariable tabbyVariable = new TabbyVariable();
-        tabbyValue.setType(fieldRef.type());
-        tabbyValue.setTypeName(fieldRef.type().toString());
-        tabbyValue.setField(true);
-        tabbyValue.setStatic(fieldRef.isStatic());
-        tabbyVariable.setName(baseVar.getValue().getTypeName() + "|" + fieldRef.name());
-
-        if(baseVar.isPolluted()){
-            tabbyValue.setPolluted(true);
-            tabbyValue.setRelatedType(baseVar.getValue().getRelatedType());
+        if(!(local.getType() instanceof PrimType) && !(local.getType() instanceof ArrayType)) {
+            SootClass cls = ((RefType) local.getType()).getSootClass();
+            for (SootField sootField : cls.getFields()) {// construct fields
+                TabbyVariable fieldVar = makeFieldInstance(null, sootField);
+                fieldVar.getValue().setPolluted(true);
+                fieldVar.getValue().setRelatedType(relatedType + "|" + sootField.getName());
+                fieldVar.getValue().setRelatedVar(fieldVar);
+                tabbyVariable.fieldMap.put(sootField.getName(), fieldVar);
+            }
         }
-        tabbyVariable.setValue(tabbyValue);
         return tabbyVariable;
     }
 
-    public static TabbyVariable makeAnyNewRightInstance(Value v){
-        TabbyValue tabbyValue = new TabbyValue(v);
-        TabbyVariable var = makeRandomInstance();
-        var.setOrigin(v);
-        var.setValue(tabbyValue);
-        return var;
+    public static TabbyVariable makeLocalInstance(Local local){
+        TabbyValue tabbyValue = TabbyValue.newInstance(local);
+        TabbyVariable tabbyVariable = new TabbyVariable(local, tabbyValue);
+        if(!(local.getType() instanceof PrimType) && !(local.getType() instanceof ArrayType)){
+            SootClass cls = ((RefType)local.getType()).getSootClass();
+            for(SootField sootField:cls.getFields()){// construct fields
+                TabbyVariable fieldVar = makeFieldInstance(null, sootField);
+                fieldVar.setOwner(tabbyVariable);
+                tabbyVariable.fieldMap.put(sootField.getName(), fieldVar);
+            }
+        }
+        return tabbyVariable;
     }
+
+    public static TabbyVariable makeStaticFieldInstance(StaticFieldRef staticFieldRef){
+        SootField sootField = staticFieldRef.getField();
+        return makeFieldInstance(null, sootField);
+    }
+
+    public static TabbyVariable makeFieldInstance(TabbyVariable baseVar, SootField sootField){
+        TabbyValue tabbyValue = new TabbyValue();
+        TabbyVariable fieldVar = new TabbyVariable();
+        tabbyValue.setType(sootField.getType());
+        tabbyValue.setTypeName(sootField.getType().toString());
+        tabbyValue.setField(true);
+        tabbyValue.setStatic(sootField.isStatic());
+        tabbyValue.setArray(TabbyValue.isArrayType(sootField.getType()));
+        fieldVar.setName(sootField.getName());
+        fieldVar.setOwner(baseVar);
+        fieldVar.setValue(tabbyValue);
+
+        if(baseVar != null && baseVar.isPolluted()){
+            tabbyValue.setPolluted(true);
+            tabbyValue.setRelatedType(baseVar.constructRelatedType() + "|" + sootField.getName());
+            tabbyValue.setRelatedVar(fieldVar);
+        }
+
+        return fieldVar;
+    }
+
 
     public static TabbyVariable makeRandomInstance(){
         TabbyValue tabbyValue = new TabbyValue();
         TabbyVariable tabbyVariable = new TabbyVariable();
-        tabbyVariable.setName("Temp Variable-"+UUID.randomUUID());
+        tabbyVariable.setName("Temp Variable");
         tabbyVariable.setValue(tabbyValue);
         return tabbyVariable;
     }
@@ -93,8 +131,10 @@ public class TabbyVariable {
      */
     public void assign(TabbyVariable var){
         // copy value
-        if(var.getValue() != null){
-            this.value = var.getValue();
+        if(var != null && var.getValue() != null){
+            value = var.getValue();
+            elements = var.getElements();
+            fieldMap = var.getFieldMap();
         }
     }
 
@@ -104,11 +144,21 @@ public class TabbyVariable {
      * @param var
      */
     public void assign(int index, TabbyVariable var){
-        TabbyVariable element = value.getElements().get(index);
+        TabbyVariable element = elements.get(index);
+        var.owner = this;
         if(element != null){
             element.assign(var);
         }else{
-            addElement(index, var);
+            boolean flag = true;
+            for(TabbyVariable temp: elements.values()){
+                if(temp.getOrigin() != null && temp.getOrigin().equals(var.getOrigin())){
+                    flag = false;
+                    break;
+                }
+            }
+            if(flag){
+                addElement(index, var);
+            }
         }
     }
 
@@ -117,58 +167,53 @@ public class TabbyVariable {
      * @param sfr
      * @param var
      */
-    public void assign(SootFieldRef sfr, TabbyVariable var){
-        TabbyVariable fieldVar = value.getFieldMap().get(sfr);
+    public void assign(String sfr, TabbyVariable var){
+        TabbyVariable fieldVar = fieldMap.get(sfr);
+        var.owner = this;
         if(fieldVar != null){
             fieldVar.assign(var);
+        }else{
+            fieldMap.put(sfr, var);
         }
     }
 
     public boolean isPolluted(){
-        if(value != null){
-            return value.isPolluted();
+        if(value != null && value.isPolluted()){
+            return true;
+        }else if(value != null){
+            for(TabbyVariable var: elements.values()){
+                if(var.getValue().isPolluted()){
+                    return true;
+                }
+            }
+
+            for(TabbyVariable var: elements.values()){
+                if(var.getValue().isPolluted()){
+                    return true;
+                }
+            }
         }
         return false;
     }
 
-    public TabbyVariable findFieldVarByName(String name){
-        for(TabbyVariable var : value.getFieldMap().values()){
-            if(name.equals(var.getName())){
-                return var;
-            }
+    public String constructRelatedType(){
+        List<String> retStrs = new LinkedList<>();
+        if(owner != null){
+            retStrs.add(owner.constructRelatedType());
         }
-        return null;
-    }
-
-    public void modify(String position, String related){
-        if(value == null) return;
-        if(position.startsWith("param") || position.equals("return")){
-            if("clear".equals(related)){
-                value.setPolluted(false);
-                value.setRelatedType(null);
-            }else{
-                value.setPolluted(true);
-                value.setRelatedType(related);
-            }
-        }else if(position.startsWith("this")){
-            String name = position.split("\\|")[1];
-            TabbyVariable fieldVar = findFieldVarByName(name);
-            if(fieldVar != null){
-                if("clear".equals(related)){
-                    fieldVar.value.setPolluted(false);
-                    fieldVar.value.setRelatedType(null);
-                }else{
-                    fieldVar.value.setPolluted(true);
-                    fieldVar.value.setRelatedType(related);
-                }
-            }
+        if(isThis){
+            retStrs.add("this");
+        }else if(isParam){
+            retStrs.add("param-"+paramIndex);
+        }else{
+            retStrs.add(name);
         }
-
+        return String.join("|", retStrs);
     }
 
     public String getName(){
         if(name != null){
-            if(value.isField()){
+            if(value.isField() && name.contains("|")){
                 return name.split("\\|")[1];
             }else{
                 return name;
@@ -177,51 +222,68 @@ public class TabbyVariable {
         return null;
     }
 
+    public String getPosition(){
+        if(isThis){
+            return "this";
+        }else if(isParam){
+            return "param-"+paramIndex;
+        }else{
+            return null;
+        }
+    }
+
     public void clearVariableStatus(){
         value.setPolluted(false);
         value.setRelatedType("clear");
-        value.getFieldMap().clear();
-        value.getElements().clear();
+        fieldMap.clear();
+        elements.clear();
     }
 
     public void clearElementStatus(int index){
-        TabbyVariable element = value.getElements().get(index);
-        element.clearVariableStatus();
+        TabbyVariable element = elements.get(index);
+        if(element != null){
+            element.clearVariableStatus();
+        }
+    }
+
+    public void clearFieldStatus(SootFieldRef sfr){
+        TabbyVariable field = fieldMap.get(sfr.name());
+        if(field != null){
+            field.clearVariableStatus();
+        }
     }
 
     public TabbyVariable getElement(int index){
-        return value.getElements().getOrDefault(index, null);
+        return elements.getOrDefault(index, null);
     }
 
     public void removeElement(int index){
-        value.getElements().remove(index);
+        elements.remove(index);
     }
 
     public void addElement(int index, TabbyVariable var){
-        value.getElements().put(index, var);
+        if(!elements.containsValue(var)){
+            elements.put(index, var);
+        }
     }
 
-    public TabbyVariable getField(SootFieldRef sfr){
-        return value.getFieldMap().getOrDefault(sfr, null);
+    public TabbyVariable getField(String sfr){
+        return fieldMap.getOrDefault(sfr, null);
     }
 
-    public void removeField(SootFieldRef sfr){
-        value.getFieldMap().remove(sfr);
+    public void removeField(String sfr){
+        fieldMap.remove(sfr);
     }
 
-    public void addField(SootFieldRef sfr, TabbyVariable var){
-        value.getFieldMap().put(sfr, var);
+    public void addField(String sfr, TabbyVariable var){
+        fieldMap.put(sfr, var);
     }
 
-    public TabbyVariable getOrAddField(TabbyVariable baseVar, SootFieldRef sfr){
-        TabbyVariable fieldVar = baseVar.getField(sfr);
+    public TabbyVariable getOrAddField(TabbyVariable baseVar, SootField sf){
+        TabbyVariable fieldVar = baseVar.getField(sf.getName());
         if(fieldVar == null){
-            fieldVar = makeFieldInstance(baseVar, sfr);
-            if(baseVar.isPolluted()){
-                fieldVar.getValue().setPolluted(true);
-                fieldVar.getValue().setRelatedType(baseVar.getValue().getRelatedType()+"|"+fieldVar.getName());
-            }
-            baseVar.assign(sfr, fieldVar);
+            fieldVar = makeFieldInstance(baseVar, sf);
+            baseVar.assign(sf.getName(), fieldVar);
         }
         return fieldVar;
     }
@@ -235,36 +297,78 @@ public class TabbyVariable {
             clonedVars.add(this);
         }
         // try to clone value
-        clonedVar = new TabbyVariable();
-        clonedVar.setUuid(uuid);
+        clonedVar = new TabbyVariable(uuid);
         clonedVar.setName(name);
         clonedVar.setOrigin(origin);
         clonedVar.setParam(isParam);
         clonedVar.setParamIndex(paramIndex);
         clonedVar.setThis(isThis);
-        clonedVar.setValue(value != null ? value.deepClone(clonedVars) : null);
+        clonedVar.setOwner(owner);
+        clonedVar.setValue(value != null ? value.deepClone() : null);
+
+        Map<Integer, TabbyVariable> newElements = new HashMap<>();
+        Map<String, TabbyVariable> newFields = new HashMap<>();
+
+        for(Map.Entry<Integer, TabbyVariable> entry : elements.entrySet()){
+            TabbyVariable var = entry.getValue();
+            newElements.put(entry.getKey(), var != null ? var.deepClone(clonedVars) : null);
+        }
+
+        for (Map.Entry<String, TabbyVariable> entry : fieldMap.entrySet()) {
+            String sfr = entry.getKey();
+            TabbyVariable field = entry.getValue();
+            newFields.put(sfr, field != null ? field.deepClone(clonedVars) : null);
+        }
+        clonedVar.setElements(newElements);
+        clonedVar.setFieldMap(newFields);
+
         return clonedVar;
     }
 
-    public void setPreRelatedType(){
-        if(isPolluted()){
-            value.setPolluted(false);
-            value.setPreRelatedType(value.getRelatedType());
-            value.setRelatedType(null);
-        }
-        value.getElements().forEach((index, element) -> {
-            if(element.isPolluted()){
-                element.getValue().setPolluted(false);
-                element.getValue().setPreRelatedType(element.getValue().getRelatedType());
-                element.getValue().setRelatedType(null);
+    public void union(TabbyVariable that){
+        Map<String, TabbyVariable> newFieldMap = new HashMap<>(that.getFieldMap());
+        Map<Integer, TabbyVariable> newElements = new HashMap<>(that.getElements());
+        fieldMap.forEach((sfr, field) -> {
+            TabbyVariable thatField = newFieldMap.get(sfr);
+            if(thatField != null){
+                if(thatField.isPolluted()) return;
+                if(field.isPolluted()){
+                    newFieldMap.put(sfr, field);
+                }
+            }else{
+                newFieldMap.put(sfr, field);
             }
         });
-        value.getFieldMap().forEach((sfr, field) -> {
-            if(field.isPolluted()){
-                field.getValue().setPolluted(false);
-                field.getValue().setPreRelatedType(field.getValue().getRelatedType());
-                field.getValue().setRelatedType(null);
+        elements.forEach((index, element) -> {
+            TabbyVariable thatElement = newElements.get(index);
+            if(thatElement != null){
+                if(thatElement.isPolluted()) return;
+                if(element.isPolluted()){
+                    newElements.put(index, element);
+                }
+            }else{
+                newElements.put(index, element);
             }
         });
+
+        setElements(newElements);
+        setFieldMap(newFieldMap);
+
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        TabbyVariable that = (TabbyVariable) o;
+
+        return new EqualsBuilder().append(isThis, that.isThis).append(isParam, that.isParam).append(paramIndex, that.paramIndex).append(name, that.name).append(origin, that.origin).append(value, that.value).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(name).append(origin).append(isThis).append(isParam).append(paramIndex).append(value).toHashCode();
     }
 }

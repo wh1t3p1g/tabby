@@ -88,7 +88,7 @@ public class Analyser {
             // 函数调用分析
             PackManager.v().runPacks();
             callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
-//            classInfoScanner.save();
+            classInfoScanner.save();
             clean(); // clean caches
 //            discover.run();
 //            System.out.println(sortedMethodRefs.size());

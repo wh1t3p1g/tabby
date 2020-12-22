@@ -1,7 +1,8 @@
 package tabby.core.soot.switcher.value;
 
+import lombok.extern.slf4j.Slf4j;
 import soot.Local;
-import soot.SootFieldRef;
+import soot.SootField;
 import soot.Value;
 import soot.jimple.*;
 import tabby.core.data.TabbyVariable;
@@ -11,22 +12,23 @@ import tabby.core.soot.switcher.Switcher;
  * @author wh1t3P1g
  * @since 2020/12/12
  */
+@Slf4j
 public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     public void caseInterfaceInvokeExpr(InterfaceInvokeExpr v) {
-        caseInvokeExpr(v);
+        caseInvokeExpr(v, "InterfaceInvoke");
     }
 
     public void caseSpecialInvokeExpr(SpecialInvokeExpr v) {
-        caseInvokeExpr(v);
+        caseInvokeExpr(v, "SpecialInvoke");
     }
 
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
-        caseInvokeExpr(v);
+        caseInvokeExpr(v, "StaticInvoke");
     }
 
     public void caseVirtualInvokeExpr(VirtualInvokeExpr v) {
-        caseInvokeExpr(v);
+        caseInvokeExpr(v, "VirtualInvoke");
     }
 
     public void caseDynamicInvokeExpr(DynamicInvokeExpr v) {
@@ -39,7 +41,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
     }
 
     public void caseNewArrayExpr(NewArrayExpr v) {
-        setResult(TabbyVariable.makeAnyNewRightInstance(v));
+//        setResult(TabbyVariable.makeAnyNewRightInstance(v));
     }
 
     public void caseNewMultiArrayExpr(NewMultiArrayExpr v) {
@@ -47,7 +49,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
     }
 
     public void caseNewExpr(NewExpr v) {
-        setResult(TabbyVariable.makeAnyNewRightInstance(v));
+//        setResult(TabbyVariable.makeAnyNewRightInstance(v));
     }
 
     public void caseArrayRef(ArrayRef v) {
@@ -78,17 +80,19 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     public void caseInstanceFieldRef(InstanceFieldRef v) {
         TabbyVariable var = null;
-        SootFieldRef sootFieldRef = v.getFieldRef();
+        SootField sootField = v.getField();
         Value base = v.getBase();
         if(base instanceof Local){
             TabbyVariable baseVar = context.getOrAdd(base);
-            var = baseVar.getOrAddField(baseVar, sootFieldRef);
+            var = baseVar.getOrAddField(baseVar, sootField);
         }
         setResult(var);
     }
 
-    public void caseInvokeExpr(InvokeExpr invokeExpr){
+    public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
+//        log.info(invokeExpr.getMethodRef().getSignature());
         setResult(Switcher.doInvokeExprAnalysis(invokeExpr, cacheHelper, context));
+//        log.info(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
 }

@@ -44,3 +44,4 @@ cache/*
 lib/*
 
 *.json
+*.csv

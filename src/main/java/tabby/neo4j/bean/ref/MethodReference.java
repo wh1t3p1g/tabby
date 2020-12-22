@@ -57,6 +57,7 @@ public class MethodReference implements Comparable<MethodReference>{
     private transient SootMethod cachedMethod;
     private transient Set<MethodReference> cachedAliasMethodRefs = new HashSet<>();
     private transient boolean isInitialed = false;
+    private transient boolean actionInitialed = false;
     private transient boolean isIgnore = false;
 
     @Relationship(type="CALL")
@@ -110,9 +111,27 @@ public class MethodReference implements Comparable<MethodReference>{
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));
         csv.add(String.join("|", parameters));
-        csv.add(GlobalConfiguration.GSON.toJson(relatedPosition));
+        csv.add(toStr(relatedPosition));
         csv.add(returnType);
         return csv;
+    }
+
+    public String toStr(Map<String, String> positions){
+        StringBuilder sb = new StringBuilder();
+        positions.forEach((position, related)->{
+            sb.append(position).append("~").append(related).append(";");
+        });
+        return sb.toString();
+    }
+
+    public Map<String,String> fromStr(String data){
+        String[] lines = data.split(";");
+        Map<String, String> retData = new HashMap<>();
+        for(String line:lines){
+            String[] temp = line.split("~");
+            retData.put(temp[0], temp[1]);
+        }
+        return retData;
     }
 
     @Override

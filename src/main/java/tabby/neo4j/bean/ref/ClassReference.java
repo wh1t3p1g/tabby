@@ -111,6 +111,7 @@ public class ClassReference{
                     methodRef.setPolluted(true);
                     methodRef.setRelatedPosition(rulesContainer.getSinkParamPosition(classRef.getName(), methodRef.getName()));
                     methodRef.setInitialed(true);
+                    methodRef.setActionInitialed(true);
                 }
 
                 methodRef.setIgnore(rulesContainer.isIgnore(classRef.getName(), methodRef.getName()));

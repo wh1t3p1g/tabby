@@ -2,6 +2,7 @@ package tabby.core.soot.switcher.stmt;
 
 import lombok.Getter;
 import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import soot.Local;
 import soot.Value;
 import soot.jimple.*;
@@ -22,13 +23,16 @@ import tabby.core.soot.switcher.Switcher;
  */
 @Getter
 @Setter
+@Slf4j
 public class SimpleStmtSwitcher extends StmtSwitcher {
 
     @Override
     public void caseInvokeStmt(InvokeStmt stmt) {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
+//        log.info(ie.getMethodRef().getSignature());
         Switcher.doInvokeExprAnalysis(ie, cacheHelper, context);
+//        log.info(ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
     @Override
@@ -39,6 +43,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         boolean unbind = false;
         rightValueSwitcher.setContext(context);
         rightValueSwitcher.setCacheHelper(cacheHelper);
+        rightValueSwitcher.setResult(null);
         rop.apply(rightValueSwitcher);
         Object result = rightValueSwitcher.getResult();
         if(result instanceof TabbyVariable){
@@ -128,14 +133,10 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return;
         rightValueSwitcher.setContext(context);
         rightValueSwitcher.setCacheHelper(cacheHelper);
+        rightValueSwitcher.setResult(null);
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
-//        // 结算
-//        if(var.isPolluted()){
-//            context.getReturnActions().put("return", var.getValue().getRelatedType());
-//        }
-        caseReturnVoidStmt(null);
     }
 
 }

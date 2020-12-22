@@ -5,6 +5,7 @@ import soot.Local;
 import soot.Value;
 import soot.jimple.StaticFieldRef;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,6 +36,7 @@ public class Context {
     private Map<String, String> returnActions = new HashMap<>();
     // 用于return给当前
     private TabbyVariable returnVar;
+    private boolean isHeadMethodContext = false;
 
     public Context(){
         this.localMap = new HashMap<>();
@@ -81,13 +83,13 @@ public class Context {
         if(sootValue instanceof Local){ // find from local map
             var = localMap.get(sootValue);
             if (var == null) {
-                var = TabbyVariable.newInstance(sootValue);
+                var = TabbyVariable.makeLocalInstance((Local)sootValue);
                 localMap.put((Local) sootValue, var);
             }
         }else if(sootValue instanceof StaticFieldRef){ // find from global map
             var = globalMap.get(sootValue);
             if(var == null){
-                var = TabbyVariable.newInstance(sootValue);
+                var = TabbyVariable.makeStaticFieldInstance((StaticFieldRef) sootValue);
                 globalMap.put(sootValue, var);
             }
         }
@@ -95,21 +97,24 @@ public class Context {
     }
 
     public void bindThis(Value value) {
-        thisVar = TabbyVariable.newInstance(value);
+        thisVar = TabbyVariable.makeSpecialLocalInstance((Local)value, "this");
         if(baseVar != null){
-            thisVar.assign(baseVar);
+            thisVar = baseVar.deepClone(new ArrayList<>());
         }
         thisVar.setThis(true);
+        thisVar.getValue().setPolluted(true);
+        thisVar.getValue().setRelatedType("this");
         bindLocalAndVariable((Local) value, thisVar);
     }
 
     public void bindArg(Local local, int paramIndex) {// 仅用在函数调用处，绑定下一层的变量信息
-        TabbyVariable paramVar = TabbyVariable.newInstance(local);
+        TabbyVariable paramVar = TabbyVariable.makeSpecialLocalInstance(local, "param-"+paramIndex);
         if(args.containsKey(paramIndex) && args.get(paramIndex) != null){ // 跟上一层的变量进行绑定
-            paramVar.assign(args.get(paramIndex));
+            paramVar = args.get(paramIndex).deepClone(new ArrayList<>());
         }
         paramVar.setParam(true);
         paramVar.setParamIndex(paramIndex);
+        paramVar.getValue().setPolluted(true);
         paramVar.getValue().setRelatedType("param-"+paramIndex);
         currentArgs.put(paramIndex, paramVar);
         bindLocalAndVariable(local, paramVar);
