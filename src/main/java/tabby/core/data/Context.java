@@ -5,7 +5,6 @@ import soot.Local;
 import soot.Value;
 import soot.jimple.StaticFieldRef;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -97,27 +96,43 @@ public class Context {
     }
 
     public void bindThis(Value value) {
-        thisVar = TabbyVariable.makeSpecialLocalInstance((Local)value, "this");
-        if(baseVar != null){
-            thisVar = baseVar.deepClone(new ArrayList<>());
-        }
+//        if(baseVar != null){
+//            thisVar = baseVar.deepClone(new ArrayList<>());
+//        }else{
+//            thisVar = TabbyVariable.makeSpecialLocalInstance((Local)value, "this");
+//        }
+        thisVar = localMap.get(value);
         thisVar.setThis(true);
         thisVar.getValue().setPolluted(true);
         thisVar.getValue().setRelatedType("this");
-        bindLocalAndVariable((Local) value, thisVar);
+        thisVar.getFieldMap().forEach((fieldName, fieldVar) -> {
+            if(fieldVar != null){
+                fieldVar.getValue().setPolluted(true);
+                fieldVar.getValue().setRelatedType("this|"+fieldName);
+            }
+        });
+//        bindLocalAndVariable((Local) value, thisVar);
     }
 
     public void bindArg(Local local, int paramIndex) {// 仅用在函数调用处，绑定下一层的变量信息
-        TabbyVariable paramVar = TabbyVariable.makeSpecialLocalInstance(local, "param-"+paramIndex);
-        if(args.containsKey(paramIndex) && args.get(paramIndex) != null){ // 跟上一层的变量进行绑定
-            paramVar = args.get(paramIndex).deepClone(new ArrayList<>());
-        }
+        TabbyVariable paramVar = localMap.get(local);
+//        if(args.containsKey(paramIndex) && args.get(paramIndex) != null){ // 跟上一层的变量进行绑定
+//            paramVar = args.get(paramIndex).deepClone(new ArrayList<>());
+//        }else{
+//            paramVar = TabbyVariable.makeSpecialLocalInstance(local, "param-"+paramIndex);
+//        }
         paramVar.setParam(true);
         paramVar.setParamIndex(paramIndex);
         paramVar.getValue().setPolluted(true);
         paramVar.getValue().setRelatedType("param-"+paramIndex);
+        paramVar.getFieldMap().forEach((fieldName, fieldVar) -> {
+            if(fieldVar != null){
+                fieldVar.getValue().setPolluted(true);
+                fieldVar.getValue().setRelatedType("param-"+paramIndex+"|"+fieldName);
+            }
+        });
         currentArgs.put(paramIndex, paramVar);
-        bindLocalAndVariable(local, paramVar);
+//        bindLocalAndVariable(local, paramVar);
     }
 
     /**

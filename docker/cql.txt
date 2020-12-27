@@ -81,3 +81,6 @@ match (source:Method {name:"hashCode"})
 match (sink:Method {name:"invoke",isSink:true})
 call apoc.path.spanningTree(source, {relationshipFilter:"CALL>|ALIAS",endNodes:[sink],bfs:true,limit:1}) YIELD path
 RETURN path, length(path) AS hops limit 1
+
+
+match (m1:Method {signature:"<javax.management.BadAttributeValueExpException: void readObject(java.io.ObjectInputStream)>"})-[:CALL]->(m2:Method {name:"toString"})-[:ALIAS*]-(m3:Method {signature:"<org.apache.commons.collections.keyvalue.TiedMapEntry: java.lang.String toString()>"})-[:CALL]->(m4:Method {name:"getValue"})-[:CALL]->(m5:Method {name:"get"})-[:ALIAS*1..2]-(m6:Method {name:"get"})-[:CALL]->(m7:Method {name:"transform"})-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {isSink:true}) return *

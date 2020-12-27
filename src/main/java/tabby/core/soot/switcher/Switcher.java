@@ -49,7 +49,7 @@ public class Switcher {
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
-                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, graph, cacheHelper, context);
+                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, cacheHelper, context);
 
             // 做变量回溯，比较出action
             Map<String, String> actions = new HashMap<>();

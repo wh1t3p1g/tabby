@@ -107,7 +107,7 @@ public class TabbyVariable {
 
         if(baseVar != null && baseVar.isPolluted()){
             tabbyValue.setPolluted(true);
-            tabbyValue.setRelatedType(baseVar.constructRelatedType() + "|" + sootField.getName());
+            tabbyValue.setRelatedType(baseVar.getValue().getRelatedType() + "|" + sootField.getName());
             tabbyValue.setRelatedVar(fieldVar);
         }
 
@@ -292,7 +292,7 @@ public class TabbyVariable {
         TabbyVariable clonedVar = null;
         // try to find from cache
         if(clonedVars.contains(this)) {
-            return clonedVars.get(clonedVars.indexOf(this));
+            return this;
         }else{
             clonedVars.add(this);
         }

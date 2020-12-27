@@ -2,8 +2,9 @@ package tabby.core.soot.toolkit;
 
 import lombok.Getter;
 import lombok.Setter;
-import soot.Local;
-import soot.Unit;
+import soot.*;
+import soot.jimple.ArrayRef;
+import soot.jimple.InstanceFieldRef;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.core.data.Context;
@@ -31,10 +32,11 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     private Context context; // 同一函数内共享的上下文内容
     private CacheHelper cacheHelper;
     private Map<Local,TabbyVariable> emptyMap;
+    private Map<Local,TabbyVariable> initialMap;
     private StmtSwitcher stmtSwitcher;
     private MethodReference methodRef;
     private Set<Unit> blockStack = new HashSet<>(); // 存储已调用分析过的Unit，防止循环分析
-
+    private Body body;
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
      *
@@ -43,20 +45,56 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     public PollutedVarsPointsToAnalysis(DirectedGraph<Unit> graph) {
         super(graph);
         emptyMap = new HashMap<>();
+        initialMap = new HashMap<>();
+
     }
 
     public void doAnalysis(){
+        for(ValueBox box:body.getUseAndDefBoxes()){
+            Value value = box.getValue();
+            if(value instanceof Local && !initialMap.containsKey(value)){
+                initialMap.put((Local) value, TabbyVariable.makeLocalInstance((Local) value));
+            }else if(value instanceof InstanceFieldRef){
+                InstanceFieldRef ifr = (InstanceFieldRef) value;
+                SootField sootField = ifr.getField();
+                Value base = ifr.getBase();
+                if(base instanceof Local){
+                    TabbyVariable baseVar = initialMap.get(base);
+                    if(baseVar == null){
+                        baseVar = TabbyVariable.makeLocalInstance((Local) base);
+                        initialMap.put((Local) base, baseVar);
+                    }
+                    TabbyVariable fieldVar = baseVar.getField(sootField.getName());
+                    if(fieldVar == null){
+                        fieldVar = TabbyVariable.makeFieldInstance(baseVar, sootField);
+                        baseVar.addField(sootField.getName(), fieldVar);
+                    }
+                }
+            }else if(value instanceof ArrayRef){
+                ArrayRef v = (ArrayRef) value;
+                Value base = v.getBase();
+                if(base instanceof Local){
+                    TabbyVariable baseVar = initialMap.get(base);
+                    if(baseVar == null){
+                        baseVar = TabbyVariable.makeLocalInstance((Local) base);
+                        initialMap.put((Local) base, baseVar);
+                    }
+                }
+            }
+        }
         super.doAnalysis();
     }
 
     @Override
     protected void flowThrough(Map<Local,TabbyVariable> in, Unit d, Map<Local,TabbyVariable> out) {
 //        System.out.println(d);
-        context.setLocalMap(in);
+        Map<Local,TabbyVariable> newIn = new HashMap<>();
+        copy(in, newIn);
+        context.setLocalMap(newIn);
         stmtSwitcher.setContext(context);
         stmtSwitcher.setCacheHelper(cacheHelper);
         d.apply(stmtSwitcher);
-        out.putAll(context.getLocalMap());
+        out = context.getLocalMap();
 //        System.out.println(d);
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
@@ -76,7 +114,11 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected Map<Local, TabbyVariable> newInitialFlow() {
-        return new HashMap<>(emptyMap);
+        Map<Local, TabbyVariable> initialedLocalMap = new HashMap<>();
+        initialMap.forEach((local, var) -> {
+            initialedLocalMap.put(local, var.deepClone(new ArrayList<>()));
+        });
+        return initialedLocalMap;
     }
 
 
@@ -135,6 +177,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     }
 
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
+                                                           Body body,
                                                            DirectedGraph<Unit> graph,
                                                            CacheHelper cacheHelper, Context context){
         PollutedVarsPointsToAnalysis analysis = new PollutedVarsPointsToAnalysis(graph);
@@ -144,6 +187,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         switcher.setLeftValueSwitcher(new SimpleLeftValueSwitcher());
         switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
         // 配置pta依赖
+        analysis.setBody(body);
         analysis.setCacheHelper(cacheHelper);
         analysis.setStmtSwitcher(switcher);
         analysis.setContext(context);

@@ -1,7 +1,7 @@
 {
   "java.io.FileInputStream": [{"name": "<init>", "related": ["param-0"]}],
   "java.io.FileOutputStream": [{"name": "<init>", "related": ["param-0"]}],
-  "java.nio.file.Files": [{"name": "newInputStream", "related": ["param-0"]},{"name": "newOutputStream", "related": ["param-0"]},{"name": "newBufferedReader","related": ["param-0"]},{"name": "newBufferedWriter", "related": ["param-0"]}],
+  "java.nio.file.Files": [{"name": "newInputStream", "related": ["param-0"]}, {"name": "newOutputStream", "related": ["param-0"]},{"name": "newBufferedReader","related": ["param-0"]}, {"name": "newBufferedWriter", "related": ["param-0"]}],
   "java.lang.Class": [{"name": "forName", "related": ["param-0"]}, {"name": "getMethod", "param": ["param-0","param-1"]}],
   "java.lang.reflect.Method": [{"name": "invoke", "related": ["this","param-0"]}],
   "java.net.URLClassLoader": [{"name": "newInstance", "related": ["param-0"]}],
@@ -10,6 +10,5 @@
   "java.lang.ProcessImpl": [{"name": "start", "related": ["param-0"]}],
   "java.lang.ClassLoader": [{"name": "defineClass", "related": ["param-1"]}],
   "javax.naming.Context": [{"name": "lookup", "related": ["param-0"]}],
-  "java.rmi.registry.Registry": [{"name": "lookup", "related": ["param-0"]}],
-  "benchmark.objects.A": [{"name": "run", "related": ["param-0"]}]
+  "java.rmi.registry.Registry": [{"name": "lookup", "related": ["param-0"]}]
 }

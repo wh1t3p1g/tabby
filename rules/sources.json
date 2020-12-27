@@ -1,4 +1,6 @@
 {
   "java.lang.Object": [{"name": "hashCode", "param": []},{"name": "toString", "param": []}],
-  "java.lang.Comparable": [{"name": "compareTo", "param": []}]
+  "java.lang.Comparable": [{"name": "compareTo", "param": []}],
+  "java.io.Serializable": [{"name": "readObject", "param": []}],
+  "any.object": [{"name": "set.*", "param": []},{"name": "get.*", "param": []}]
 }
