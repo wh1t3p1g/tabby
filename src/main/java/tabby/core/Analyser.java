@@ -75,7 +75,7 @@ public class Analyser {
             }else{
                 List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
                 setClassPath(targets);
-//                targets.addAll(getJdkDependencies());
+                targets.addAll(getJdkDependencies());
                 Options.v().set_process_dir(targets);
                 cacheHelper.loadRuntimeClasses(targets, false);
             }
@@ -91,6 +91,8 @@ public class Analyser {
             classInfoScanner.save();
             clean(); // clean caches
 //            discover.run();
+//            classInfoScanner.save();
+
 //            System.out.println(sortedMethodRefs.size());
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();

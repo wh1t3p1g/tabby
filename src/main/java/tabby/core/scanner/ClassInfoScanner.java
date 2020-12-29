@@ -54,6 +54,7 @@ public class ClassInfoScanner implements Scanner<List<String>> {
     @Override
     public void build(){
         if(cacheHelper.getSavedClassRefs().isEmpty()) return;
+        log.info("Build relationships!");
         Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>(cacheHelper.getSavedClassRefs());
         clonedClassRefs.forEach((handle, classRef) -> {
             buildRelationships(classRef);

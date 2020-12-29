@@ -92,9 +92,9 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
     }
 
     public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
-//        log.info(invokeExpr.getMethodRef().getSignature());
+//        log.debug(invokeExpr.getMethodRef().getSignature());
         setResult(Switcher.doInvokeExprAnalysis(invokeExpr, cacheHelper, context));
-//        log.info(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+//        log.debug(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
 }

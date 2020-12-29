@@ -5,6 +5,7 @@ import lombok.Setter;
 import soot.jimple.AbstractJimpleValueSwitch;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
+import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
 /**
@@ -17,6 +18,7 @@ public abstract class ValueSwitcher extends AbstractJimpleValueSwitch {
 
     public Context context;
     public CacheHelper cacheHelper;
+    public MethodReference methodRef;
     public TabbyVariable rvar;
     public boolean unbind = false;
 

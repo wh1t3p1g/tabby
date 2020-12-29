@@ -25,7 +25,7 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
      */
     public void caseLocal(Local v) {
         TabbyVariable var = context.getOrAdd(v);
-
+        generateAction(var, rvar, -1, unbind);
         if(unbind){
             var.clearVariableStatus();
         }else{
@@ -57,6 +57,7 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
 
         if (indexValue instanceof IntConstant) {
             int index = ((IntConstant) indexValue).value;
+            generateAction(baseVar, rvar, index, unbind);
             if(unbind){
                 baseVar.clearElementStatus(index);
             }else{
@@ -65,6 +66,7 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
         }else if(indexValue instanceof Local){
             // 存在lvar = a[i2] 这种情况，暂无法推算处i2的值是什么，存在缺陷这部分；近似处理，添加到最后一个位置上
             int size = baseVar.getElements().size();
+            generateAction(baseVar, rvar, size, unbind);
             if(!unbind){
                 baseVar.assign(size, rvar);
             }// 忽略可控性消除
@@ -81,10 +83,36 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
         if(base instanceof Local){
             TabbyVariable baseVar = context.getOrAdd(base);
             TabbyVariable fieldVar = baseVar.getOrAddField(baseVar, sootField);
+            generateAction(fieldVar, rvar, -1, unbind);
             if(unbind){
                 fieldVar.clearVariableStatus();
             }else{
                 fieldVar.assign(rvar);
+            }
+        }
+    }
+
+    public void generateAction(TabbyVariable lvar, TabbyVariable rvar, int index, boolean unbind){
+        if(unbind && lvar.isPolluted()){
+            if(index != -1){
+                methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, "clear");
+            }else{
+                methodRef.getActions().put(lvar.getValue().getRelatedType(), "clear");
+            }
+        }else if(lvar.isPolluted()){
+            if(rvar != null && rvar.isPolluted()){
+                if(index != -1){
+                    methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, rvar.getValue().getRelatedType());
+                }else{
+                    methodRef.getActions().put(lvar.getValue().getRelatedType(), rvar.getValue().getRelatedType());
+                }
+
+            }else{
+                if(index != -1){
+                    methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, "clear");
+                }else{
+                    methodRef.getActions().put(lvar.getValue().getRelatedType(), "clear");
+                }
             }
         }
     }

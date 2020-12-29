@@ -52,6 +52,10 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     public void doAnalysis(){
         for(ValueBox box:body.getUseAndDefBoxes()){
             Value value = box.getValue();
+            Type type = value.getType();
+            if(type instanceof PrimType){ // 对于基础数据类型 直接跳过
+                continue;
+            }
             if(value instanceof Local && !initialMap.containsKey(value)){
                 initialMap.put((Local) value, TabbyVariable.makeLocalInstance((Local) value));
             }else if(value instanceof InstanceFieldRef){
@@ -91,10 +95,11 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         Map<Local,TabbyVariable> newIn = new HashMap<>();
         copy(in, newIn);
         context.setLocalMap(newIn);
+        context.setInitialMap(initialMap);
         stmtSwitcher.setContext(context);
         stmtSwitcher.setCacheHelper(cacheHelper);
         d.apply(stmtSwitcher);
-        out = context.getLocalMap();
+        out.putAll(context.getLocalMap());
 //        System.out.println(d);
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
@@ -114,18 +119,17 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected Map<Local, TabbyVariable> newInitialFlow() {
-        Map<Local, TabbyVariable> initialedLocalMap = new HashMap<>();
-        initialMap.forEach((local, var) -> {
-            initialedLocalMap.put(local, var.deepClone(new ArrayList<>()));
-        });
-        return initialedLocalMap;
+//        Map<Local, TabbyVariable> initialedLocalMap = new HashMap<>();
+//        initialMap.forEach((local, var) -> {
+//            initialedLocalMap.put(local, var.deepClone(new ArrayList<>()));
+//        });
+        return new HashMap<>(emptyMap);
     }
 
 
     @Override
     protected void merge(Map<Local,TabbyVariable> in1, Map<Local,TabbyVariable> in2, Map<Local,TabbyVariable> out) {
         out.clear();
-        out.putAll(in2);
         in1.forEach((local, variable) -> {
             if(variable == null) return;
             if(out.containsKey(local)){ // 遇到相同变量，保留可控变量，如果均可控，则直接保留out的
@@ -144,36 +148,6 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         source.forEach((local, variable) -> {
             dest.put(local, variable.deepClone(new ArrayList<>()));
         });
-    }
-
-    /**
-     * 在进入函数调用前，判断是否参数可控，本身对象可控
-     * 如 test(a,b); a为可控对象，那么返回[0] 如果a,b均可控，返回[0,1]
-     * 如 a.test(b); a为可控对象，那么返回[-1] 如果b也可控，返回[0,1]
-     * @param unit
-     * @param invokerType
-     * @return
-     */
-    public Set<Integer> mayPolluted(Unit unit, String invokerType){
-        Set<Integer> ret = new HashSet<>();
-        switch (invokerType){
-            case "StaticInvoke":
-                // 静态函数调用 查看参数是否可控
-                break;
-            case "VirtualInvoke":
-                // b.test()
-                // 查看参数是否可控，调用对象是否可控
-                break;
-            case "SpecialInvoke":
-                // 初始化 this.xxx()
-                // this 默认可控
-                // 初始化时，如果参数可控，则有可能可控；如果参数不可控，默认不可控
-                break;
-            case "InterfaceInvoke":
-                // 跟virtualInvoke一样
-                break;
-        }
-        return ret;
     }
 
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,

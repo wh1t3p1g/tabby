@@ -13,6 +13,7 @@ import soot.jimple.Stmt;
 import tabby.core.data.Context;
 import tabby.core.soot.switcher.InvokeExprSwitcher;
 import tabby.core.soot.switcher.Switcher;
+import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.cache.CacheHelper;
 
@@ -55,23 +56,21 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
             invokeExprSwitcher.setSource(methodRef);
-//            System.out.println(method.getSignature());
-// TODO <java.math.MutableBigInteger: java.math.MutableBigInteger modInverse(java.math.MutableBigInteger)>
+            System.out.println(method.getSignature());
+
             if(method.isStatic() && method.getParameterCount() == 0){ // 静态函数 且 函数入参数量为0 此类函数 对于反序列化来说 均不可控 不进行分析
                 methodRef.setInitialed(true);
                 methodRef.setPolluted(methodRef.isSink());
                 return;
             }
-//            if ("<com.sun.java.swing.plaf.windows.TMSchema$State: void initStates()>".equals(method.getSignature())) {
-                Context context = Context.newInstance(method.getSignature());
-                context.setHeadMethodContext(true);
-                Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
-                context.clear();
-//            }
+
+            Context context = Context.newInstance(method.getSignature());
+            context.setHeadMethodContext(true);
+            PollutedVarsPointsToAnalysis pta = Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
+            context.clear();
 
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             for(Unit unit: body.getUnits()){
-                // TODO pta check
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){
                     invokeExprSwitcher.setUnit(unit);

@@ -36,6 +36,7 @@ public class MethodReference implements Comparable<MethodReference>{
     private Set<String> parameters = new HashSet<>();
 
     private boolean isSink = false;
+    private boolean isSource = false;
     private boolean isStatic = false;
     private boolean isPolluted = false;
     private boolean hasParameters = false;
@@ -51,11 +52,12 @@ public class MethodReference implements Comparable<MethodReference>{
      * this.field=other value
      * 提示经过当前函数调用后，当前函数参数和返回值的relateType会发生如下变化
      */
-    private Map<String, String> relatedPosition = new HashMap<>();
+    private Map<String, String> actions = new HashMap<>();
+
+    private Set<Integer> pollutedPosition = new HashSet<>();
 
     private transient ClassRefHandle classRef;
     private transient SootMethod cachedMethod;
-    private transient Set<MethodReference> cachedAliasMethodRefs = new HashSet<>();
     private transient boolean isInitialed = false;
     private transient boolean actionInitialed = false;
     private transient boolean isIgnore = false;
@@ -110,8 +112,11 @@ public class MethodReference implements Comparable<MethodReference>{
         csv.add(Boolean.toString(isStatic));
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));
+        csv.add(Boolean.toString(isSource));
+        csv.add(Boolean.toString(isPolluted));
         csv.add(String.join("|", parameters));
-        csv.add(toStr(relatedPosition));
+        csv.add(actions != null ? toStr(actions) : "");
+        csv.add(pollutedPosition != null ? toStr(pollutedPosition) : "");
         csv.add(returnType);
         return csv;
     }
@@ -120,6 +125,14 @@ public class MethodReference implements Comparable<MethodReference>{
         StringBuilder sb = new StringBuilder();
         positions.forEach((position, related)->{
             sb.append(position).append("~").append(related).append(";");
+        });
+        return sb.toString();
+    }
+
+    public String toStr(Set<Integer> positions){
+        StringBuilder sb = new StringBuilder();
+        positions.forEach((position)->{
+            sb.append(position).append("|");
         });
         return sb.toString();
     }
@@ -137,5 +150,14 @@ public class MethodReference implements Comparable<MethodReference>{
     @Override
     public int compareTo(MethodReference o) {
         return callEdge.size() - o.getCallEdge().size();
+    }
+
+    public Call findCall(MethodReference target){
+        for(Call call:callEdge){
+            if(call.getTarget().equals(target)){
+                return call;
+            }
+        }
+        return null;
     }
 }

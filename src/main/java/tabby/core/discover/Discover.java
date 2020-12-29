@@ -1,7 +1,8 @@
 package tabby.core.discover;
 
-import tabby.core.data.GadgetChain;
 import tabby.neo4j.bean.ref.MethodReference;
+
+import java.util.List;
 
 /**
  * @author wh1t3P1g
@@ -10,22 +11,16 @@ import tabby.neo4j.bean.ref.MethodReference;
 public interface Discover {
 
     /**
-     * 获取所有sink函数的signature
+     * 获取所有的节点，填充到startNodes里
      */
-    void getSinks();
+    List<String> startNodes();
 
     /**
-     * 获取所有source函数的subSignature
+     * 判断当前函数节点是否为 最后的节点，可以是source函数 也可以是sink函数
+     * @param methodRef 待检测函数
+     * @return 是否为最后的节点
      */
-    void getSources();
-
-    /**
-     * 证明source 调用 target 是可控的
-     * @param source
-     * @param target
-     * @return 是否可控
-     */
-    boolean analysis(String position, GadgetChain gadgetChain, MethodReference source, MethodReference target);
+    boolean isEndNodes(MethodReference methodRef);
 
     /**
      * 主逻辑
@@ -33,22 +28,26 @@ public interface Discover {
     void run();
 
     /**
-     * 继续往下进行探索
-     * 采用递归的方式，会去遍历所有路径
-     * @param gadgetChain
+     * 对当前函数做限制
+     * 比如 需要满足某些条件 才能继续往下走
+     * 类似 当前函数的类 必须是实现serializable类的
+     * @param target 待检测函数
+     * @return 是否需要继续往下走 true则不允许往下走，false则允许往下走
      */
-    void flowThrough(GadgetChain gadgetChain);
+    boolean constraint(MethodReference target);
 
     /**
-     * 针对当前的method，获取所有可控的函数调用
-     * @param gadgetChain
+     * 以当前target为起点，找到所有可控的调用关系
+     * @param target 起点函数
+     * @return 返回所有可控的调用关系
      */
-    void next(GadgetChain gadgetChain);
+    List<String> spread(MethodReference target);
 
     /**
-     * 判断当前函数是否为source函数
-     * @param method
+     * 检查当前两个函数之间的边是否可控
+     * @param source
+     * @param target
      * @return
      */
-    boolean isSource(String method);
+    boolean check(MethodReference source, MethodReference target);
 }

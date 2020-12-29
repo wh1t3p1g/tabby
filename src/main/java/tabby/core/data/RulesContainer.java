@@ -18,68 +18,56 @@ import java.util.*;
 @Component
 public class RulesContainer {
 
-    private Map<String, List<Map<String, Object>>> sinks = new HashMap<>();
-    private Map<String, List<String>> ignores = new HashMap<>();
+    private Map<String, TabbyRule> rules = new HashMap<>();
 
     public RulesContainer() throws FileNotFoundException {
-        loadSinks();
-        loadIgnores();
+        load();
     }
 
-    public boolean isSink(String classname, String method){
-        if(sinks.containsKey(classname)){
-            List<Map<String, Object>> functions = sinks.get(classname);
-            for(Map<String, Object> function:functions){
-                if(method.equals(function.get("name"))){
-                    return true;
-                }
+    public TabbyRule.Rule getRule(String classname, String method){
+        if(rules.containsKey(classname)){
+            TabbyRule rule = rules.get(classname);
+            if(rule.contains(method)){
+                return rule.getRule(method);
+            }
+        }
+        return null;
+    }
+
+    public boolean isType(String classname, String method, String type){
+        if(rules.containsKey(classname)){
+            TabbyRule rule = rules.get(classname);
+            if(rule.contains(method)){
+                TabbyRule.Rule tr = rule.getRule(method);
+                return type.equals(tr.getType());
             }
         }
         return false;
     }
 
-    public Map<String, String> getSinkParamPosition(String classname, String method){
-        Map<String, String> retMap = new HashMap<>();
-        if(sinks.containsKey(classname)){
-            List<Map<String, Object>> functions = sinks.get(classname);
-            for(Map<String, Object> function:functions){
-                if(method.equals(function.get("name"))){
-                    List<String> list = (List)function.get("related");
-                    if(list == null){
-                        continue;
-                    }
-                    for(String str:list){
-                        retMap.put(str, "evil");
-                    }
-                    return retMap;
-                }
+    public Map<String, String> getFunctionActions(String classname, String method){
+        if(rules.containsKey(classname)){
+            TabbyRule rule = rules.get(classname);
+            if(rule.contains(method)){
+                TabbyRule.Rule tr = rule.getRule(method);
+                return tr.getActions();
             }
         }
-        return retMap;
+        return null;
     }
 
-    public boolean isIgnore(String classname, String method){
-        if(ignores.containsKey(classname)){
-            return ignores.get(classname).contains(method);
-        }
-        return false;
-    }
+
 
     @SuppressWarnings({"unchecked"})
-    private void loadSinks() throws FileNotFoundException {
-        sinks = (Map<String, List<Map<String, Object>>>) FileUtils.getJsonContent(GlobalConfiguration.SINKS_PATH, Map.class);
-        if(sinks == null){
+    private void load() throws FileNotFoundException {
+        TabbyRule[] tempRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.KNOWLEDGE_PATH, TabbyRule[].class);
+        if(tempRules == null){
             throw new FileNotFoundException("Sink File Not Found");
         }
-        log.info("load "+ sinks.size() +" sinks success!");
-    }
-
-    @SuppressWarnings({"unchecked"})
-    private void loadIgnores() throws FileNotFoundException {
-        ignores = (Map<String, List<String>>) FileUtils.getJsonContent(GlobalConfiguration.IGNORES_PATH, Map.class);
-        if(ignores == null){
-            throw new FileNotFoundException("Ignore File Not Found");
+        for(TabbyRule rule:tempRules){
+            rule.init();
+            rules.put(rule.getName(), rule);
         }
-        log.info("load "+ ignores.size() +" ignore success!");
+        log.info("load "+ rules.size() +" rules success!");
     }
 }

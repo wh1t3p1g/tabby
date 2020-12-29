@@ -10,6 +10,7 @@ import org.neo4j.ogm.typeconversion.UuidStringConverter;
 import soot.SootClass;
 import tabby.config.GlobalConfiguration;
 import tabby.core.data.RulesContainer;
+import tabby.core.data.TabbyRule;
 import tabby.neo4j.bean.edge.Extend;
 import tabby.neo4j.bean.edge.Has;
 import tabby.neo4j.bean.edge.Interfaces;
@@ -104,17 +105,23 @@ public class ClassReference{
         if(cls.getMethodCount() > 0){
             cls.getMethods().forEach((method) -> {
                 MethodReference methodRef = MethodReference.parse(classRef.getHandle(), method);
-                boolean isSink = rulesContainer.isSink(classRef.getName(), methodRef.getName());
-                methodRef.setSink(isSink);
+                TabbyRule.Rule rule = rulesContainer.getRule(classRef.getName(), methodRef.getName());
+                boolean isSink = rule != null && rule.isSink();
+                boolean isIgnore = rule != null && rule.isIgnore();
+                boolean isSource = rule != null && rule.isSource();
 
-                if(isSink){
-                    methodRef.setPolluted(true);
-                    methodRef.setRelatedPosition(rulesContainer.getSinkParamPosition(classRef.getName(), methodRef.getName()));
+                methodRef.setSink(isSink);
+                methodRef.setPolluted(isSink);
+                methodRef.setIgnore(isIgnore);
+                methodRef.setSource(isSource);
+
+                if(rule != null){
+                    methodRef.setActions(rule.getActions());
+                    methodRef.setPollutedPosition(rule.getPolluted());
                     methodRef.setInitialed(true);
                     methodRef.setActionInitialed(true);
                 }
 
-                methodRef.setIgnore(rulesContainer.isIgnore(classRef.getName(), methodRef.getName()));
                 Has has = Has.newInstance(classRef, methodRef);
                 classRef.getHasEdge().add(has);
             });

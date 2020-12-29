@@ -60,8 +60,7 @@ public class TabbyVariable {
     public static TabbyVariable makeSpecialLocalInstance(Local local, String relatedType){
         TabbyValue tabbyValue = TabbyValue.newInstance(local);
         TabbyVariable tabbyVariable = new TabbyVariable(local, tabbyValue);
-
-        if(!(local.getType() instanceof PrimType) && !(local.getType() instanceof ArrayType)) {
+        if(!(local.getType() instanceof PrimType) && !(local.getType() instanceof ArrayType)) { // 基础数据类型 和 数组类型 无法提取fields
             SootClass cls = ((RefType) local.getType()).getSootClass();
             for (SootField sootField : cls.getFields()) {// construct fields
                 TabbyVariable fieldVar = makeFieldInstance(null, sootField);

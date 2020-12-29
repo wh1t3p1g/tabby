@@ -1,116 +1,51 @@
 package tabby.core.discover.xstream;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-import soot.*;
-import soot.jimple.JimpleBody;
-import soot.jimple.spark.ondemand.DemandCSPointsTo;
-import soot.toolkits.graph.BriefUnitGraph;
-import soot.toolkits.graph.UnitGraph;
-import tabby.core.data.GadgetChain;
 import tabby.core.discover.BackForwardedDiscover;
-import tabby.neo4j.bean.edge.Call;
 import tabby.neo4j.bean.ref.MethodReference;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
  * @since 2020/11/21
  */
 @SuppressWarnings({"unchecked"})
+@Slf4j
 @Component
 public class SimpleXStreamGadgetDiscover extends BackForwardedDiscover {
 
     @Override
-    public void getSources() {
-        // sub signature
-        sources = new ArrayList<>();
-        sources.add("int hashCode()");
-        sources.add("java.lang.String toString()");
-        sources.add("int compareTo(java.lang.Object)");
+    public boolean constraint(MethodReference target) {
+        return false; // 这里默认没限制
     }
 
     @Override
-    public boolean analysis(String position, GadgetChain gadgetChain, MethodReference source, MethodReference target) {
-//        if(position == null){ // 指定当前target method的可控位置，如果为null，则不进行分析
-//            return false;
-//        }
-        boolean flag = false;
-//        List<String> positions = Arrays.asList(position.split(","));
-        PointsToAnalysis pta = Scene.v().getPointsToAnalysis();
-        PointsToAnalysis onDemandAnalysis = DemandCSPointsTo.makeDefault();
-        SootMethod method = source.getCachedMethod();
-        String targetMethodSignature = target.getSignature();
-        if(method == null || targetMethodSignature == null) return false;
-        JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-        UnitGraph graph = new BriefUnitGraph(body);
+    public List<String> spread(MethodReference target) {
+        Set<String> nextTargets = new HashSet<>();
+        Map<MethodReference, Set<String>> sourceMap = new HashMap<>();
+        // 获取直接调用
+        sourceMap.put(target, new HashSet<>(methodRefService.findAllByInvokedMethodSignature(target.getSignature())));
 
-//        StmtSwitcher switcher = new SimpleStmtSwitcher();
-//        switcher.setLeftValueSwitcher(new SimpleLeftValueSwitcher());
-//        switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
-//        if("<java.lang.ProcessBuilder: java.lang.Process start()>".equals(source.getSignature())){
-//            System.out.println(1);
-//        }
-//        VarsPointsToAnalysis analysis = new VarsPointsToAnalysis(graph);
-//        analysis.setCacheHelper(cacheHelper);
-//        analysis.setStmtSwitcher(switcher);
-//
-//        Context context = Context.newInstance(source.getSignature(), body);
-//        analysis.setContext(context);
-//        analysis.doAnalysis();
-//        context.clear();
-
-        for(Call call:source.getCallEdge()){
-            if(call.getTarget().equals(target)){
-                gadgetChain.setInvokerType(call.getInvokerType());
-                Unit unit = call.getUnit();
-                List<ValueBox> boxes = unit.getUseBoxes();
-                for(ValueBox box:boxes){
-                    Value value = box.getValue();
-                    if(value instanceof Local){
-                        PointsToSet reaching_objects = pta.reachingObjects((Local) value);
-                        System.out.println(1);
-                    }
-                }
-//                Stmt stmt = (Stmt) unit;
-//                Map<Local, TabbyVariable> localMap = analysis.getFlowBefore(unit);
-//                Set<String> relatedTypes = new HashSet<>();
-//                if(stmt.containsInvokeExpr()){
-//                    InvokeExpr ie = stmt.getInvokeExpr();
-//                    for(String pos: positions){
-//                        Value value = null;
-//                        if(pos.contains("-")){
-//                            int index = Integer.valueOf(pos.split("-")[1]);
-//                            value = ie.getArg(index);
-//                        }else{ // this
-//                            if(ie instanceof VirtualInvokeExpr){
-//                                VirtualInvokeExpr vie = (VirtualInvokeExpr) ie;
-//                                value = vie.getBase();
-//                            }else if(ie instanceof SpecialInvokeExpr){
-//                                SpecialInvokeExpr sie = (SpecialInvokeExpr) ie;
-//                                value = sie.getBase();
-//                            }else if(ie instanceof InterfaceInvokeExpr){
-//                                InterfaceInvokeExpr iie = (InterfaceInvokeExpr) ie;
-//                                value = iie.getBase();
-//                            }
-//                        }
-//                        if(value instanceof Local){
-//                            TabbyVariable var = localMap.getOrDefault(value, null);
-//                            if(var != null && var.isPolluted()){
-//                                source.getRelatedPosition().addAll(var.getValue().getRelatedType());
-//                                relatedTypes.addAll(var.getValue().getRelatedType());
-//                                flag = true;
-//                            }
-//                        }
-//                    }
-//                }
-//                if(flag && !relatedTypes.isEmpty()){
-//                    gadgetChain.setObj(String.join(",", relatedTypes));
-//                }
-//                break;
-            }
+        // 获取alias调用
+        // 存在情况，当前无直接调用关系，但是 这个函数存在alias关系边，由这个alias函数扩散直接调用关系
+        List<String> alias = methodRefService.getRepository().findAllAliasMethods(target.getSignature());
+        for(String as:alias){
+            MethodReference aliasMethodRef = cacheHelper.loadMethodRef(as);
+            sourceMap.put(aliasMethodRef, new HashSet<>(methodRefService.getRepository().findAllCallMethods(as, "InterfaceInvoke")));
         }
-        return flag;
+
+        // 对所有可能的调用做分析
+        sourceMap.forEach((methodRef, sources) -> {
+            for(String source:sources){
+                MethodReference sourceMethodRef = cacheHelper.loadMethodRef(source);
+                if(check(sourceMethodRef, methodRef)){
+                    nextTargets.add(source);
+                }
+            }
+        });
+
+        return new ArrayList<>(nextTargets);
     }
 }

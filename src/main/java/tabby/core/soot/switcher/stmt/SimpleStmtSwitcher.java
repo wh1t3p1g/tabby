@@ -30,9 +30,9 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
     public void caseInvokeStmt(InvokeStmt stmt) {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
-//        log.info(ie.getMethodRef().getSignature());
+//        log.debug(ie.getMethodRef().getSignature());
         Switcher.doInvokeExprAnalysis(ie, cacheHelper, context);
-//        log.info(ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+//        log.debug(ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
     @Override
@@ -55,6 +55,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         // 处理左值
         if(rvar != null || unbind){
             leftValueSwitcher.setContext(context);
+            leftValueSwitcher.setMethodRef(methodRef);
             leftValueSwitcher.setRvar(rvar);
             leftValueSwitcher.setUnbind(unbind);
             lop.apply(leftValueSwitcher);
@@ -137,6 +138,9 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
+        if(var != null && var.isPolluted()){
+            methodRef.getActions().put("return", var.getValue().getRelatedType());
+        }
     }
 
 }

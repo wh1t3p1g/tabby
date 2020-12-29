@@ -5,6 +5,7 @@ import soot.Local;
 import soot.Value;
 import soot.jimple.StaticFieldRef;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -20,6 +21,7 @@ public class Context {
 
 
     private String methodSignature; // 当前函数签名
+    private Map<Local, TabbyVariable> initialMap;
     private TabbyVariable thisVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
     private TabbyVariable baseVar;// 前面调用函数的base变量，比如a.func1() a为base变量
     private Map<Integer, TabbyVariable> args = new HashMap<>(); // 前置函数的入参
@@ -81,10 +83,18 @@ public class Context {
         TabbyVariable var = null;
         if(sootValue instanceof Local){ // find from local map
             var = localMap.get(sootValue);
+            if(var == null){ // 新建变量 先从初始表中获取，如果初始表里没有，再新建变量
+                TabbyVariable tempVar = initialMap.get(sootValue);
+                if(tempVar != null){
+                    var = tempVar.deepClone(new ArrayList<>());
+                    localMap.put((Local) sootValue, var);
+                }
+            }
             if (var == null) {
                 var = TabbyVariable.makeLocalInstance((Local)sootValue);
                 localMap.put((Local) sootValue, var);
             }
+
         }else if(sootValue instanceof StaticFieldRef){ // find from global map
             var = globalMap.get(sootValue);
             if(var == null){
@@ -101,7 +111,7 @@ public class Context {
 //        }else{
 //            thisVar = TabbyVariable.makeSpecialLocalInstance((Local)value, "this");
 //        }
-        thisVar = localMap.get(value);
+        thisVar = getOrAdd(value);
         thisVar.setThis(true);
         thisVar.getValue().setPolluted(true);
         thisVar.getValue().setRelatedType("this");
@@ -115,7 +125,7 @@ public class Context {
     }
 
     public void bindArg(Local local, int paramIndex) {// 仅用在函数调用处，绑定下一层的变量信息
-        TabbyVariable paramVar = localMap.get(local);
+        TabbyVariable paramVar = getOrAdd(local);
 //        if(args.containsKey(paramIndex) && args.get(paramIndex) != null){ // 跟上一层的变量进行绑定
 //            paramVar = args.get(paramIndex).deepClone(new ArrayList<>());
 //        }else{

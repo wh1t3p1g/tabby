@@ -62,6 +62,7 @@ public class Call {
      *                  a可控，则填充0
      */
     private Set<Integer> pollutedPosition = new HashSet<>();
+    private boolean isPolluted = false;
 
     public static Call newInstance(MethodReference source, MethodReference target){
         Call call = new Call();

@@ -9,6 +9,7 @@ import tabby.neo4j.bean.ref.handle.MethodRefHandle;
 import tabby.neo4j.repository.MethodRefRepository;
 import tabby.util.FileUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -46,7 +47,12 @@ public class MethodRefService {
     }
 
     public List<String> findAllSinks(){
-        return methodRefRepository.findAllSinks();
+        List<String> sinks = methodRefRepository.findAllSinks();
+        if(sinks != null){
+            return sinks;
+        }else{
+            return new ArrayList<>();
+        }
     }
 
     public List<String> findAllByInvokedMethodSignature(String signature){

@@ -38,45 +38,27 @@ public class Switcher {
      * @param method
      * @param methodRef
      */
-    public static void doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef){
+    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef){
         try{
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())){
                 methodRef.setInitialed(true);
                 methodRef.setActionInitialed(true);
-                methodRef.getRelatedPosition().put("return", "clear");
-                return;
+                methodRef.getActions().put("return", "clear");
+                return null;
             }
+
+            if(methodRef.isActionInitialed()){
+                return null;
+            }
+
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
                     PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, cacheHelper, context);
 
-            // 做变量回溯，比较出action
-            Map<String, String> actions = new HashMap<>();
-            if(!methodRef.isActionInitialed()){
-                context.getArgs().forEach((index, oldArg) -> { // 比较入参
-                    TabbyVariable newArg = context.getCurrentArgs().get(index);
-                    actions.putAll(getActions("param-"+index, oldArg, newArg, new HashSet<>()));
-                });
-                // 比较baseVar
-                actions.putAll(getActions("this", context.getBaseVar(), context.getThisVar(), new HashSet<>()));
-                methodRef.setActionInitialed(true);
-            }
-
-            // 处理 returnVar
-            if(context.getReturnVar() != null){
-                TabbyVariable retVar = context.getReturnVar();
-                if(retVar.isPolluted()){
-
-                    actions.put("return", retVar.getValue().getRelatedType());
-                }else{
-                    actions.put("return", "clear");
-                }
-            }
-
             methodRef.setInitialed(true);
-            methodRef.getRelatedPosition().putAll(actions);
-            methodRef.setPolluted(context.getReturnVar() != null && context.getReturnVar().isPolluted());
+            methodRef.setActionInitialed(true);
+            return pta;
         }catch (RuntimeException e){
             // TODO 无法分析body
             e.printStackTrace();
@@ -85,7 +67,7 @@ public class Switcher {
             // 2. 近似处理
             //      先判断当前args有没有可控的变量，如果有，则直接将left 和 其他参数都置为可控
         }
-
+        return null;
     }
 
     public static TabbyVariable doInvokeExprAnalysis(
@@ -93,13 +75,10 @@ public class Switcher {
             CacheHelper cacheHelper,
             Context context){
         // extract baseVar and args
-        TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context);
+        TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context); // 调用对象
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参 baseVar是否可控
-        boolean flag = false;
-        if(baseVar != null && baseVar.isPolluted()){
-            flag = true;
-        }
+        boolean flag = baseVar != null && baseVar.isPolluted();
 
         for(TabbyVariable var: args.values()){
             if(var != null && var.isPolluted()){
@@ -110,9 +89,9 @@ public class Switcher {
 
         if(!flag) return null; // baseVar，入参均不可控，返回值必不可控，无需做分析
 
-        if(baseVar == null){
-            baseVar = TabbyVariable.makeRandomInstance();
-        }
+//        if(baseVar == null){
+//            baseVar = TabbyVariable.makeRandomInstance();
+//        }
         // do method call back actions
         MethodReference methodRef = cacheHelper.loadMethodRef(invokeExpr.getMethod().getSignature());
         if(methodRef == null) return null;
@@ -120,24 +99,26 @@ public class Switcher {
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
             // do call method analysis
             Context subContext = context.createSubContext(methodRef.getSignature());
-            // copy this
-            TabbyVariable clonedVar = baseVar.deepClone(new ArrayList<>());
-            subContext.setBaseVar(clonedVar);
-            // copy args
-            args.forEach((index, arg) -> {
-                if(arg != null){
-                    TabbyVariable tempVar = arg.deepClone(new ArrayList<>());
-                    subContext.getArgs().put(index, tempVar);
-                }
-            });
+//            // copy this
+//            TabbyVariable clonedVar = baseVar.deepClone(new ArrayList<>());
+//            subContext.setBaseVar(clonedVar);
+//            // copy args
+//            args.forEach((index, arg) -> {
+//                if(arg != null){
+//                    TabbyVariable tempVar = arg.deepClone(new ArrayList<>());
+//                    subContext.getArgs().put(index, tempVar);
+//                }
+//            });
 
             Switcher.doMethodAnalysis(subContext, cacheHelper, invokeExpr.getMethod(), methodRef);
         }
         TabbyVariable retVar = null;
         // 参数修正，将从子函数的分析结果套用到当前的localMap
-        for (Map.Entry<String, String> entry : methodRef.getRelatedPosition().entrySet()) {
+        // 修正 入参和baseVar
+        for (Map.Entry<String, String> entry : methodRef.getActions().entrySet()) {
             String position = entry.getKey();
             String newRelated = entry.getValue();
+            if("return".equals(position))continue; // return的修正 不进行处理，由assign的时候自己去处理
             TabbyVariable oldVar = parsePosition(position, baseVar, args, true);
             TabbyVariable newVar = null;
 
@@ -148,11 +129,11 @@ public class Switcher {
                     newVar = parsePosition(newRelated, baseVar, args, false);
                     oldVar.assign(newVar);
                 }
-            } else if (position.equals("return")) { // 处理return
-                if (!"clear".equals(newRelated)) {
-                    retVar = parsePosition(newRelated, baseVar, args, false);
-                }
             }
+        }
+
+        if(methodRef.getActions().containsKey("return")){
+            retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, false);
         }
 
         return retVar;
