@@ -43,5 +43,5 @@ logs/
 cache/*
 lib/*
 
-*.json
+runtime.json
 *.csv

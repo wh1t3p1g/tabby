@@ -1,0 +1,82 @@
+[
+  {"name":"java.io.FileInputStream", "rules":[
+    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.io.FileOutputStream", "rules": [
+    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.nio.file.Files", "rules": [
+    {"function": "newInputStream", "type": "sink", "actions": {}, "polluted": [0]},
+    {"function": "newOutputStream", "type": "sink", "actions": {}, "polluted": [0]},
+    {"function": "newBufferedReader","type": "sink", "actions": {}, "polluted": [0]},
+    {"function": "newBufferedWriter", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.lang.Class", "rules": [
+    {"function": "forName", "type": "sink", "actions": {}, "polluted": [0]},
+    {"function": "getMethod", "type": "sink", "actions": {}, "polluted": [0,1]}
+  ]},
+  {"name":"java.lang.reflect.Method", "rules": [
+    {"function": "invoke", "type": "sink", "actions": {}, "polluted": [-1,0]}
+  ]},
+  {"name":"java.net.URLClassLoader", "rules": [
+    {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.lang.Runtime", "rules": [
+    {"function": "exec", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.lang.ProcessBuilder", "rules": [
+    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.lang.ProcessImpl", "rules": [
+    {"function": "start", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.lang.ClassLoader", "rules": [
+    {"function": "defineClass", "type": "sink", "actions": {}, "polluted": [1]}
+  ]},
+  {"name":"javax.naming.Context", "rules": [
+    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.rmi.registry.Registry", "rules": [
+    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0]}
+  ]},
+  {"name":"java.io.PrintStream", "rules": [
+    {"function": "print", "type": "ignore", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.lang.StringBuilder", "rules": [
+    {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "append", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "indexOf", "type": "know", "actions": {"return": "clear"}, "polluted": []},
+    {"function": "lastIndexOf", "type": "know", "actions": {"return": "clear"}, "polluted": []},
+    {"function": "insert", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "replace", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "reverse", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": []}
+  ]},
+  {"name":"java.util.List", "rules": [
+    {"function": "toArray", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "size", "type": "know", "actions": {"return": "clear"}, "polluted": []}
+  ]},
+  {"name": "javax.swing.plaf.nimbus.NimbusLookAndFeel", "rules": [
+    {"function": "getDefaults", "type": "know", "actions": {"return": "this|uiDefaults"}, "polluted": []}
+  ]},
+  {"name": "com.sun.java.swing.plaf.gtk.GTKLookAndFeel", "rules": [
+    {"function": "getDefaults", "type": "know", "actions": {}, "polluted": []}
+  ]},
+  {"name": "javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
+    {"function": "initializeDefaults", "type": "know", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.lang.Object", "rules": [
+    {"function": "hashCode", "type": "source", "actions": {}, "polluted": []},
+    {"function": "toString", "type": "source", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.lang.Comparable", "rules": [
+    {"function": "compareTo", "type": "source", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.io.Serializable", "rules": [
+    {"function": "readObject", "type": "source", "actions": {}, "polluted": []}
+  ]},
+  {"name":"any.object", "rules": [
+    {"function": "set.*", "type": "source", "actions": {}, "polluted": []},
+    {"function": "get.*", "type": "source", "actions": {}, "polluted": []}
+  ]}
+]
