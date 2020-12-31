@@ -33,6 +33,8 @@ public class Alias {
     @EndNode
     private MethodReference target;
 
+    private boolean isPolluted = true;
+
     public static Alias newInstance(MethodReference source, MethodReference target){
         Alias alias = new Alias();
         alias.setUuid(UUID.randomUUID());
@@ -46,6 +48,7 @@ public class Alias {
         csv.add(uuid.toString());
         csv.add(source.getUuid().toString());
         csv.add(target.getUuid().toString());
+        csv.add(Boolean.toString(isPolluted));
         return csv;
     }
 }

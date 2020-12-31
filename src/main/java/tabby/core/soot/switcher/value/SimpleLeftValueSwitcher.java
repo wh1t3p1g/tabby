@@ -93,6 +93,7 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
     }
 
     public void generateAction(TabbyVariable lvar, TabbyVariable rvar, int index, boolean unbind){
+        if(!reset) return; // 不记录 actions
         if(unbind && lvar.isPolluted()){
             if(index != -1){
                 methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, "clear");

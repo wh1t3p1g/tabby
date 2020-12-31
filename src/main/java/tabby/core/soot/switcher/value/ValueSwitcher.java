@@ -21,5 +21,6 @@ public abstract class ValueSwitcher extends AbstractJimpleValueSwitch {
     public MethodReference methodRef;
     public TabbyVariable rvar;
     public boolean unbind = false;
+    public boolean reset = true;
 
 }

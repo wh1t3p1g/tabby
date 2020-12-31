@@ -21,4 +21,5 @@ public abstract class StmtSwitcher extends AbstractStmtSwitch {
     public MethodReference methodRef;
     public ValueSwitcher leftValueSwitcher;
     public ValueSwitcher rightValueSwitcher;
+    public boolean reset = true;
 }

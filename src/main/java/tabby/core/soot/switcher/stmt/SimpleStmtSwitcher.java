@@ -138,7 +138,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
-        if(var != null && var.isPolluted()){
+        if(var != null && var.isPolluted() && reset){
             methodRef.getActions().put("return", var.getValue().getRelatedType());
         }
     }

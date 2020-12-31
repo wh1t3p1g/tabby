@@ -38,23 +38,23 @@ public class Switcher {
      * @param method
      * @param methodRef
      */
-    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef){
+    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef, boolean force){
         try{
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())){
                 methodRef.setInitialed(true);
                 methodRef.setActionInitialed(true);
-                methodRef.getActions().put("return", "clear");
+//                methodRef.getActions().put("return", "clear");
                 return null;
             }
 
-            if(methodRef.isActionInitialed()){
+            if(methodRef.isActionInitialed() && !force){
                 return null;
             }
 
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
-                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, cacheHelper, context);
+                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, cacheHelper, context, !methodRef.isActionInitialed());
 
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
@@ -99,18 +99,7 @@ public class Switcher {
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
             // do call method analysis
             Context subContext = context.createSubContext(methodRef.getSignature());
-//            // copy this
-//            TabbyVariable clonedVar = baseVar.deepClone(new ArrayList<>());
-//            subContext.setBaseVar(clonedVar);
-//            // copy args
-//            args.forEach((index, arg) -> {
-//                if(arg != null){
-//                    TabbyVariable tempVar = arg.deepClone(new ArrayList<>());
-//                    subContext.getArgs().put(index, tempVar);
-//                }
-//            });
-
-            Switcher.doMethodAnalysis(subContext, cacheHelper, invokeExpr.getMethod(), methodRef);
+            Switcher.doMethodAnalysis(subContext, cacheHelper, invokeExpr.getMethod(), methodRef, false);
         }
         TabbyVariable retVar = null;
         // 参数修正，将从子函数的分析结果套用到当前的localMap

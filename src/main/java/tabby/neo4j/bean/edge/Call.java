@@ -2,6 +2,7 @@ package tabby.neo4j.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import org.neo4j.ogm.annotation.EndNode;
 import org.neo4j.ogm.annotation.Id;
@@ -78,6 +79,8 @@ public class Call {
         csv.add(source.getUuid().toString());
         csv.add(target.getUuid().toString());
         csv.add(lineNum+"");
+        csv.add(Boolean.toString(isPolluted));
+        csv.add(String.join("|", ArrayUtils.toStringArray(pollutedPosition.toArray())));
         csv.add(realCallType);
         csv.add(invokerType);
         return csv;

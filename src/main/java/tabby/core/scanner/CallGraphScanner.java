@@ -56,7 +56,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
             invokeExprSwitcher.setSource(methodRef);
-            System.out.println(method.getSignature());
+            log.debug(method.getSignature());
 
             if(method.isStatic() && method.getParameterCount() == 0){ // 静态函数 且 函数入参数量为0 此类函数 对于反序列化来说 均不可控 不进行分析
                 methodRef.setInitialed(true);
@@ -66,18 +66,23 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
 
             Context context = Context.newInstance(method.getSignature());
             context.setHeadMethodContext(true);
-            PollutedVarsPointsToAnalysis pta = Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef);
-            context.clear();
-
+            PollutedVarsPointsToAnalysis pta = Switcher.doMethodAnalysis(context, cacheHelper, method, methodRef, true);
+            if(pta == null){
+                log.error("pat null -> "+method.getSignature());
+            }
+            invokeExprSwitcher.setPta(pta);
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){
                     invokeExprSwitcher.setUnit(unit);
+                    invokeExprSwitcher.setBaseValue(null);
+                    invokeExprSwitcher.setPolluted(false);
                     InvokeExpr invokeExpr = stmt.getInvokeExpr();
                     invokeExpr.apply(invokeExprSwitcher);
                 }
             }
+            context.clear();
         }catch (RuntimeException e){
             e.printStackTrace();
 //            log.debug(methodRef.getSignature() + " not found");

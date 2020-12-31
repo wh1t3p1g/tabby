@@ -29,8 +29,8 @@ public class GlobalConfiguration {
             new String[]{"uuid", "name", "signature", "subSignature", "isStatic", "hasParameters", "isSink", "isSource", "isPolluted", "parameters", "actions", "pollutedPosition", "returnType"},// method
             new String[]{"uuid", "source", "target"}, // extend/interfaces/
             new String[]{"uuid", "classRef", "MethodRef"}, // has
-            new String[]{"uuid", "source", "target", "lineNum", "realCallType", "invokerType"}, // call
-            new String[]{"uuid", "source", "target"} // alias
+            new String[]{"uuid", "source", "target", "lineNum", "isPolluted", "pollutedPosition", "realCallType", "invokerType"}, // call
+            new String[]{"uuid", "source", "target", "isPolluted"} // alias
 
     ));
 

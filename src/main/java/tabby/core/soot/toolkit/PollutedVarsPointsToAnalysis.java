@@ -153,12 +153,15 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
                                                            Body body,
                                                            DirectedGraph<Unit> graph,
-                                                           CacheHelper cacheHelper, Context context){
+                                                           CacheHelper cacheHelper, Context context, boolean reset){
         PollutedVarsPointsToAnalysis analysis = new PollutedVarsPointsToAnalysis(graph);
         // 配置switchers
         StmtSwitcher switcher = new SimpleStmtSwitcher();
+        SimpleLeftValueSwitcher leftSwitcher = new SimpleLeftValueSwitcher();
+        leftSwitcher.setReset(reset);
+        switcher.setReset(reset);
         switcher.setMethodRef(methodRef);
-        switcher.setLeftValueSwitcher(new SimpleLeftValueSwitcher());
+        switcher.setLeftValueSwitcher(leftSwitcher);
         switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
         // 配置pta依赖
         analysis.setBody(body);

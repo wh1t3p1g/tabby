@@ -82,7 +82,7 @@ public abstract class BackForwardedDiscover implements Discover{
         SootMethod method = source.getCachedMethod();
         Context context = Context.newInstance(method.getSignature());
         context.setHeadMethodContext(true);
-        PollutedVarsPointsToAnalysis pta = Switcher.doMethodAnalysis(context, cacheHelper, method, source);
+        PollutedVarsPointsToAnalysis pta = Switcher.doMethodAnalysis(context, cacheHelper, method, source, true);
         Map<Local, TabbyVariable> localMap = new HashMap<>();
         if(pta != null){
             localMap = pta.getFlowBefore(call.getUnit());

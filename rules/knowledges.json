@@ -1,10 +1,11 @@
 [
   {"name":"java.io.FileInputStream", "rules":[
-    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]}
   ]},
   {"name":"java.io.FileOutputStream", "rules": [
-    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]}
   ]},
+
   {"name":"java.nio.file.Files", "rules": [
     {"function": "newInputStream", "type": "sink", "actions": {}, "polluted": [0]},
     {"function": "newOutputStream", "type": "sink", "actions": {}, "polluted": [0]},
@@ -12,12 +13,13 @@
     {"function": "newBufferedWriter", "type": "sink", "actions": {}, "polluted": [0]}
   ]},
   {"name":"java.lang.Class", "rules": [
-    {"function": "forName", "type": "sink", "actions": {}, "polluted": [0]},
-    {"function": "getMethod", "type": "sink", "actions": {}, "polluted": [0,1]}
+    {"function": "forName", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]},
+    {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1]}
   ]},
   {"name":"java.lang.reflect.Method", "rules": [
     {"function": "invoke", "type": "sink", "actions": {}, "polluted": [-1,0]}
   ]},
+
   {"name":"java.net.URLClassLoader", "rules": [
     {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0]}
   ]},
@@ -42,6 +44,39 @@
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "actions": {}, "polluted": []}
   ]},
+  {"name":"java.lang.Object", "rules": [
+    {"function": "hashCode", "type": "source", "actions": {}, "polluted": []},
+    {"function": "toString", "type": "source", "actions": {}, "polluted": []},
+    {"function": "getClass", "type": "know", "actions": {"return": "this"}, "polluted": []}
+  ]},
+  {"name":"java.lang.Comparable", "rules": [
+    {"function": "compareTo", "type": "source", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.io.Serializable", "rules": [
+    {"function": "readObject", "type": "source", "actions": {}, "polluted": []}
+  ]},
+  {"name":"any.object", "rules": [
+    {"function": "set.*", "type": "source", "actions": {}, "polluted": []},
+    {"function": "get.*", "type": "source", "actions": {}, "polluted": []}
+  ]},
+
+
+  {"name":"javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
+    {"function": "initializeDefaults", "type": "know", "actions": {}, "polluted": []}
+  ]},
+  {"name":"java.net.URL", "rules": [
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+  ]},
+  {"name": "java.io.ObjectInputStream", "rules": [
+    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+  ]},
+  {"name": "java.util.Collections$CheckedMap$CheckedEntrySet", "rules": [
+    {"function": "iterator", "type": "know", "actions": {"return": "this"}, "polluted": []}
+  ]},
+  {"name":"java.io.ByteArrayInputStream", "rules": [
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+  ]},
   {"name":"java.lang.StringBuilder", "rules": [
     {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": []},
     {"function": "append", "type": "know", "actions": {"return": "this"}, "polluted": []},
@@ -50,7 +85,8 @@
     {"function": "insert", "type": "know", "actions": {"return": "this"}, "polluted": []},
     {"function": "replace", "type": "know", "actions": {"return": "this"}, "polluted": []},
     {"function": "reverse", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
   ]},
   {"name":"java.util.List", "rules": [
     {"function": "toArray", "type": "know", "actions": {"return": "this"}, "polluted": []},
@@ -65,18 +101,10 @@
   {"name": "javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
     {"function": "initializeDefaults", "type": "know", "actions": {}, "polluted": []}
   ]},
-  {"name":"java.lang.Object", "rules": [
-    {"function": "hashCode", "type": "source", "actions": {}, "polluted": []},
-    {"function": "toString", "type": "source", "actions": {}, "polluted": []}
+  {"name": "java.io.ObjectInputStream$GetField", "rules": [
+    {"function": "get", "type": "know", "actions": {"return": "this"}, "polluted": []}
   ]},
-  {"name":"java.lang.Comparable", "rules": [
-    {"function": "compareTo", "type": "source", "actions": {}, "polluted": []}
-  ]},
-  {"name":"java.io.Serializable", "rules": [
-    {"function": "readObject", "type": "source", "actions": {}, "polluted": []}
-  ]},
-  {"name":"any.object", "rules": [
-    {"function": "set.*", "type": "source", "actions": {}, "polluted": []},
-    {"function": "get.*", "type": "source", "actions": {}, "polluted": []}
+  {"name":"java.io.File", "rules": [
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
   ]}
 ]
