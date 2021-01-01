@@ -14,10 +14,14 @@
   ]},
   {"name":"java.lang.Class", "rules": [
     {"function": "forName", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]},
-    {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1]}
+    {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1]},
+    {"function": "getConstructor", "type": "know", "actions": {"return": "this"}, "polluted": []}
   ]},
   {"name":"java.lang.reflect.Method", "rules": [
-    {"function": "invoke", "type": "sink", "actions": {}, "polluted": [-1,0]}
+    {"function": "invoke", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]}
+  ]},
+  {"name":"java.lang.reflect.Constructor", "rules": [
+    {"function": "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]}
   ]},
 
   {"name":"java.net.URLClassLoader", "rules": [

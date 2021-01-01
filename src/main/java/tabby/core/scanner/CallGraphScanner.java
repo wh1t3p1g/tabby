@@ -83,6 +83,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 }
             }
             context.clear();
+
         }catch (RuntimeException e){
             e.printStackTrace();
 //            log.debug(methodRef.getSignature() + " not found");

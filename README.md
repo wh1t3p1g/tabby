@@ -1,6 +1,20 @@
 # tabby-tmp
 A CAT called tabby ( Code Analysis Tool )
 
+## 覆盖现有利用链
+
+-[x] cc5
+-[x] jdbcRowSetImpl fastjson
+-[x] cc10,cc6
+-[x] cc9
+-[x] cc7
+-[x] cc2,4
+-[x] cc8
+-[x] 
+
+
+cc:3.2.1 利用链全覆盖 除了cc1,cc3 还未适配AnnotationInvocationHandler
+
 # sinks
 实例
 ```

@@ -122,7 +122,7 @@ public class Switcher {
         }
 
         if(methodRef.getActions().containsKey("return")){
-            retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, false);
+            retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
         }
 
         return retVar;
@@ -174,6 +174,10 @@ public class Switcher {
                 TabbyVariable tempVar = retVar.getElement(index);
                 if(created && tempVar == null){
                     tempVar = TabbyVariable.makeRandomInstance();
+                    tempVar.getValue().setPolluted(retVar.isPolluted());
+                    if(retVar.isPolluted()){
+                        tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+index);
+                    }
                     retVar.addElement(index, tempVar);
                 }
                 retVar = tempVar;
@@ -181,6 +185,10 @@ public class Switcher {
                 TabbyVariable tempVar = retVar.getField(pos);
                 if(created && tempVar == null){
                     tempVar = TabbyVariable.makeRandomInstance();
+                    if(retVar.isPolluted()){
+                        tempVar.getValue().setPolluted(true);
+                        tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+pos);
+                    }
                     retVar.addField(pos, tempVar);
                 }
                 retVar = tempVar;
