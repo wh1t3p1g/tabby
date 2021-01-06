@@ -19,7 +19,10 @@ import tabby.neo4j.bean.ref.MethodReference;
 import tabby.neo4j.bean.ref.handle.ClassRefHandle;
 import tabby.neo4j.cache.CacheHelper;
 
-import java.util.*;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -110,7 +113,16 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             }
         }
 
-        if(source != null && !target.isIgnore()){
+        if(target.isSink()){ // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的
+            for(int i:target.getPollutedPosition()){
+                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == -2){
+                    isPolluted = false;
+                    break;
+                }
+            }
+        }
+
+        if(source != null && !target.isIgnore() && isPolluted){ // 剔除不可控边
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classRefHandle.getName());
             call.setInvokerType(invokerType);
@@ -145,6 +157,21 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         if(pta == null) return; // 当前不支持指针分析
         pollutedPosition = new LinkedList<>();
         Map<Local, TabbyVariable> localMap = pta.getFlowBefore(unit);
+
+        if(baseValue != null){
+            // 预处理
+            // 对于基础数据结构作为函数调用者时，我们将忽略其调用边的可控性
+            // 为什么？基础数据结构作为调用者时不构成传递链的一部分
+            // boolean int long double float short char
+            if(baseValue.getType() instanceof PrimType){
+                return;
+            }else if(baseValue.getType() instanceof ArrayType){
+                Type baseType = ((ArrayType) baseValue.getType()).baseType;
+                if(baseType instanceof PrimType){
+                    return;
+                }
+            }
+        }
         pollutedPosition.add(check(baseValue, localMap));
 
         for(int i=0; i<ie.getArgCount(); i++){

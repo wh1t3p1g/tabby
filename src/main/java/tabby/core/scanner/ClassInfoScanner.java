@@ -72,13 +72,15 @@ public class ClassInfoScanner implements Scanner<List<String>> {
 //                    System.out.println(1);
 //                }
                 superClassRef = collect(classRef.getSuperClass());
-                if(superClassRef == null){
-                    System.out.println(1);
+                if(superClassRef != null){
+                    buildRelationships(superClassRef);
                 }
-                buildRelationships(superClassRef);
             }
-            Extend extend =  Extend.newInstance(classRef, superClassRef);
-            classRef.setExtendEdge(extend);
+            if(superClassRef != null){
+                Extend extend =  Extend.newInstance(classRef, superClassRef);
+                classRef.setExtendEdge(extend);
+            }
+
         }
         // build interfaces relationship
         if(classRef.isHasInterfaces()){
@@ -88,8 +90,10 @@ public class ClassInfoScanner implements Scanner<List<String>> {
                     interfaceClassRef = collect(intface);
                     buildRelationships(interfaceClassRef);
                 }
-                Interfaces interfaces = Interfaces.newInstance(classRef, interfaceClassRef);
-                classRef.getInterfaceEdge().add(interfaces);
+                if(interfaceClassRef != null){
+                    Interfaces interfaces = Interfaces.newInstance(classRef, interfaceClassRef);
+                    classRef.getInterfaceEdge().add(interfaces);
+                }
             });
         }
 

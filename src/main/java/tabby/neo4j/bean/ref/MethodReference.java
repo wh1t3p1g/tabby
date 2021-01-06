@@ -33,6 +33,7 @@ public class MethodReference implements Comparable<MethodReference>{
     private String signature;
     private String subSignature;
     private String returnType;
+    private int modifiers;
     private Set<String> parameters = new HashSet<>();
 
     private boolean isSink = false;
@@ -86,6 +87,7 @@ public class MethodReference implements Comparable<MethodReference>{
 
     public static MethodReference parse(ClassRefHandle handle, SootMethod method){
         MethodReference methodRef = newInstance(method.getName(), method.getSignature());
+        methodRef.setModifiers(method.getModifiers());
         methodRef.setSubSignature(method.getSubSignature());
         methodRef.setStatic(method.isStatic());
         methodRef.setClassRef(handle);
@@ -109,6 +111,7 @@ public class MethodReference implements Comparable<MethodReference>{
         csv.add(name);
         csv.add(signature);
         csv.add(subSignature);
+        csv.add(modifiers+"");
         csv.add(Boolean.toString(isStatic));
         csv.add(Boolean.toString(hasParameters));
         csv.add(Boolean.toString(isSink));

@@ -261,6 +261,7 @@ public class CacheHelperImpl implements CacheHelper{
         MethodReference target = null;
         SootClass cls = sootMethodRef.getDeclaringClass();
         SootClass tmpCls = cls;
+
         while(tmpCls.hasSuperclass()){
             SootClass superCls = tmpCls.getSuperclass();
             target = findMethodRef(superCls, sootMethodRef.getSubSignature());

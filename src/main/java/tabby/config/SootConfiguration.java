@@ -33,6 +33,7 @@ public class SootConfiguration {
         Options.v().set_verbose(true); // 打印详细信息
 
         Options.v().set_prepend_classpath(true); // 优先载入soot classpath
+        Options.v().set_allow_phantom_refs(true);
         Options.v().set_keep_line_number(true); // 记录文件行数
         Options.v().set_src_prec(Options.src_prec_J); // 优先处理Jimple 格式
         Options.v().set_output_dir(output); // 设置IR Jimple的输出目录

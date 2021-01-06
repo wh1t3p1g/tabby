@@ -31,6 +31,8 @@ public class ClassReference{
     @Convert(UuidStringConverter.class)
     private UUID uuid;
 
+    private String type = "Class";
+
     private String name;
 
     private String superClass;
@@ -78,6 +80,7 @@ public class ClassReference{
     public static ClassReference parse(SootClass cls, RulesContainer rulesContainer){
         ClassReference classRef = newInstance(cls.getName());
         classRef.setInterface(cls.isInterface());
+        Set<String> relatedClassnames = getAllFatherNodes(cls);
         // 提取父类信息
         if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
             // 剔除Object类的继承关系，节省继承边数量
@@ -105,7 +108,16 @@ public class ClassReference{
         if(cls.getMethodCount() > 0){
             cls.getMethods().forEach((method) -> {
                 MethodReference methodRef = MethodReference.parse(classRef.getHandle(), method);
+
                 TabbyRule.Rule rule = rulesContainer.getRule(classRef.getName(), methodRef.getName());
+                if(rule == null){ // 对于ignore类型，支持多级父类和接口的规则查找
+                    for(String classname:relatedClassnames){
+                        rule = rulesContainer.getRule(classname, methodRef.getName());
+                        if(rule != null && rule.isIgnore()){
+                            break;
+                        }
+                    }
+                }
                 boolean isSink = rule != null && rule.isSink();
                 boolean isIgnore = rule != null && rule.isIgnore();
                 boolean isSource = rule != null && rule.isSource();
@@ -128,6 +140,21 @@ public class ClassReference{
         }
 
         return classRef;
+    }
+
+    public static Set<String> getAllFatherNodes(SootClass cls){
+        Set<String> nodes = new HashSet<>();
+        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
+            nodes.add(cls.getSuperclass().getName());
+            nodes.addAll(getAllFatherNodes(cls.getSuperclass()));
+        }
+        if(cls.getInterfaceCount() > 0){
+            cls.getInterfaces().forEach(intface -> {
+                nodes.add(intface.getName());
+                nodes.addAll(getAllFatherNodes(intface));
+            });
+        }
+        return nodes;
     }
 
     public static ClassReference newInstance(String name){

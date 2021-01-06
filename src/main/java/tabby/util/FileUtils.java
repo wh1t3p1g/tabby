@@ -23,13 +23,18 @@ public class FileUtils {
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("Invalid jar path: " + path);
         }
-        if(path.toFile().isFile()){
+
+        if(path.toFile().isFile()
+                && !path.toAbsolutePath().toString().endsWith("-sources.jar")
+                && !path.toAbsolutePath().toString().contains("trilead-ssh2")){
             paths.add(path.toAbsolutePath().toString());
         }else{
             Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if(file.getFileName().toString().endsWith(".jar")){
+                    if(file.getFileName().toString().endsWith(".jar")
+                            && !file.getFileName().toString().endsWith("-sources.jar")
+                    && !file.getFileName().toString().contains("trilead-ssh2")){
                         paths.add(file.toAbsolutePath().toString());
                     }
                     return FileVisitResult.CONTINUE;

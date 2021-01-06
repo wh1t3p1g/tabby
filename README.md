@@ -14,7 +14,39 @@ A CAT called tabby ( Code Analysis Tool )
 
 
 cc:3.2.1 利用链全覆盖 除了cc1,cc3 还未适配AnnotationInvocationHandler
+TreeMap.put
+javax.naming.ldap.Rdn$RdnEntry.compareTo
+    com.sun.org.apache.xpath.internal.objects.XString.equal
+        javax.swing.MultiUIDefaults.toString
+            UIDefaults.get
+                UIDefaults.getFromHashTable
+                    UIDefaults$LazyValue.createValue
+                    SwingLazyValue.createValue
+                        javax.naming.InitialContext.doLookup()
 
+match (from:Method {isSink:true,name:"forName"})
+match (to:Method {name:"hashCode"})  
+call apoc.algo.allSimplePaths(from, to, "<CALL|ALIAS", 12) yield path
+return * limit 20
+
+
+match ()-[r:CALL]->()
+where r.uuid in "80061a93-993c-4519-903c-b70d9f934dd7"  or r.uuid="0b2c35d6-5f7e-4d3c-914f-766ad19c9034"
+delete r
+
+
+实验jar包收集
+maven popular top 100 81个 https://mvnrepository.com/popular?p=10 1月6日 10.58
+用户数均超过3000
+中间件jar包
+有名框架 spring struts
+
+
+
+## 可能遇到的问题
+### soot can't find the class: xxxx
+补充你的待检测jar包 直到符合分析条件
+https://repo.spring.io/release/org/springframework/spring/4.1.4.RELEASE/
 # sinks
 实例
 ```

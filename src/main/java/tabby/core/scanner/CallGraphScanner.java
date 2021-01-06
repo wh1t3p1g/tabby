@@ -50,11 +50,15 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
     public void collect(MethodReference methodRef){
         try{
             SootMethod method = methodRef.getCachedMethod();
-            if(methodRef.isSink() || methodRef.isIgnore() || method.isAbstract() || Modifier.isNative(method.getModifiers())){
+
+            if(method.isPhantom() || methodRef.isSink()
+                    || methodRef.isIgnore() || method.isAbstract()
+                    || Modifier.isNative(method.getModifiers())){
                 methodRef.setInitialed(true);
                 methodRef.setPolluted(methodRef.isSink());
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
+            //sun.util.resources.LocaleNames: java.lang.Object[][] getContents()
             invokeExprSwitcher.setSource(methodRef);
             log.debug(method.getSignature());
 
@@ -71,6 +75,7 @@ public class CallGraphScanner implements Scanner<List<MethodReference>>{
                 log.error("pat null -> "+method.getSignature());
             }
             invokeExprSwitcher.setPta(pta);
+
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;

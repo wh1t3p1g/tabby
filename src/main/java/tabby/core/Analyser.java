@@ -15,9 +15,7 @@ import tabby.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -68,20 +66,15 @@ public class Analyser {
     public void runSootAnalysis(String path, boolean isOnlyJDK){
         try{
             cacheHelper.clear("all");
-            if(isOnlyJDK){
-                setClassPath(null);
-                Options.v().set_process_dir(getJdkDependencies());
-                cacheHelper.loadRuntimeClasses(getJdkDependencies(), true);
-            }else{
-                List<String> targets = FileUtils.getTargetDirectoryJarFiles(path);
-                setClassPath(targets);
-                targets.addAll(getJdkDependencies());
-                Options.v().set_process_dir(targets);
-                cacheHelper.loadRuntimeClasses(targets, false);
+            Set<String> targets = new HashSet<>(getJdkDependencies());
+            if(!isOnlyJDK){
+                targets.addAll(FileUtils.getTargetDirectoryJarFiles(path));
             }
-
+            Scene.v().setSootClassPath(String.join(File.pathSeparator, targets));
+            Options.v().set_process_dir(new ArrayList<>(targets));
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
+            cacheHelper.loadRuntimeClasses(new ArrayList<>(targets), false);
 
             // 类信息抽取
             classInfoScanner.run(cacheHelper.getRuntimeClasses());
@@ -91,9 +84,7 @@ public class Analyser {
             classInfoScanner.save();
             clean(); // clean caches
 //            discover.run();
-//            classInfoScanner.save();
 
-//            System.out.println(sortedMethodRefs.size());
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
@@ -109,29 +100,23 @@ public class Analyser {
     }
 
     public List<String> getJdkDependencies(){
-        String classpath = System.getProperty("sun.boot.class.path")
-                + File.pathSeparator + System.getProperty("java.class.path");
-        String[] classpathes = classpath.split(File.pathSeparator);
-        List<String> jdk = new ArrayList<>();
-        for(String cp:classpathes){
-            if((cp.contains("/jre/")||cp.contains("Home/lib/")) && FileUtils.fileExists(cp)){
-                jdk.add(cp);
+        String javaHome = System.getProperty("java.home");
+        String[] jre = new String[]{"lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
+
+        List<String> exists = new ArrayList<>();
+        for(String cp:jre){
+            String path = String.join(File.separator, javaHome, cp);
+            if(FileUtils.fileExists(path)){
+                exists.add(path);
             }
         }
-        return jdk;
+        log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
+        return exists;
     }
 
-    private void setClassPath(List<String> targets)
-    {
-        String classpath = System.getProperty("sun.boot.class.path")
-                + File.pathSeparator + System.getProperty("java.class.path");
-        String[] classpathes = classpath.split(File.pathSeparator);
-        List<String> exists = new ArrayList<>();
-        for(String cp:classpathes){
-            if(FileUtils.fileExists(cp)){
-                exists.add(cp);
-            }
-        }
+    private void setClassPath(List<String> targets) throws IOException {
+        List<String> exists = getJdkDependencies();
+        log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
         if(targets != null){
             exists.addAll(targets);
         }

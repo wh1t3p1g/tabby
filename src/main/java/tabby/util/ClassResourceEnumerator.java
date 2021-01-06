@@ -27,8 +27,7 @@ public class ClassResourceEnumerator {
     public Collection<String> getTargetClassLoaderClasses() throws IOException {
         Collection<String> result = new ArrayList<>();
         for (ClassPath.ClassInfo classInfo : ClassPath.from(classLoader).getAllClasses()) {
-            if(classInfo.getName().startsWith("org.springframework") ||
-                    classInfo.getName().contains("tabby")) // 规避非jdk
+            if(classInfo.getName().contains("tabby")) // 规避tabby
                 continue;
             result.add(classInfo.getName());
         }

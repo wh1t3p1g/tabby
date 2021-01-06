@@ -15,6 +15,7 @@
   {"name":"java.lang.Class", "rules": [
     {"function": "forName", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]},
     {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1]},
+    {"function": "getDeclaredMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]},
     {"function": "getConstructor", "type": "know", "actions": {"return": "this"}, "polluted": []}
   ]},
   {"name":"java.lang.reflect.Method", "rules": [
@@ -48,6 +49,9 @@
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "actions": {}, "polluted": []}
   ]},
+  {"name":"sun.util.resources.OpenListResourceBundle", "rules": [
+    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": []}
+  ]},
   {"name":"java.lang.Object", "rules": [
     {"function": "hashCode", "type": "source", "actions": {}, "polluted": []},
     {"function": "toString", "type": "source", "actions": {}, "polluted": []},
@@ -66,10 +70,15 @@
 
 
   {"name":"javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
-    {"function": "initializeDefaults", "type": "know", "actions": {}, "polluted": []}
+    {"function": "initializeDefaults", "type": "ignore", "actions": {}, "polluted": []}
   ]},
   {"name":"java.net.URL", "rules": [
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []},
+    {"function": "openConnection", "type": "sink", "actions": {"return": "this"}, "polluted": [-1]}
+  ]},
+  {"name":"javax.activation.DataSource", "rules": [
+    {"function": "getInputStream", "type": "know", "actions": {"return": "this"}, "polluted": []},
+    {"function": "getOutputStream", "type": "know", "actions": {"return": "this"}, "polluted": []}
   ]},
   {"name": "java.io.ObjectInputStream", "rules": [
     {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": []},
@@ -97,18 +106,22 @@
     {"function": "size", "type": "know", "actions": {"return": "clear"}, "polluted": []}
   ]},
   {"name": "javax.swing.plaf.nimbus.NimbusLookAndFeel", "rules": [
-    {"function": "getDefaults", "type": "know", "actions": {"return": "this|uiDefaults"}, "polluted": []}
+    {"function": "getDefaults", "type": "ignore", "actions": {"return": "this|uiDefaults"}, "polluted": []}
+  ]},
+  {"name": "sun.util.resources.TimeZoneNamesBundle", "rules": [
+    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": []}
+  ]},
+  {"name": "javax.swing.plaf.basic.BasicLookAndFeel", "rules": [
+    {"function": "initComponentDefaults", "type": "ignore", "actions": {}, "polluted": []}
   ]},
   {"name": "com.sun.java.swing.plaf.gtk.GTKLookAndFeel", "rules": [
-    {"function": "getDefaults", "type": "know", "actions": {}, "polluted": []}
-  ]},
-  {"name": "javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
-    {"function": "initializeDefaults", "type": "know", "actions": {}, "polluted": []}
+    {"function": "getDefaults", "type": "ignore", "actions": {}, "polluted": []}
   ]},
   {"name": "java.io.ObjectInputStream$GetField", "rules": [
     {"function": "get", "type": "know", "actions": {"return": "this"}, "polluted": []}
   ]},
   {"name":"java.io.File", "rules": [
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []},
+    {"function": "delete", "type": "sink", "actions": {}, "polluted": [-1]}
   ]}
 ]

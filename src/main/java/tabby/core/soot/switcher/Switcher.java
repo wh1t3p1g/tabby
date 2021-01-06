@@ -40,7 +40,8 @@ public class Switcher {
      */
     public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef, boolean force){
         try{
-            if(method.isAbstract() || Modifier.isNative(method.getModifiers())){
+            if(method.isAbstract() || Modifier.isNative(method.getModifiers())
+                    || method.isPhantom()){
                 methodRef.setInitialed(true);
                 methodRef.setActionInitialed(true);
 //                methodRef.getActions().put("return", "clear");
