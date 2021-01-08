@@ -19,9 +19,14 @@ import java.util.*;
 public class RulesContainer {
 
     private Map<String, TabbyRule> rules = new HashMap<>();
+    private List<String> ignored; // 已经分析过的jar包
 
     public RulesContainer() throws FileNotFoundException {
         load();
+        loadIgnore();
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            FileUtils.putJsonContent(GlobalConfiguration.IGNORE_PATH, ignored); // 存储当前以分析的jar包
+        }));
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -32,6 +37,10 @@ public class RulesContainer {
             }
         }
         return null;
+    }
+
+    public boolean isIgnore(String jar){
+        return ignored.contains(jar);
     }
 
     public boolean isType(String classname, String method, String type){
@@ -69,5 +78,9 @@ public class RulesContainer {
             rules.put(rule.getName(), rule);
         }
         log.info("load "+ rules.size() +" rules success!");
+    }
+
+    private void loadIgnore(){
+        ignored = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.IGNORE_PATH, List.class);
     }
 }

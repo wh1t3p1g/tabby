@@ -2,14 +2,11 @@ package tabby.util;
 
 import tabby.config.GlobalConfiguration;
 
-import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -17,25 +14,21 @@ import java.util.List;
  */
 public class FileUtils {
 
-    public static List<String> getTargetDirectoryJarFiles(String target) throws IOException {
-        List<String> paths = new ArrayList<>();
+    public static Map<String, String> getTargetDirectoryJarFiles(String target) throws IOException {
+        Map<String, String> paths = new HashMap<>();
         Path path = Paths.get(target).toAbsolutePath();
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("Invalid jar path: " + path);
         }
 
-        if(path.toFile().isFile()
-                && !path.toAbsolutePath().toString().endsWith("-sources.jar")
-                && !path.toAbsolutePath().toString().contains("trilead-ssh2")){
-            paths.add(path.toAbsolutePath().toString());
+        if(path.toFile().isFile()){
+            paths.put(path.toFile().getName(), path.toAbsolutePath().toString());
         }else{
             Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
                 @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    if(file.getFileName().toString().endsWith(".jar")
-                            && !file.getFileName().toString().endsWith("-sources.jar")
-                    && !file.getFileName().toString().contains("trilead-ssh2")){
-                        paths.add(file.toAbsolutePath().toString());
+                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                    if(path.getFileName().toString().endsWith(".jar")){
+                        paths.put(path.toFile().getName(), path.toAbsolutePath().toString());
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -68,6 +61,18 @@ public class FileUtils {
             e.printStackTrace();
         }
         return null;
+    }
+
+    public static void putJsonContent(String path, Object data){
+        File file = new File(path);
+        FileWriter writer = null;
+        try {
+            writer = new FileWriter(file);
+            writer.write(GlobalConfiguration.GSON.toJson(data));
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
 }

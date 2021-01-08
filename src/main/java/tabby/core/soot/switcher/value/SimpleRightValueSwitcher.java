@@ -5,7 +5,6 @@ import soot.Local;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.*;
-import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.Switcher;
 
@@ -76,7 +75,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
     }
 
     public void caseStaticFieldRef(StaticFieldRef v) {
-        TabbyVariable var = Context.globalMap.get(v); // 如果globalMap中找不到实例，说明此时的变量是不可控的，直接制空
+        TabbyVariable var = context.getGlobalMap().get(v); // 如果globalMap中找不到实例，说明此时的变量是不可控的，直接制空
         setResult(var);
     }
 
@@ -93,7 +92,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
 //        log.debug(invokeExpr.getMethodRef().getSignature());
-        setResult(Switcher.doInvokeExprAnalysis(invokeExpr, cacheHelper, context));
+        setResult(Switcher.doInvokeExprAnalysis(invokeExpr, dataContainer, context));
 //        log.debug(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 

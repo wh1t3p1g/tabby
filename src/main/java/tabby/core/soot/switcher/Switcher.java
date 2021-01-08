@@ -2,7 +2,6 @@ package tabby.core.soot.switcher;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.builder.EqualsBuilder;
 import soot.Modifier;
 import soot.SootMethod;
 import soot.Value;
@@ -14,12 +13,14 @@ import soot.jimple.internal.JimpleLocalBox;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
 import tabby.core.data.Context;
+import tabby.core.data.DataContainer;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
-import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.db.bean.ref.MethodReference;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * switcher的公共函数
@@ -34,11 +35,11 @@ public class Switcher {
      * 1. 直接分析一个函数，入参、baseVar 无上下文关联
      * 2. 函数调用，入参、baseVar 存在上下文关联
      * @param context
-     * @param cacheHelper
+     * @param dataContainer
      * @param method
      * @param methodRef
      */
-    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, CacheHelper cacheHelper, SootMethod method, MethodReference methodRef, boolean force){
+    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, DataContainer dataContainer, SootMethod method, MethodReference methodRef, boolean force){
         try{
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())
                     || method.isPhantom()){
@@ -55,7 +56,7 @@ public class Switcher {
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
-                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, cacheHelper, context, !methodRef.isActionInitialed());
+                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, dataContainer, context, !methodRef.isActionInitialed());
 
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
@@ -73,7 +74,7 @@ public class Switcher {
 
     public static TabbyVariable doInvokeExprAnalysis(
             InvokeExpr invokeExpr,
-            CacheHelper cacheHelper,
+            DataContainer dataContainer,
             Context context){
         // extract baseVar and args
         TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context); // 调用对象
@@ -94,18 +95,18 @@ public class Switcher {
 //            baseVar = TabbyVariable.makeRandomInstance();
 //        }
         // do method call back actions
-        MethodReference methodRef = cacheHelper.loadMethodRef(invokeExpr.getMethod().getSignature());
+        MethodReference methodRef = dataContainer.getMethodRefBySignature(invokeExpr.getMethod().getSignature());
         if(methodRef == null) return null;
         if((!methodRef.isInitialed() || !methodRef.isActionInitialed()) // never analysis with pta
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
             // do call method analysis
             Context subContext = context.createSubContext(methodRef.getSignature());
-            Switcher.doMethodAnalysis(subContext, cacheHelper, invokeExpr.getMethod(), methodRef, false);
+            Switcher.doMethodAnalysis(subContext, dataContainer, invokeExpr.getMethod(), methodRef, false);
         }
         TabbyVariable retVar = null;
         // 参数修正，将从子函数的分析结果套用到当前的localMap
         // 修正 入参和baseVar
-        for (Map.Entry<String, String> entry : methodRef.getActions().entrySet()) {
+        for (Map.Entry<String, String> entry : methodRef.getRealActions().entrySet()) {
             String position = entry.getKey();
             String newRelated = entry.getValue();
             if("return".equals(position))continue; // return的修正 不进行处理，由assign的时候自己去处理
@@ -122,8 +123,8 @@ public class Switcher {
             }
         }
 
-        if(methodRef.getActions().containsKey("return")){
-            retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
+        if(methodRef.getRealActions().containsKey("return")){
+            retVar = parsePosition(methodRef.getRealActions().get("return"), baseVar, args, true);
         }
 
         return retVar;
@@ -198,69 +199,5 @@ public class Switcher {
             }
         }
         return retVar;
-    }
-
-    /**
-     * 检查入参的前后变化
-     * @param oldVar
-     * @param newVar
-     * @return
-     */
-    public static Map<String, String> getActions(
-            String position, TabbyVariable oldVar, TabbyVariable newVar, Set<TabbyVariable> checkedVars){
-        Map<String, String> actions = new HashMap<>();
-        if(oldVar == null || newVar == null || checkedVars.contains(oldVar)) return actions;
-        checkedVars.add(oldVar);
-
-        if(oldVar.getValue().getUuid().equals(newVar.getValue().getUuid())){
-            // 当前变量未发生变化，但需要检查elements 和 field是否发生了变化
-            if(!oldVar.getElements().equals(newVar.getElements())){// 检查elements里是否发生了变化
-                for(Map.Entry<Integer, TabbyVariable> entry : newVar.getElements().entrySet()){ // newVar's elements >= old's elments
-                    TabbyVariable oldElement = oldVar.getElement(entry.getKey());
-                    EqualsBuilder eb = new EqualsBuilder();
-                    eb.append(entry.getValue(), oldElement);
-                    if(!eb.isEquals()){
-                        if(oldElement == null && entry.getValue() != null && entry.getValue().isPolluted()){
-                            actions.put(position+"|"+entry.getKey(), entry.getValue().getValue().getRelatedType());
-                        }else if(oldElement != null && entry.getValue() != null){
-                            actions.putAll(
-                                    getActions(
-                                            position+"|"+entry.getKey(),
-                                            oldElement,
-                                            entry.getValue(),
-                                            new HashSet<>(checkedVars)));
-                        }
-                    }
-                }
-            }
-
-            if(!oldVar.getFieldMap().equals(newVar.getFieldMap())){// 检查field是否发现变化
-                for(Map.Entry<String, TabbyVariable> entry : newVar.getFieldMap().entrySet()){ // newVar's elements >= old's elments
-                    TabbyVariable oldField = oldVar.getField(entry.getKey());
-                    EqualsBuilder eb = new EqualsBuilder();
-                    eb.append(entry.getValue(), oldField);
-                    if(!eb.isEquals()){
-                        if(oldField == null && entry.getValue() != null && entry.getValue().isPolluted()){
-                            actions.put(position+"|"+entry.getKey(), entry.getValue().getValue().getRelatedType());
-                        }else if(oldField != null && entry.getValue() != null){
-                            actions.putAll(
-                                    getActions(
-                                            position+"|"+entry.getKey(),
-                                            oldField,
-                                            entry.getValue(),
-                                            new HashSet<>(checkedVars)));
-                        }
-                    }
-                }
-            }
-        }else {
-            // 当前变量被重新赋值过，此时去判断是否是polluted
-            if(newVar.isPolluted()){
-                actions.put(position, newVar.getValue().getRelatedType());
-            }else{
-                actions.put(position, "clear");
-            }
-        }
-        return actions;
     }
 }

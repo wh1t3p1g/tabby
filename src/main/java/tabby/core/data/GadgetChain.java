@@ -1,7 +1,7 @@
 package tabby.core.data;
 
 import lombok.Data;
-import tabby.neo4j.bean.ref.MethodReference;
+import tabby.db.bean.ref.MethodReference;
 
 import java.util.LinkedList;
 

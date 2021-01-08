@@ -11,19 +11,23 @@ import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.retry.annotation.EnableRetry;
+import org.springframework.scheduling.annotation.EnableAsync;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import tabby.config.SootConfiguration;
 import tabby.core.Analyser;
 import tabby.util.FileUtils;
 
 import javax.annotation.Resource;
 import java.io.File;
+import java.util.concurrent.Executor;
 
 @Slf4j
 @SpringBootApplication
+@EnableAsync
 @EnableCaching
 @EnableRetry
-@EntityScan("tabby.neo4j.bean")
-@EnableNeo4jRepositories("tabby.neo4j.repository")
+@EntityScan("tabby.db.bean")
+@EnableNeo4jRepositories("tabby.db.repository.neo4j")
 public class TabbyApplication {
 
     @Autowired
@@ -71,5 +75,15 @@ public class TabbyApplication {
             }
 
         };
+    }
+
+    @Bean
+    public Executor taskExecutor() {
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+        executor.setCorePoolSize(4);
+        executor.setMaxPoolSize(4);
+        executor.setQueueCapacity(500);
+        executor.initialize();
+        return executor;
     }
 }

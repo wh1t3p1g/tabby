@@ -8,13 +8,13 @@ import soot.jimple.InstanceFieldRef;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.core.data.Context;
+import tabby.core.data.DataContainer;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.stmt.SimpleStmtSwitcher;
 import tabby.core.soot.switcher.stmt.StmtSwitcher;
 import tabby.core.soot.switcher.value.SimpleLeftValueSwitcher;
 import tabby.core.soot.switcher.value.SimpleRightValueSwitcher;
-import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.db.bean.ref.MethodReference;
 
 import java.util.*;
 
@@ -30,7 +30,7 @@ import java.util.*;
 public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<Local, TabbyVariable>> {
 
     private Context context; // 同一函数内共享的上下文内容
-    private CacheHelper cacheHelper;
+    private DataContainer dataContainer;
     private Map<Local,TabbyVariable> emptyMap;
     private Map<Local,TabbyVariable> initialMap;
     private StmtSwitcher stmtSwitcher;
@@ -97,10 +97,9 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         context.setLocalMap(newIn);
         context.setInitialMap(initialMap);
         stmtSwitcher.setContext(context);
-        stmtSwitcher.setCacheHelper(cacheHelper);
+        stmtSwitcher.setDataContainer(dataContainer);
         d.apply(stmtSwitcher);
         out.putAll(context.getLocalMap());
-//        System.out.println(d);
         // 考虑以下几种情况： sable thesis 2003 36页
         //      assignment statement p = q;
         //      Identity statement p := @this checked
@@ -153,7 +152,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
                                                            Body body,
                                                            DirectedGraph<Unit> graph,
-                                                           CacheHelper cacheHelper, Context context, boolean reset){
+                                                           DataContainer dataContainer, Context context, boolean reset){
         PollutedVarsPointsToAnalysis analysis = new PollutedVarsPointsToAnalysis(graph);
         // 配置switchers
         StmtSwitcher switcher = new SimpleStmtSwitcher();
@@ -165,7 +164,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
         // 配置pta依赖
         analysis.setBody(body);
-        analysis.setCacheHelper(cacheHelper);
+        analysis.setDataContainer(dataContainer);
         analysis.setStmtSwitcher(switcher);
         analysis.setContext(context);
         analysis.setMethodRef(methodRef);

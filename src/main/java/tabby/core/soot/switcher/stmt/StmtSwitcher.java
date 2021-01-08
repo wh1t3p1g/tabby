@@ -4,9 +4,9 @@ import lombok.Getter;
 import lombok.Setter;
 import soot.jimple.AbstractStmtSwitch;
 import tabby.core.data.Context;
+import tabby.core.data.DataContainer;
 import tabby.core.soot.switcher.value.ValueSwitcher;
-import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.db.bean.ref.MethodReference;
 
 /**
  * @author wh1t3P1g
@@ -17,7 +17,7 @@ import tabby.neo4j.cache.CacheHelper;
 public abstract class StmtSwitcher extends AbstractStmtSwitch {
 
     public Context context;
-    public CacheHelper cacheHelper;
+    public DataContainer dataContainer;
     public MethodReference methodRef;
     public ValueSwitcher leftValueSwitcher;
     public ValueSwitcher rightValueSwitcher;

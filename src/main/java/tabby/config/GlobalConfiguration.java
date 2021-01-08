@@ -15,6 +15,7 @@ public class GlobalConfiguration {
 
     public static String RULES_PATH = String.join(File.separator, System.getProperty("user.dir"), "rules");
     public static String KNOWLEDGE_PATH = String.join(File.separator, RULES_PATH, "knowledges.json");
+    public static String IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignore.json");
     public static String CACHE_PATH = String.join(File.separator, System.getProperty("user.dir"), "docker", "cache");
     public static String RUNTIME_CACHE_PATH = String.join(File.separator, CACHE_PATH, "runtime.json");
     public static String CLASSES_CACHE_PATH = String.join(File.separator,CACHE_PATH, "classes.csv");
@@ -30,7 +31,7 @@ public class GlobalConfiguration {
             new String[]{"uuid", "source", "target"}, // extend/interfaces/
             new String[]{"uuid", "classRef", "MethodRef"}, // has
             new String[]{"uuid", "source", "target", "lineNum", "isPolluted", "pollutedPosition", "realCallType", "invokerType"}, // call
-            new String[]{"uuid", "source", "target", "isPolluted"} // alias
+            new String[]{"uuid", "source", "target"} // alias
 
     ));
 

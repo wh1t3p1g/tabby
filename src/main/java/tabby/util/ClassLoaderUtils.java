@@ -167,4 +167,17 @@ public class ClassLoaderUtils {
         }
     }
 
+
+    public static List<String> getAllClasses(List<String> targets){
+        List<String> runtimeClasses = null;
+        try {
+            ClassResourceEnumerator classResourceEnumerator =
+                    new ClassResourceEnumerator(ClassLoaderUtils.getClassLoader(targets));
+            runtimeClasses = (List<String>) classResourceEnumerator.getTargetClassLoaderClasses();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return runtimeClasses;
+    }
+
 }

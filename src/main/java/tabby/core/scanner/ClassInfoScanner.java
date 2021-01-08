@@ -4,22 +4,23 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.Scene;
-import soot.SootClass;
-import soot.SootMethod;
-import soot.SootMethodRef;
+import soot.*;
+import tabby.config.GlobalConfiguration;
+import tabby.core.data.DataContainer;
 import tabby.core.data.RulesContainer;
-import tabby.neo4j.bean.edge.Alias;
-import tabby.neo4j.bean.edge.Extend;
-import tabby.neo4j.bean.edge.Interfaces;
-import tabby.neo4j.bean.ref.ClassReference;
-import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.bean.ref.handle.ClassRefHandle;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.core.data.TabbyRule;
+import tabby.db.bean.edge.Alias;
+import tabby.db.bean.edge.Extend;
+import tabby.db.bean.edge.Has;
+import tabby.db.bean.edge.Interfaces;
+import tabby.db.bean.node.AliasNode;
+import tabby.db.bean.node.ExtendNode;
+import tabby.db.bean.node.HasNode;
+import tabby.db.bean.node.InterfacesNode;
+import tabby.db.bean.ref.ClassReference;
+import tabby.db.bean.ref.MethodReference;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 处理jdk相关类的信息抽取
@@ -29,98 +30,25 @@ import java.util.Map;
 @Data
 @Slf4j
 @Component
-public class ClassInfoScanner implements Scanner<List<String>> {
+public class ClassInfoScanner {
 
     @Autowired
-    private CacheHelper cacheHelper;
+    private DataContainer dataContainer;
     @Autowired
     private RulesContainer rulesContainer;
 
-    @Override
     public void run(List<String> classes){
         collect(classes);
-        build();
+        save();
     }
 
-    @Override
     public void collect(List<String> classes){
         if(classes.isEmpty()) return;
-
-        classes.forEach(this::collect);
-
+        log.info("Collect "+classes.size()+" classes information. Start!");
+        classes.forEach(classname ->{
+            ClassInfoScanner.collect(classname, dataContainer, rulesContainer, false);
+        });
         log.info("Collect "+classes.size()+" classes information. DONE!");
-    }
-
-    @Override
-    public void build(){
-        if(cacheHelper.getSavedClassRefs().isEmpty()) return;
-        log.info("Build relationships!");
-        Map<ClassRefHandle, ClassReference> clonedClassRefs = new HashMap<>(cacheHelper.getSavedClassRefs());
-        clonedClassRefs.forEach((handle, classRef) -> {
-            buildRelationships(classRef);
-        });
-    }
-
-    private void buildRelationships(ClassReference classRef){
-        if(classRef == null) return;
-        if(classRef.isInitialed())return;
-        // build superclass relationship
-        if(classRef.isHasSuperClass()){
-            ClassReference superClassRef = cacheHelper.loadClassRef(classRef.getSuperClass()); // 优先从cache中取
-            if(superClassRef == null){ // cache中没有 默认为新类
-//                if(classRef.getSuperClass().toString().equals("java.lang.ClassLoader")){
-//                    System.out.println(1);
-//                }
-                superClassRef = collect(classRef.getSuperClass());
-                if(superClassRef != null){
-                    buildRelationships(superClassRef);
-                }
-            }
-            if(superClassRef != null){
-                Extend extend =  Extend.newInstance(classRef, superClassRef);
-                classRef.setExtendEdge(extend);
-            }
-
-        }
-        // build interfaces relationship
-        if(classRef.isHasInterfaces()){
-            classRef.getInterfaces().forEach((intface) -> {
-                ClassReference interfaceClassRef = cacheHelper.loadClassRef(intface);
-                if(interfaceClassRef == null){
-                    interfaceClassRef = collect(intface);
-                    buildRelationships(interfaceClassRef);
-                }
-                if(interfaceClassRef != null){
-                    Interfaces interfaces = Interfaces.newInstance(classRef, interfaceClassRef);
-                    classRef.getInterfaceEdge().add(interfaces);
-                }
-            });
-        }
-
-        // build alias relationship
-        classRef.getHasEdge().forEach(has -> {
-            MethodReference sourceRef = has.getMethodRef();
-            SootMethod sootMethod = sourceRef.getCachedMethod();
-            SootMethodRef sootMethodRef = sootMethod.makeRef();
-            MethodReference targetRef = cacheHelper.loadMethodRefFromFatherNodes(sootMethodRef);
-            if(targetRef != null){
-                Alias alias = Alias.newInstance(sourceRef, targetRef);
-                sourceRef.setAliasEdge(alias);
-            }
-        });
-        classRef.setInitialed(true);
-    }
-
-    @Override
-    public void save(){
-        log.info("Start to save cache to neo4j database!");
-        // clear cache runtime classes
-        cacheHelper.getRuntimeClasses().clear();
-        // save cache to csv
-        cacheHelper.saveToCSV();
-        // load csv data to neo4j
-        cacheHelper.saveToNeo4j();
-        log.info("Load csv data to neo4j finished!");
     }
 
     /**
@@ -128,22 +56,156 @@ public class ClassInfoScanner implements Scanner<List<String>> {
      * @param classname 待收集的类名
      * @return 具体的类信息
      */
-    private ClassReference collect(String classname){
+    public static ClassReference collect(String classname, DataContainer dataContainer, RulesContainer rulesContainer, boolean force){
         ClassReference classRef = null;
         try{
-            SootClass sc = Scene.v().getSootClass(classname);
-            if(!sc.isPhantom()) {
-                classRef = ClassReference.parse(sc, rulesContainer);
-                cacheHelper.add(classRef);
-                classRef.getHasEdge().forEach((has) -> {
-                    cacheHelper.add(has.getMethodRef());
+            SootClass cls = Scene.v().getSootClass(classname);
+            if(!cls.isPhantom() || force) {
+                classRef = ClassReference.newInstance(cls.getName());
+                classRef.setInterface(cls.isInterface());
+                // 提取类属性信息
+                if(cls.getFieldCount() > 0){
+                    for (SootField field : cls.getFields()) {
+                        List<String> fieldInfo = new ArrayList<>();
+                        fieldInfo.add(field.getName());
+                        fieldInfo.add(field.getModifiers() + "");
+                        fieldInfo.add(field.getType().toString());
+                        classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
+                    }
+                }
+                // 提取父类信息
+                if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
+                    // 剔除Object类的继承关系，节省继承边数量
+                    classRef.setHasSuperClass(cls.hasSuperclass());
+                    classRef.setSuperClass(cls.getSuperclass().getName());
+                    extractSuperClassInfo(cls.getSuperclass().getName(), classRef, dataContainer, rulesContainer);
+                }
+                // 提取接口信息
+                if(cls.getInterfaceCount() > 0){
+                    classRef.setHasInterfaces(true);
+                    for (SootClass intface : cls.getInterfaces()) {
+                        classRef.getInterfaces().add(intface.getName());
+                        extractInterfaceInfo(intface.getName(), classRef, dataContainer, rulesContainer);
+                    }
+                }
+
+                // 提取类函数信息
+                if(cls.getMethodCount() > 0){
+                    Set<String> relatedClassnames = getAllFatherNodes(cls);
+                    for (SootMethod method : cls.getMethods()) {
+                        extractMethodInfo(method, classRef, relatedClassnames, dataContainer, rulesContainer);
+                    }
+                }
+                // build alias relationship
+                classRef.getHasEdge().forEach(has -> {
+                    MethodReference sourceRef = has.getMethodRef();
+                    SootMethod sootMethod = sourceRef.getCachedMethod();
+                    SootMethodRef sootMethodRef = sootMethod.makeRef();
+                    MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
+                    if(targetRef != null){
+                        Alias alias = Alias.newInstance(sourceRef, targetRef);
+                        sourceRef.setAliasEdge(alias);
+                        dataContainer.store(AliasNode.newInstance(alias), true);
+                    }
                 });
+                classRef.setInitialed(true);
+                dataContainer.store(classRef, true);
             }
         }catch (Exception e){
             // class not found
 //            e.printStackTrace();
-//            log.debug(classname+" class not found!");
         }
         return classRef;
     }
+
+    public static void extractSuperClassInfo(String superclass, ClassReference ref, DataContainer dataContainer, RulesContainer rulesContainer){
+        ClassReference superclassRef = dataContainer.getClassRefByName(superclass);
+        if(superclassRef == null){
+            superclassRef = collect(superclass, dataContainer, rulesContainer, false);
+        }
+        if(superclassRef != null){
+            Extend extend =  Extend.newInstance(ref, superclassRef);
+            ref.setExtendEdge(extend);
+            dataContainer.store(ExtendNode.newInstance(extend), true);
+        }
+    }
+
+    public static void extractMethodInfo(SootMethod method, ClassReference ref,
+                                         Set<String> relatedClassnames,
+                                         DataContainer dataContainer, RulesContainer rulesContainer){
+        String classname = ref.getName();
+        MethodReference methodRef = MethodReference.newInstance(classname, method);
+        TabbyRule.Rule rule = rulesContainer.getRule(classname, methodRef.getName());
+        if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
+            for (String relatedClassname : relatedClassnames) {
+                rule = rulesContainer.getRule(relatedClassname, methodRef.getName());
+                if (rule != null && rule.isIgnore()) {
+                    break;
+                }
+            }
+        }
+        boolean isSink = rule != null && rule.isSink();
+        boolean isIgnore = rule != null && rule.isIgnore();
+        boolean isSource = rule != null && rule.isSource();
+
+        methodRef.setSink(isSink);
+        methodRef.setPolluted(isSink);
+        methodRef.setIgnore(isIgnore);
+        methodRef.setSource(isSource);
+
+        if (rule != null) {
+            Map<String, String> actions = rule.getActions();
+            Set<Integer> polluted = rule.getPolluted();
+            methodRef.setActions(actions!=null?actions:new HashMap<>());
+            methodRef.setPollutedPosition(polluted!=null?polluted:new HashSet<>());
+            methodRef.setInitialed(true);
+            methodRef.setActionInitialed(true);
+        }
+
+        Has has = Has.newInstance(ref, methodRef);
+        ref.getHasEdge().add(has);
+        dataContainer.store(methodRef, true);
+        dataContainer.store(HasNode.newInstance(has), true);
+    }
+
+    public static void extractInterfaceInfo(String intface, ClassReference ref, DataContainer dataContainer, RulesContainer rulesContainer){
+        ClassReference interfaceRef = dataContainer.getClassRefByName(intface);
+        if(interfaceRef == null){
+            interfaceRef = collect(intface, dataContainer, rulesContainer, false);
+        }
+        if(interfaceRef != null){
+            Interfaces interfaces = Interfaces.newInstance(ref, interfaceRef);
+            ref.getInterfaceEdge().add(interfaces);
+            dataContainer.store(InterfacesNode.newInstance(interfaces), true);
+        }
+    }
+
+    public static Set<String> getAllFatherNodes(SootClass cls){
+        Set<String> nodes = new HashSet<>();
+        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
+            nodes.add(cls.getSuperclass().getName());
+            nodes.addAll(getAllFatherNodes(cls.getSuperclass()));
+        }
+        if(cls.getInterfaceCount() > 0){
+            cls.getInterfaces().forEach(intface -> {
+                nodes.add(intface.getName());
+                nodes.addAll(getAllFatherNodes(intface));
+            });
+        }
+        return nodes;
+    }
+
+
+    public void save(){
+        log.info("Save remained data to mongodb. START!");
+        dataContainer.check("class", false);
+        dataContainer.check("method", false);
+        dataContainer.check("has", false);
+        dataContainer.check("alias", false);
+        dataContainer.check("extend", false);
+        dataContainer.check("interfaces", false);
+        log.info("Save remained data to mongodb. DONE!");
+    }
+
+
 }

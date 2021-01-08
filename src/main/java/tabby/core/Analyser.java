@@ -3,19 +3,26 @@ package tabby.core;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.*;
+import soot.CompilationDeathException;
+import soot.Main;
+import soot.PackManager;
+import soot.Scene;
 import soot.options.Options;
 import tabby.config.GlobalConfiguration;
-import tabby.core.discover.xstream.SimpleXStreamGadgetDiscover;
+import tabby.core.data.DataContainer;
+import tabby.core.data.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.util.ClassLoaderUtils;
 import tabby.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -26,64 +33,41 @@ import java.util.*;
 public class Analyser {
 
     @Autowired
-    private CacheHelper cacheHelper;
+    private DataContainer dataContainer;
     @Autowired
     private ClassInfoScanner classInfoScanner;
     @Autowired
     private CallGraphScanner callGraphScanner;
     @Autowired
-    private SimpleXStreamGadgetDiscover discover;
-
-    /**
-     * 运行当前soot分析
-     * 针对目标文件夹
-     * @param target
-     */
-    public void runSootAnalysis(String[] target){
-        if(target == null) return;
-        String targetDirectory = String.join(File.separator, System.getProperty("user.dir"), String.join(File.separator,target));
-        Options.v().set_process_dir(Collections.singletonList(targetDirectory)); // 设置待分析目录
-        PhaseOptions.v().setPhaseOption("wjtp.classTransformer", "on");
-        log.debug("Target directory: " + targetDirectory);
-        log.info("Start soot analysis to " + targetDirectory);
-        try{
-            Main.v().autoSetOptions();
-            Scene.v().loadNecessaryClasses();
-            PackManager.v().runPacks();
-            if (!Options.v().oaat()) {
-                PackManager.v().writeOutput();
-            }
-        }catch (CompilationDeathException e){
-            if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
-                throw e;
-            } else {
-                return;
-            }
-        }
-        log.info("Soot analysis done!");
-    }
+    private RulesContainer rulesContainer;
 
     public void runSootAnalysis(String path, boolean isOnlyJDK){
         try{
-            cacheHelper.clear("all");
-            Set<String> targets = new HashSet<>(getJdkDependencies());
+            Map<String, String> classpaths = new HashMap<>(getJdkDependencies());
+            List<String> targets = new ArrayList<>();
             if(!isOnlyJDK){
-                targets.addAll(FileUtils.getTargetDirectoryJarFiles(path));
+                classpaths.putAll(FileUtils.getTargetDirectoryJarFiles(path));
             }
-            Scene.v().setSootClassPath(String.join(File.pathSeparator, targets));
-            Options.v().set_process_dir(new ArrayList<>(targets));
+            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths.values()));
+
+            classpaths.forEach((filename, filepath) -> {
+                if(!rulesContainer.isIgnore(filename)){
+                    targets.add(filepath);
+                }
+            });
+
+            Options.v().set_process_dir(targets);
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
-            cacheHelper.loadRuntimeClasses(new ArrayList<>(targets), false);
+            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(targets);
 
             // 类信息抽取
-            classInfoScanner.run(cacheHelper.getRuntimeClasses());
+            classInfoScanner.run(runtimeClasses);
             // 函数调用分析
+            log.info("Run soot packs!");
             PackManager.v().runPacks();
-            callGraphScanner.run(new ArrayList<>(cacheHelper.getSavedMethodRefs().values()));
-            classInfoScanner.save();
+            callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
             clean(); // clean caches
-//            discover.run();
 
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
@@ -99,15 +83,16 @@ public class Analyser {
         }
     }
 
-    public List<String> getJdkDependencies(){
+    public Map<String, String> getJdkDependencies(){
         String javaHome = System.getProperty("java.home");
         String[] jre = new String[]{"lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
 
-        List<String> exists = new ArrayList<>();
+        Map<String, String> exists = new HashMap<>();
         for(String cp:jre){
             String path = String.join(File.separator, javaHome, cp);
-            if(FileUtils.fileExists(path)){
-                exists.add(path);
+            File file = new File(path);
+            if(file.exists()){
+                exists.put(file.getName(), path);
             }
         }
         log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
@@ -115,7 +100,7 @@ public class Analyser {
     }
 
     private void setClassPath(List<String> targets) throws IOException {
-        List<String> exists = getJdkDependencies();
+        List<String> exists = (List<String>) getJdkDependencies().values();
         log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
         if(targets != null){
             exists.addAll(targets);

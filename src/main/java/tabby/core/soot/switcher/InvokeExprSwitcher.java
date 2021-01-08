@@ -3,26 +3,23 @@ package tabby.core.soot.switcher;
 import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
-import tabby.core.data.Context;
+import tabby.core.data.DataContainer;
 import tabby.core.data.RulesContainer;
 import tabby.core.data.TabbyVariable;
+import tabby.core.scanner.ClassInfoScanner;
 import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
-import tabby.neo4j.bean.edge.Call;
-import tabby.neo4j.bean.edge.Has;
-import tabby.neo4j.bean.ref.ClassReference;
-import tabby.neo4j.bean.ref.MethodReference;
-import tabby.neo4j.bean.ref.handle.ClassRefHandle;
-import tabby.neo4j.cache.CacheHelper;
+import tabby.db.bean.edge.Call;
+import tabby.db.bean.edge.Has;
+import tabby.db.bean.node.CallNode;
+import tabby.db.bean.node.HasNode;
+import tabby.db.bean.ref.ClassReference;
+import tabby.db.bean.ref.MethodReference;
 
-import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -42,10 +39,10 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
     private Value baseValue;
     private boolean isPolluted = false;
     private List<Integer> pollutedPosition;
+    private Map<Value, TabbyVariable> globalMap = new HashMap<>();
 
-    @Autowired
-    private CacheHelper cacheHelper;
-    @Autowired
+
+    private DataContainer dataContainer;
     private RulesContainer rulesContainer;
 
 
@@ -53,9 +50,8 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
         if(isNecessaryEdge("StaticInvoke", v)){
             SootMethodRef sootMethodRef = v.getMethodRef();
-            ClassRefHandle classRefHandle = new ClassRefHandle(sootMethodRef.getDeclaringClass().getName());
             generate(v);
-            buildCallRelationship(classRefHandle, sootMethodRef, "StaticInvoke");
+            buildCallRelationship(sootMethodRef.getDeclaringClass().getName(), sootMethodRef, "StaticInvoke");
         }
     }
 
@@ -64,8 +60,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         SootMethodRef sootMethodRef = v.getMethodRef();
         baseValue = v.getBase();
         generate(v);
-        ClassRefHandle classRefHandle = new ClassRefHandle(v.getBase().getType().toString());
-        buildCallRelationship(classRefHandle, sootMethodRef, "VirtualInvoke");
+        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "VirtualInvoke");
     }
 
     @Override
@@ -74,8 +69,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         if(sootMethodRef.getSignature().contains("<init>") && v.getArgCount() == 0) return; // 无参的构造函数 不影响数据流分析
         baseValue = v.getBase();
         generate(v);
-        ClassRefHandle classRefHandle = new ClassRefHandle(v.getBase().getType().toString());
-        buildCallRelationship(classRefHandle, sootMethodRef, "SpecialInvoke");
+        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "SpecialInvoke");
     }
 
     @Override
@@ -83,33 +77,27 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         SootMethodRef sootMethodRef = v.getMethodRef();
         baseValue = v.getBase();
         generate(v);
-        ClassRefHandle classRefHandle = new ClassRefHandle(v.getBase().getType().toString());
-        buildCallRelationship(classRefHandle, sootMethodRef, "InterfaceInvoke");
+        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "InterfaceInvoke");
     }
 
-    public void buildCallRelationship(ClassRefHandle classRefHandle, SootMethodRef sootMethodRef, String invokerType){
-        MethodReference target = cacheHelper.loadMethodRef(sootMethodRef);// 递归父类，接口 查找目标函数
-        MethodReference source = cacheHelper.loadMethodRef(this.source.getSignature());
+    public void buildCallRelationship(String classname, SootMethodRef sootMethodRef, String invokerType){
+        MethodReference target = dataContainer.getMethodRefBySignature(sootMethodRef);// 递归父类，接口 查找目标函数
+        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getSignature());
         if(target == null){
             // 为了保证target函数的存在，重建methodRef
             // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
-            ClassReference classRef = cacheHelper.loadClassRef(sootMethodRef.getDeclaringClass().getName());
+            ClassReference classRef = dataContainer.getClassRefByName(sootMethodRef.getDeclaringClass().getName());
             if(classRef == null){// lambda 的情况
                 SootClass cls = sootMethodRef.getDeclaringClass();
-//                log.debug("Rebuild class " + cls.getName());
-                classRef = ClassReference.parse(cls, rulesContainer);
-                cacheHelper.add(classRef);
-                classRef.getHasEdge().forEach((has) -> {
-                    cacheHelper.add(has.getMethodRef());
-                });
+                classRef = ClassInfoScanner.collect(cls.getName(), dataContainer, rulesContainer, true);
             }
-            target = cacheHelper.loadMethodRef(sootMethodRef);
+            target = dataContainer.getMethodRefBySignature(sootMethodRef);
             if(target == null){
-//                log.debug("Rebuild method " + sootMethodRef.getSignature());
-                target = MethodReference.parse(classRef.getHandle(), sootMethodRef.resolve());
+                target = MethodReference.newInstance(classRef.getName(), sootMethodRef.resolve());
                 Has has = Has.newInstance(classRef, target);
                 classRef.getHasEdge().add(has);
-                cacheHelper.add(target);
+                dataContainer.store(HasNode.newInstance(has), true);
+                dataContainer.store(target, false);
             }
         }
 
@@ -124,14 +112,14 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
         if(source != null && !target.isIgnore() && isPolluted){ // 剔除不可控边
             Call call = Call.newInstance(source, target);
-            call.setRealCallType(classRefHandle.getName());
+            call.setRealCallType(classname);
             call.setInvokerType(invokerType);
             call.setPolluted(isPolluted);
             call.setPollutedPosition(new HashSet<>(pollutedPosition));
             call.setUnit(unit);
             call.setLineNum(unit.getJavaSourceStartLineNumber());
             source.getCallEdge().add(call);
-            setResult(call);
+            dataContainer.store(CallNode.newInstance(call), true);
         }
     }
 
@@ -195,7 +183,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         if(value instanceof Local){
             var = localMap.get(value);
         }else if(value instanceof StaticFieldRef){
-            var = Context.globalMap.get(value);
+            var = globalMap.get(value);
         }else if(value instanceof ArrayRef){
             ArrayRef ar = (ArrayRef) value;
             Value baseValue = ar.getBase();

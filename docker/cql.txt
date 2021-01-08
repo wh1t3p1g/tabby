@@ -84,3 +84,26 @@ RETURN path, length(path) AS hops limit 1
 
 
 match (m1:Method {signature:"<javax.management.BadAttributeValueExpException: void readObject(java.io.ObjectInputStream)>"})-[:CALL]->(m2:Method {name:"toString"})-[:ALIAS*]-(m3:Method {signature:"<org.apache.commons.collections.keyvalue.TiedMapEntry: java.lang.String toString()>"})-[:CALL]->(m4:Method {name:"getValue"})-[:CALL]->(m5:Method {name:"get"})-[:ALIAS*1..2]-(m6:Method {name:"get"})-[:CALL]->(m7:Method {name:"transform"})-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {isSink:true}) return *
+
+
+
+
+// class
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"classReference\",null) yield value","MERGE (c:Class {name:value.name}) ON CREATE SET c = value",{batchSize:5000, iterateList:true, parallel:true})
+// method
+CALL apoc.periodic.iterate("call apoc.mongodb.find(\"mongodb://root:password@localhost:27017\",\"graph\",\"methodReference\",null,{`_class`:0,`body`:0}, null) yield value","MERGE(m:Method {_id:value._id} ) ON CREATE SET m = value",{batchSize:5000, iterateList:true, parallel:true})
+// extend
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"Extend\",null) yield value","MATCH( c1:Class {_id:value.source} ) MATCH ( c2:Class { _id:value.target } ) MERGE (c1) -[e:EXTENDS { _id:value._id }] -> (c2)",{batchSize:1000, iterateList:true, parallel:false})
+// has
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"Has\",null) yield value","MATCH(c:Class{_id:value.classNode}) MATCH(m:Method { _id:value.MethodNode }) MERGE (c) -[e:HAS { _id:value._id }]-> (m)",{batchSize:1000, iterateList:true, parallel:false})
+// interface
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"Interfaces\",null) yield value","MATCH( c1:Class {_id:value.source} ) MATCH ( c2:Class { _id:value.target } ) MERGE (c1) -[e:INTERFACE { _id:value._id }] -> (c2)",{batchSize:1000, iterateList:true, parallel:false})
+// alias
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"Alias\",null) yield value","MATCH ( m1:Method {_id:value.source} ) MATCH ( m2:Method {_id:value.target }) MERGE (m1)-[e:ALIAS {_id:value._id}]-(m2)",{batchSize:1000, iterateList:true, parallel:false})
+// call
+CALL apoc.periodic.iterate("call apoc.mongodb.get(\"mongodb://root:password@localhost:27017\",\"graph\",\"Call\",null) yield value","MATCH ( m1:Method {_id:value.source} ) MATCH ( m2:Method {_id:value.target }) MERGE (m1)-[e:CALL {_id:value._id, lineNum:value.lineNum, isPolluted:value.isPolluted, pollutedPosition:value.pollutedPosition, realCallType:value.realCallType, invokerType: value.invokerType }]->(m2)",{batchSize:5000, iterateList:true, parallel:false})
+
+call apoc.load.json("file:///Users/wh1t3P1g/Downloads/classReference") yield value
+MERGE (c:Class {name:value.name}) ON CREATE SET c = value
+call apoc.load.json("file:///Users/wh1t3P1g/Downloads/methodReference") yield value 
+MERGE(m:Method {_id:value._id} ) ON CREATE SET m = value

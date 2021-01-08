@@ -31,7 +31,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
 //        log.debug(ie.getMethodRef().getSignature());
-        Switcher.doInvokeExprAnalysis(ie, cacheHelper, context);
+        Switcher.doInvokeExprAnalysis(ie, dataContainer, context);
 //        log.debug(ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
@@ -42,7 +42,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         TabbyVariable rvar = null;
         boolean unbind = false;
         rightValueSwitcher.setContext(context);
-        rightValueSwitcher.setCacheHelper(cacheHelper);
+        rightValueSwitcher.setDataContainer(dataContainer);
         rightValueSwitcher.setResult(null);
         rop.apply(rightValueSwitcher);
         Object result = rightValueSwitcher.getResult();
@@ -133,13 +133,13 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         // 并结算当前的入参区别
         if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return;
         rightValueSwitcher.setContext(context);
-        rightValueSwitcher.setCacheHelper(cacheHelper);
+        rightValueSwitcher.setDataContainer(dataContainer);
         rightValueSwitcher.setResult(null);
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
         if(var != null && var.isPolluted() && reset){
-            methodRef.getActions().put("return", var.getValue().getRelatedType());
+            methodRef.addAction("return", var.getValue().getRelatedType());
         }
     }
 

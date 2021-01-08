@@ -96,23 +96,23 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
         if(!reset) return; // 不记录 actions
         if(unbind && lvar.isPolluted()){
             if(index != -1){
-                methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, "clear");
+                methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, "clear");
             }else{
-                methodRef.getActions().put(lvar.getValue().getRelatedType(), "clear");
+                methodRef.addAction(lvar.getValue().getRelatedType(), "clear");
             }
         }else if(lvar.isPolluted()){
             if(rvar != null && rvar.isPolluted()){
                 if(index != -1){
-                    methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, rvar.getValue().getRelatedType());
+                    methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, rvar.getValue().getRelatedType());
                 }else{
-                    methodRef.getActions().put(lvar.getValue().getRelatedType(), rvar.getValue().getRelatedType());
+                    methodRef.addAction(lvar.getValue().getRelatedType(), rvar.getValue().getRelatedType());
                 }
 
             }else{
                 if(index != -1){
-                    methodRef.getActions().put(lvar.getValue().getRelatedType() + "|"+index, "clear");
+                    methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, "clear");
                 }else{
-                    methodRef.getActions().put(lvar.getValue().getRelatedType(), "clear");
+                    methodRef.addAction(lvar.getValue().getRelatedType(), "clear");
                 }
             }
         }
