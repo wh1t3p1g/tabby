@@ -2,13 +2,15 @@ package tabby.db.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.StartNode;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.bean.ref.MethodReference;
+import tabby.db.converter.ClassRef2StringConverter;
+import tabby.db.converter.MethodRef2StringConverter;
 
+import javax.persistence.Convert;
+import javax.persistence.Entity;
+import javax.persistence.Id;
+import javax.persistence.Table;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -19,16 +21,20 @@ import java.util.UUID;
  */
 @Getter
 @Setter
-@RelationshipEntity(type="HAS")
+//@RelationshipEntity(type="HAS")
+@Entity
+@Table(name = "Has")
 public class Has {
 
     @Id
     private String id;
 
-    @StartNode
+//    @StartNode
+    @Convert(converter = ClassRef2StringConverter.class)
     private ClassReference classRef;
 
-    @EndNode
+//    @EndNode
+    @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference methodRef;
 
     public static Has newInstance(ClassReference classRef, MethodReference methodRef){

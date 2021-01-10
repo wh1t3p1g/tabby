@@ -9,12 +9,12 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
 import soot.util.NumberedString;
-import tabby.db.bean.node.*;
+import tabby.db.bean.edge.*;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.bean.ref.MethodReference;
 import tabby.db.service.ClassRefService;
 import tabby.db.service.MethodRefService;
-import tabby.db.service.RelationshipService;
+import tabby.db.service.RelationshipsService;
 
 import java.util.*;
 
@@ -34,70 +34,68 @@ public class DataContainer {
     @Autowired
     private MethodRefService methodRefService;
     @Autowired
-    private RelationshipService relationshipService;
-
-    public static int MAX_NODE = 20000; // 最多临时存储2w个节点
+    private RelationshipsService relationshipsService;
 
     private Map<String, ClassReference> savedClassRefs = new HashMap<>();
     private Map<String, MethodReference> savedMethodRefs = new HashMap<>();
 
-    private Set<HasNode> savedHasNodes = new HashSet<>();
-    private Set<CallNode> savedCallNodes = new HashSet<>();
-    private Set<AliasNode> savedAliasNodes = new HashSet<>();
-    private Set<ExtendNode> savedExtendNodes = new HashSet<>();
-    private Set<InterfacesNode> savedInterfacesNodes = new HashSet<>();
+    private Set<Has> savedHasNodes = new HashSet<>();
+    private Set<Call> savedCallNodes = new HashSet<>();
+    private Set<Alias> savedAliasNodes = new HashSet<>();
+    private Set<Extend> savedExtendNodes = new HashSet<>();
+    private Set<Interfaces> savedInterfacesNodes = new HashSet<>();
 
     /**
      * check size and save nodes
      */
-    public void check(String type, boolean check){
+    public void save(String type){
         switch (type){
             case "class":
-                if(!check || savedClassRefs.size() > MAX_NODE){
+                if(!savedClassRefs.isEmpty()){
                     List<ClassReference> refs = new ArrayList<>(savedClassRefs.values());
-                    classRefService.save2Mongodb(refs);
+                    classRefService.save(refs);
                     savedClassRefs.clear();
                 }
                 break;
             case "method":
-                if(!check || savedMethodRefs.size() > MAX_NODE){
+                if(!savedMethodRefs.isEmpty()){
                     List<MethodReference> refs = new ArrayList<>(savedMethodRefs.values());
-                    methodRefService.save2Mongodb(refs);
+                    methodRefService.save(refs);
                     savedMethodRefs.clear();
                 }
                 break;
             case "has":
-                if(!check || savedHasNodes.size() > MAX_NODE){
-                    Set<HasNode> refs = new HashSet<>(savedHasNodes);
-                    relationshipService.batchInsertHasNodes(refs);
+                if(!savedHasNodes.isEmpty()){
+                    Set<Has> refs = new HashSet<>(savedHasNodes);
+                    relationshipsService.saveAllHasEdges(refs);
                     savedHasNodes.clear();
                 }
                 break;
             case "call":
-                if(!check || savedCallNodes.size() > MAX_NODE){
-                    Set<CallNode> refs = new HashSet<>(savedCallNodes);
-                    relationshipService.batchInsertCallNodes(refs);
+                if(!savedCallNodes.isEmpty()){
+                    Set<Call> refs = new HashSet<>(savedCallNodes);
+                    relationshipsService.saveAllCallEdges(refs);
                     savedCallNodes.clear();
                 }
                 break;
             case "extend":
-                if(!check || savedExtendNodes.size() > MAX_NODE){
-                    Set<ExtendNode> refs = new HashSet<>(savedExtendNodes);
-                    relationshipService.batchInsertExtendNodes(refs);
+                if(!savedExtendNodes.isEmpty()){
+                    Set<Extend> refs = new HashSet<>(savedExtendNodes);
+                    relationshipsService.saveAllExtendEdges(refs);
                     savedExtendNodes.clear();
                 }
                 break;
             case "interfaces":
-                if(!check || savedInterfacesNodes.size() > MAX_NODE){
-                    Set<InterfacesNode> refs = new HashSet<>(savedInterfacesNodes);
-                    relationshipService.batchInsertInterfaceNodes(refs);
+                if(!savedInterfacesNodes.isEmpty()){
+                    Set<Interfaces> refs = new HashSet<>(savedInterfacesNodes);
+                    relationshipsService.saveAllInterfacesEdges(refs);
                     savedInterfacesNodes.clear();
                 }
                 break;
             case "alias":
-                if(!check || savedAliasNodes.size() > MAX_NODE){
-                    Set<AliasNode> refs = new HashSet<>(savedAliasNodes);
-                    relationshipService.batchInsertAliasNodes(refs);
+                if(!savedAliasNodes.isEmpty()){
+                    Set<Alias> refs = new HashSet<>(savedAliasNodes);
+                    relationshipsService.saveAllAliasEdges(refs);
                     savedAliasNodes.clear();
                 }
                 break;
@@ -111,34 +109,23 @@ public class DataContainer {
      * @param ref node
      * @param <T> node type
      */
-    public <T> void store(T ref, boolean store) {
-        String type = null;
+    public <T> void store(T ref) {
         if(ref instanceof ClassReference){
             ClassReference classRef = (ClassReference) ref;
             savedClassRefs.put(classRef.getName(), classRef);
-            type = "class";
         }else if(ref instanceof MethodReference){
             MethodReference methodRef = (MethodReference) ref;
             savedMethodRefs.put(methodRef.getSignature(), methodRef);
-            type = "method";
-        }else if(ref instanceof HasNode){
-            savedHasNodes.add((HasNode) ref);
-            type = "has";
-        }else if(ref instanceof CallNode){
-            savedCallNodes.add((CallNode) ref);
-            type = "call";
-        }else if(ref instanceof InterfacesNode){
-            savedInterfacesNodes.add((InterfacesNode) ref);
-            type = "interfaces";
-        }else if(ref instanceof ExtendNode){
-            savedExtendNodes.add((ExtendNode) ref);
-            type = "extend";
-        }else if(ref instanceof AliasNode){
-            savedAliasNodes.add((AliasNode) ref);
-            type = "alias";
-        }
-        if(type != null && store){
-            check(type, true); // 检查size
+        }else if(ref instanceof Has){
+            savedHasNodes.add((Has) ref);
+        }else if(ref instanceof Call){
+            savedCallNodes.add((Call) ref);
+        }else if(ref instanceof Interfaces){
+            savedInterfacesNodes.add((Interfaces) ref);
+        }else if(ref instanceof Extend){
+            savedExtendNodes.add((Extend) ref);
+        }else if(ref instanceof Alias){
+            savedAliasNodes.add((Alias) ref);
         }
     }
 
@@ -222,13 +209,18 @@ public class DataContainer {
     }
 
     public void save2Neo4j(){
+        log.info("Save cache to Neo4j.");
         classRefService.clear(); // TODO 初始化图数据库 正式版去掉
-
-        log.info("Load "+ savedMethodRefs.size()+ " method reference cache");
+//        log.info("Load "+ savedMethodRefs.size()+ " method reference cache");
         methodRefService.importMethodRef();
-        log.info("Load "+ savedClassRefs.size() +" class reference cache");
+//        log.info("Load "+ savedClassRefs.size() +" class reference cache");
         classRefService.importClassRef();
         classRefService.buildEdge();
+    }
+
+    public void save2CSV(){
+        log.info("Save cache to CSV.");
+        relationshipsService.save2CSV();
     }
 
 }

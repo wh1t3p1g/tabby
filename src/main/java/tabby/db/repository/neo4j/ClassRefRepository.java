@@ -3,7 +3,6 @@ package tabby.db.repository.neo4j;
 import org.springframework.data.neo4j.annotation.Query;
 import org.springframework.data.neo4j.repository.Neo4jRepository;
 import org.springframework.stereotype.Repository;
-import tabby.db.bean.ref.ClassReference;
 
 import java.util.UUID;
 
@@ -12,18 +11,18 @@ import java.util.UUID;
  * @since 2020/10/10
  */
 @Repository
-public interface ClassRefRepository extends Neo4jRepository<ClassReference, UUID> {
+public interface ClassRefRepository extends Neo4jRepository<String, UUID> {
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping:{ hasSuperClass: {type:'boolean'}, hasInterfaces: {type:'boolean'}, isInterface: {type:'boolean'}, interfaces: {array:true, arraySep:'|'}, fields: {array:true, arraySep:'|'}}}) YIELD map AS row RETURN row\",\"MERGE (c:Class {name:row.name}) ON CREATE SET c = row\", {batchSize:5000, iterateList:true, parallel:true})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping:{ HAS_SUPER_CLASS: {type:'boolean'}, HAS_INTERFACES: {type:'boolean'}, IS_INTERFACE: {type:'boolean'}, SERIALIZABLE:{type:'boolean'}}}) YIELD map AS row RETURN row\",\"MERGE (c:Class {NAME:row.NAME}) ON CREATE SET c = row\", {batchSize:5000, iterateList:true, parallel:true})")
     void loadClassRefFromCSV(String path);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH( c1:Class {uuid:row.source} ) MATCH ( c2:Class { uuid:row.target } ) MERGE (c1) -[e:EXTENDS { uuid:row.uuid }] -> (c2)\", {batchSize:1000, iterateList:true, parallel:false})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH( c1:Class {ID:row.SOURCE} ) MATCH ( c2:Class { ID:row.TARGET } ) MERGE (c1) -[e:EXTENDS { ID:row.ID }] -> (c2)\", {batchSize:1000, iterateList:true, parallel:false})")
     void loadExtendEdgeFromCSV(String path);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH( c1:Class {uuid:row.source} ) MATCH ( c2:Class { uuid:row.target } ) MERGE (c1) -[e:INTERFACE { uuid:row.uuid }] -> (c2)\", {batchSize:1000, iterateList:true, parallel:false})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH( c1:Class {ID:row.SOURCE} ) MATCH ( c2:Class { ID:row.TARGET } ) MERGE (c1) -[e:INTERFACE { ID:row.ID }] -> (c2)\", {batchSize:1000, iterateList:true, parallel:false})")
     void loadInterfacesEdgeFromCSV(String path);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH(c:Class{uuid:row.classRef}) MATCH(m:Method { uuid:row.MethodRef }) MERGE (c) -[e:HAS { uuid:row.uuid }]-> (m)\", {batchSize:1000, iterateList:true, parallel:false})")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH(c:Class{ID:row.CLASS_REF}) MATCH(m:Method { ID:row.METHOD_REF }) MERGE (c) -[e:HAS { ID:row.ID }]-> (m)\", {batchSize:1000, iterateList:true, parallel:false})")
     void loadHasEdgeFromCSV(String path);
 
 //    @Query("")

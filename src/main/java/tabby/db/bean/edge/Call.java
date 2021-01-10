@@ -5,14 +5,13 @@ import lombok.Setter;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import org.neo4j.ogm.annotation.EndNode;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.RelationshipEntity;
-import org.neo4j.ogm.annotation.StartNode;
 import soot.Unit;
 import soot.Value;
 import tabby.db.bean.ref.MethodReference;
+import tabby.db.converter.MethodRef2StringConverter;
+import tabby.db.converter.Set2JsonStringConverter;
 
+import javax.persistence.*;
 import java.util.*;
 
 /**
@@ -21,14 +20,16 @@ import java.util.*;
  */
 @Getter
 @Setter
-@RelationshipEntity(type="CALL")
+//@RelationshipEntity(type="CALL")
+@Entity
+@Table(name = "Call")
 public class Call {
 
     @Id
     private String id;
-    private String type="CALL";
 
-    @StartNode
+//    @StartNode
+    @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference source;
 
     /**
@@ -37,13 +38,12 @@ public class Call {
      * 或者直接指向当前的父类的第一个函数
      * 在进行实际检索过程中，可适当进行横向纵向的查找
      */
-    @EndNode
+//    @EndNode
+    @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference target;
 
     // 以下信息 保存调用现场
     private int lineNum = 0;
-
-
     private String invokerType;
 
     /**
@@ -61,6 +61,8 @@ public class Call {
      * 例如 a.b(c,d,e) 此时 c可控，则填充1，表示第一个参数可以被污染
      *                  a可控，则填充0
      */
+    @Column(length = 1000)
+    @Convert(converter = Set2JsonStringConverter.class)
     private Set<Integer> pollutedPosition = new HashSet<>();
     private boolean isPolluted = false;
 
@@ -93,12 +95,12 @@ public class Call {
 
         Call call = (Call) o;
 
-        return new EqualsBuilder().append(lineNum, call.lineNum).append(type, call.type).append(source, call.source).append(target, call.target).append(invokerType, call.invokerType).append(realCallType, call.realCallType).isEquals();
+        return new EqualsBuilder().append(lineNum, call.lineNum).append(source, call.source).append(target, call.target).append(invokerType, call.invokerType).append(realCallType, call.realCallType).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(type).append(source).append(target).append(lineNum).append(invokerType).append(realCallType).toHashCode();
+        return new HashCodeBuilder(17, 37).append(source).append(target).append(lineNum).append(invokerType).append(realCallType).toHashCode();
     }
 
     //    @Override

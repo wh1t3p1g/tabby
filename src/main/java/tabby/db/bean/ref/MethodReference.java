@@ -1,38 +1,45 @@
 package tabby.db.bean.ref;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.NodeEntity;
+import lombok.Data;
 import org.neo4j.ogm.annotation.Relationship;
-import org.neo4j.ogm.annotation.Transient;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.edge.Alias;
 import tabby.db.bean.edge.Call;
+import tabby.db.converter.Map2JsonStringConverter;
+import tabby.db.converter.Set2JsonStringConverter;
 
+import javax.persistence.*;
 import java.util.*;
 
 /**
  * @author wh1t3P1g
  * @since 2020/10/9
  */
-@Getter
-@Setter
-@NodeEntity(label="Method")
-public class MethodReference{
+@Data
+@Entity
+@Table(name = "methods")
+public class MethodReference {
 
     @Id
     private String id;
 
     private String name;
+    //    @Column(unique = true)
+    @Column(columnDefinition = "TEXT")
     private String signature;
+
+    @Column(length = 1000)
     private String subSignature;
     private String returnType;
     private int modifiers;
+
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = Set2JsonStringConverter.class)
     private Set<String> parameters = new HashSet<>();
+
     private String classname;
 //    @Transient
 //    private String body;
@@ -45,6 +52,7 @@ public class MethodReference{
     private boolean isInitialed = false;
     private boolean actionInitialed = false;
     private boolean isIgnore = false;
+    private boolean isSerializable = false;
     /**
      * 污染传递点，主要标记2种类型，this和param
      * 其他函数可以依靠relatedPosition，来判断当前位置是否是通路
@@ -56,25 +64,23 @@ public class MethodReference{
      * this.field=other value
      * 提示经过当前函数调用后，当前函数参数和返回值的relateType会发生如下变化
      */
-    @org.springframework.data.annotation.Transient
-    private Map<String, String> realActions = new HashMap<>();
-    private String actions;
-    private Set<Integer> pollutedPosition = new HashSet<>();
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = Map2JsonStringConverter.class)
+    private Map<String, String> actions = new HashMap<>();
 
-    @Transient
-    @org.springframework.data.annotation.Transient
-    private SootMethod cachedMethod;
+    @Convert(converter = Set2JsonStringConverter.class)
+    private Set<Integer> pollutedPosition = new HashSet<>();
 
     @org.springframework.data.annotation.Transient
     @Relationship(type="CALL")
-    private Set<Call> callEdge = new HashSet<>();
+    private transient Set<Call> callEdge = new HashSet<>();
 
     /**
      * 父类函数、接口函数的依赖边
      */
     @org.springframework.data.annotation.Transient
     @Relationship(type="ALIAS", direction = "UNDIRECTED")
-    private Alias aliasEdge;
+    private transient Alias aliasEdge;
 
     // TODO 后续添加分析后的数据字段
     public static MethodReference newInstance(String name, String signature){
@@ -105,24 +111,6 @@ public class MethodReference{
         return methodRef;
     }
 
-    public void setActions(Map<String, String> actionMap){
-        realActions = actionMap;
-        actions = GlobalConfiguration.GSON.toJson(actionMap);
-    }
-
-    public void addAction(String key, String value){
-        realActions.put(key, value);
-        actions = GlobalConfiguration.GSON.toJson(realActions);
-    }
-
-    public Map<String, String> getActions(){
-        if(!realActions.isEmpty()){
-            return realActions;
-        }else if(actions != null && !"".equals(actions)){
-            realActions = GlobalConfiguration.GSON.fromJson(actions, Map.class);
-        }
-    }
-
     public List<String> toCSV(){
         List<String> csv = new ArrayList<>();
         csv.add(id);
@@ -136,7 +124,7 @@ public class MethodReference{
         csv.add(Boolean.toString(isSource));
         csv.add(Boolean.toString(isPolluted));
         csv.add(String.join("|", parameters));
-        csv.add(actions);
+        csv.add(GlobalConfiguration.GSON.toJson(actions));
         csv.add(pollutedPosition != null ? toStr(pollutedPosition) : "");
         csv.add(returnType);
         return csv;
@@ -167,22 +155,24 @@ public class MethodReference{
         return null;
     }
 
-    public SootMethod getCachedMethod(){
-        if(cachedMethod != null){
-            return cachedMethod;
-        }
-
+    public SootMethod getMethod(){
+        SootMethod method = null;
         try{
             SootClass sc = Scene.v().getSootClass(classname);
             if(!sc.isPhantom()){
-                cachedMethod = sc.getMethod(subSignature);
-                return cachedMethod;
+                method = sc.getMethod(subSignature);
+                return method;
             }
         }catch (Exception ignored){
 
         }
         return null;
     }
+
+    public void addAction(String key, String value){
+        actions.put(key, value);
+    }
+
 
 
 }

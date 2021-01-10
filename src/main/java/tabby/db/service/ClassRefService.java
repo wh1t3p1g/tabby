@@ -8,10 +8,11 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.ref.ClassReference;
-import tabby.db.repository.mongo.ClassNodeRepository;
+import tabby.db.repository.h2.ClassRepository;
 import tabby.db.repository.neo4j.ClassRefRepository;
 import tabby.db.repository.neo4j.MethodRefRepository;
 import tabby.util.FileUtils;
+
 
 /**
  * @author wh1t3P1g
@@ -26,7 +27,7 @@ public class ClassRefService {
     @Autowired
     private MethodRefRepository methodRefRepository;
     @Autowired
-    private ClassNodeRepository classNodeRepository;
+    private ClassRepository classRepository;
 
     public void clear(){
         methodRefRepository.deleteAll();
@@ -64,19 +65,21 @@ public class ClassRefService {
 
     @Cacheable("classes")
     public ClassReference getClassRefByName(String name){
-        return classNodeRepository.findClassNodeByName(name);
+        return classRepository.findClassReferenceByName(name);
     }
 
     @CacheEvict(value = "classes", allEntries = true)
     public void clearCache(){
         log.info("All classes cache cleared!");
     }
+
     @Async
-    public void save2Mongodb(ClassReference ref){
-        classNodeRepository.save(ref);
+    public void save(ClassReference ref){
+        classRepository.save(ref);
     }
+
     @Async
-    public void save2Mongodb(Iterable<ClassReference> refs){
-        classNodeRepository.saveAll(refs);
+    public void save(Iterable<ClassReference> refs){
+        classRepository.saveAll(refs);
     }
 }

@@ -24,9 +24,6 @@ public class RulesContainer {
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
-        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
-            FileUtils.putJsonContent(GlobalConfiguration.IGNORE_PATH, ignored); // 存储当前以分析的jar包
-        }));
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -82,5 +79,9 @@ public class RulesContainer {
 
     private void loadIgnore(){
         ignored = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.IGNORE_PATH, List.class);
+    }
+
+    public void saveStatus(){
+        FileUtils.putJsonContent(GlobalConfiguration.IGNORE_PATH, ignored); // 存储当前以分析的jar包
     }
 }

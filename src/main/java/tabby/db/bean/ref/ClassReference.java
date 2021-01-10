@@ -1,42 +1,48 @@
 package tabby.db.bean.ref;
 
-import lombok.Getter;
-import lombok.Setter;
-import org.neo4j.ogm.annotation.Id;
-import org.neo4j.ogm.annotation.NodeEntity;
+import lombok.Data;
 import org.neo4j.ogm.annotation.Relationship;
 import org.springframework.data.annotation.Transient;
 import tabby.db.bean.edge.Extend;
 import tabby.db.bean.edge.Has;
 import tabby.db.bean.edge.Interfaces;
+import tabby.db.converter.List2JsonStringConverter;
+import tabby.db.converter.Set2JsonStringConverter;
 
+import javax.persistence.*;
 import java.util.*;
 
 /**
  * @author wh1t3P1g
  * @since 2020/10/9
  */
-@Getter
-@Setter
-@NodeEntity(label="Class")
-public class ClassReference{
+@Data
+@Entity
+@Table(name = "classes")
+//@NodeEntity(label="Class")
+public class ClassReference {
 
     @Id
     private String id;
-
+//    @Column(unique = true)
     private String name;
+    private String superClass;
 
     private boolean isInterface = false;
     private boolean hasSuperClass = false;
     private boolean hasInterfaces = false;
     private boolean isInitialed = false;
+    private boolean serializable = false;
     /**
      * [[name, modifiers, type],...]
      */
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = Set2JsonStringConverter.class)
     private Set<String> fields = new HashSet<>();
-    private String superClass;
-    private List<String> interfaces = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = List2JsonStringConverter.class)
+    private List<String> interfaces = new ArrayList<>();
 
     // neo4j relationships
     /**
@@ -44,7 +50,7 @@ public class ClassReference{
      */
     @Transient // for mongodb
     @Relationship(type="EXTEND")
-    private Extend extendEdge = null;
+    private transient Extend extendEdge = null;
 
     /**
      * 类成员函数 has边
@@ -52,7 +58,7 @@ public class ClassReference{
      */
     @Transient // for mongodb
     @Relationship(type="HAS", direction = "UNDIRECTED")
-    private List<Has> hasEdge = new ArrayList<>();
+    private transient List<Has> hasEdge = new ArrayList<>();
 
     /**
      * 接口继承边
@@ -62,7 +68,7 @@ public class ClassReference{
      */
     @Transient // for mongodb
     @Relationship(type="INTERFACE", direction = "UNDIRECTED")
-    private Set<Interfaces> interfaceEdge = new HashSet<>();
+    private transient Set<Interfaces> interfaceEdge = new HashSet<>();
 
     public static ClassReference newInstance(String name){
         ClassReference classRef = new ClassReference();
@@ -86,5 +92,4 @@ public class ClassReference{
         ret.add(String.join("|", fields));
         return ret;
     }
-
 }

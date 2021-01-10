@@ -13,10 +13,6 @@ import tabby.db.bean.edge.Alias;
 import tabby.db.bean.edge.Extend;
 import tabby.db.bean.edge.Has;
 import tabby.db.bean.edge.Interfaces;
-import tabby.db.bean.node.AliasNode;
-import tabby.db.bean.node.ExtendNode;
-import tabby.db.bean.node.HasNode;
-import tabby.db.bean.node.InterfacesNode;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.bean.ref.MethodReference;
 
@@ -63,6 +59,8 @@ public class ClassInfoScanner {
             if(!cls.isPhantom() || force) {
                 classRef = ClassReference.newInstance(cls.getName());
                 classRef.setInterface(cls.isInterface());
+                Set<String> relatedClassnames = getAllFatherNodes(cls);
+                classRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
                 // 提取类属性信息
                 if(cls.getFieldCount() > 0){
                     for (SootField field : cls.getFields()) {
@@ -91,7 +89,6 @@ public class ClassInfoScanner {
 
                 // 提取类函数信息
                 if(cls.getMethodCount() > 0){
-                    Set<String> relatedClassnames = getAllFatherNodes(cls);
                     for (SootMethod method : cls.getMethods()) {
                         extractMethodInfo(method, classRef, relatedClassnames, dataContainer, rulesContainer);
                     }
@@ -99,17 +96,17 @@ public class ClassInfoScanner {
                 // build alias relationship
                 classRef.getHasEdge().forEach(has -> {
                     MethodReference sourceRef = has.getMethodRef();
-                    SootMethod sootMethod = sourceRef.getCachedMethod();
+                    SootMethod sootMethod = sourceRef.getMethod();
                     SootMethodRef sootMethodRef = sootMethod.makeRef();
                     MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
                     if(targetRef != null){
                         Alias alias = Alias.newInstance(sourceRef, targetRef);
                         sourceRef.setAliasEdge(alias);
-                        dataContainer.store(AliasNode.newInstance(alias), true);
+                        dataContainer.store(alias);
                     }
                 });
                 classRef.setInitialed(true);
-                dataContainer.store(classRef, true);
+                dataContainer.store(classRef);
             }
         }catch (Exception e){
             // class not found
@@ -126,7 +123,7 @@ public class ClassInfoScanner {
         if(superclassRef != null){
             Extend extend =  Extend.newInstance(ref, superclassRef);
             ref.setExtendEdge(extend);
-            dataContainer.store(ExtendNode.newInstance(extend), true);
+            dataContainer.store(extend);
         }
     }
 
@@ -152,6 +149,7 @@ public class ClassInfoScanner {
         methodRef.setPolluted(isSink);
         methodRef.setIgnore(isIgnore);
         methodRef.setSource(isSource);
+        methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
 
         if (rule != null) {
             Map<String, String> actions = rule.getActions();
@@ -164,8 +162,8 @@ public class ClassInfoScanner {
 
         Has has = Has.newInstance(ref, methodRef);
         ref.getHasEdge().add(has);
-        dataContainer.store(methodRef, true);
-        dataContainer.store(HasNode.newInstance(has), true);
+        dataContainer.store(methodRef);
+        dataContainer.store(has);
     }
 
     public static void extractInterfaceInfo(String intface, ClassReference ref, DataContainer dataContainer, RulesContainer rulesContainer){
@@ -176,7 +174,7 @@ public class ClassInfoScanner {
         if(interfaceRef != null){
             Interfaces interfaces = Interfaces.newInstance(ref, interfaceRef);
             ref.getInterfaceEdge().add(interfaces);
-            dataContainer.store(InterfacesNode.newInstance(interfaces), true);
+            dataContainer.store(interfaces);
         }
     }
 
@@ -197,14 +195,14 @@ public class ClassInfoScanner {
 
 
     public void save(){
-        log.info("Save remained data to mongodb. START!");
-        dataContainer.check("class", false);
-        dataContainer.check("method", false);
-        dataContainer.check("has", false);
-        dataContainer.check("alias", false);
-        dataContainer.check("extend", false);
-        dataContainer.check("interfaces", false);
-        log.info("Save remained data to mongodb. DONE!");
+        log.info("Save remained data to graphdb. START!");
+        dataContainer.save("class");
+//        dataContainer.check("method", false);
+        dataContainer.save("has");
+        dataContainer.save("alias");
+        dataContainer.save("extend");
+        dataContainer.save("interfaces");
+        log.info("Save remained data to graphdb. DONE!");
     }
 
 

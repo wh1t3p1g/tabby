@@ -61,10 +61,10 @@ https://repo.spring.io/release/org/springframework/spring/4.1.4.RELEASE/
 neo4j 第一次运行新库时 耗时长（第二次之后有缓存，会快一点，但时间长了会有很大的硬盘占用，可以删除库再新建）
 ```
 初始化 节点限制 可以极大的加快载入速度
-CREATE CONSTRAINT ON (c:Class) ASSERT c.uuid IS UNIQUE;
-CREATE CONSTRAINT ON (m:Method) ASSERT m.uuid IS UNIQUE;
-CREATE INDEX ON :Class(name);
-CREATE INDEX ON :Method(signature,subSignature);
+CREATE CONSTRAINT ON (c:Class) ASSERT c.ID IS UNIQUE;
+CREATE CONSTRAINT ON (m:Method) ASSERT m.ID IS UNIQUE;
+CREATE INDEX FOR (n:Class) ON (n.NAME);
+CREATE INDEX FOR (n1:Method) ON (n1.SIGNATURE,n1.SUB_SIGNATURE);
 :schema 查看表库
 :sysinfo 查看数据库信息
 ```
@@ -97,3 +97,6 @@ https://github.com/Fraunhofer-AISEC/codyze 是否存在参考价值
 2. 通过保存的分析状态，判断这里调用sink函数的参数是否是可控的
 3. 如果是可控的，找到可控对应的位置/来源，继续往上层找
 4. 直到最后到达source点
+
+
+TODO ： BeanComparator compare 的 alias边没有做好

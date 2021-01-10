@@ -106,7 +106,7 @@ public class Switcher {
         TabbyVariable retVar = null;
         // 参数修正，将从子函数的分析结果套用到当前的localMap
         // 修正 入参和baseVar
-        for (Map.Entry<String, String> entry : methodRef.getRealActions().entrySet()) {
+        for (Map.Entry<String, String> entry : methodRef.getActions().entrySet()) {
             String position = entry.getKey();
             String newRelated = entry.getValue();
             if("return".equals(position))continue; // return的修正 不进行处理，由assign的时候自己去处理
@@ -123,8 +123,8 @@ public class Switcher {
             }
         }
 
-        if(methodRef.getRealActions().containsKey("return")){
-            retVar = parsePosition(methodRef.getRealActions().get("return"), baseVar, args, true);
+        if(methodRef.getActions().containsKey("return")){
+            retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
         }
 
         return retVar;

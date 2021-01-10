@@ -8,7 +8,7 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.ref.MethodReference;
-import tabby.db.repository.mongo.MethodNodeRepository;
+import tabby.db.repository.h2.MethodRepository;
 import tabby.db.repository.neo4j.MethodRefRepository;
 import tabby.util.FileUtils;
 
@@ -23,7 +23,7 @@ public class MethodRefService {
     @Autowired
     private MethodRefRepository methodRefRepository;
     @Autowired
-    private MethodNodeRepository methodNodeRepository;
+    private MethodRepository methodRepository;
 
     public void importMethodRef(){
         if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
@@ -37,19 +37,20 @@ public class MethodRefService {
 
     @Cacheable("methods")
     public MethodReference getMethodRefBySignature(String signature){
-        return methodNodeRepository.findMethodNodeBySignature(signature);
+        return methodRepository.findMethodReferenceBySignature(signature);
     }
 
     @CacheEvict(value = "methods", allEntries = true)
     public void clearCache(){
         log.info("All methods cache cleared!");
     }
+
     @Async
-    public void save2Mongodb(MethodReference ref){
-        methodNodeRepository.save(ref);
+    public void save(MethodReference ref){
+        methodRepository.save(ref);
     }
     @Async
-    public void save2Mongodb(Iterable<MethodReference> refs){
-        methodNodeRepository.saveAll(refs);
+    public void save(Iterable<MethodReference> refs){
+        methodRepository.saveAll(refs);
     }
 }

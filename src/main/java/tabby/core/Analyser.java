@@ -14,7 +14,6 @@ import tabby.core.data.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.util.ClassLoaderUtils;
-import tabby.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -41,25 +40,20 @@ public class Analyser {
     @Autowired
     private RulesContainer rulesContainer;
 
-    public void runSootAnalysis(String path, boolean isOnlyJDK){
+    public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
         try{
-            Map<String, String> classpaths = new HashMap<>(getJdkDependencies());
-            List<String> targets = new ArrayList<>();
-            if(!isOnlyJDK){
-                classpaths.putAll(FileUtils.getTargetDirectoryJarFiles(path));
-            }
-            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths.values()));
-
-            classpaths.forEach((filename, filepath) -> {
+            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
+            List<String> stuff = new ArrayList<>();
+            targets.forEach((filename, filepath) -> {
                 if(!rulesContainer.isIgnore(filename)){
-                    targets.add(filepath);
+                    stuff.add(filepath);
                 }
             });
-
-            Options.v().set_process_dir(targets);
+            rulesContainer.getIgnored().addAll(stuff);
+            Options.v().set_process_dir(stuff);
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
-            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(targets);
+            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(stuff);
 
             // 类信息抽取
             classInfoScanner.run(runtimeClasses);
@@ -67,7 +61,8 @@ public class Analyser {
             log.info("Run soot packs!");
             PackManager.v().runPacks();
             callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
-            clean(); // clean caches
+//            clean(); // clean caches
+            rulesContainer.saveStatus();
 
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
@@ -78,9 +73,12 @@ public class Analyser {
             } else {
                 return;
             }
-        }catch (IOException e){
-
         }
+    }
+
+    public void save(){
+        dataContainer.save2CSV();
+//        dataContainer.save2Neo4j();
     }
 
     public Map<String, String> getJdkDependencies(){

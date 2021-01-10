@@ -14,8 +14,6 @@ import tabby.core.scanner.ClassInfoScanner;
 import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.db.bean.edge.Call;
 import tabby.db.bean.edge.Has;
-import tabby.db.bean.node.CallNode;
-import tabby.db.bean.node.HasNode;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.bean.ref.MethodReference;
 
@@ -96,8 +94,8 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
                 target = MethodReference.newInstance(classRef.getName(), sootMethodRef.resolve());
                 Has has = Has.newInstance(classRef, target);
                 classRef.getHasEdge().add(has);
-                dataContainer.store(HasNode.newInstance(has), true);
-                dataContainer.store(target, false);
+                dataContainer.store(has);
+                dataContainer.store(target);
             }
         }
 
@@ -119,7 +117,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             call.setUnit(unit);
             call.setLineNum(unit.getJavaSourceStartLineNumber());
             source.getCallEdge().add(call);
-            dataContainer.store(CallNode.newInstance(call), true);
+            dataContainer.store(call);
         }
     }
 
