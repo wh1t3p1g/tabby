@@ -45,3 +45,4 @@ lib/*
 
 runtime.json
 *.csv
+*.db
