@@ -2,7 +2,6 @@ package tabby.db.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
-import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
 import soot.Unit;
@@ -74,19 +73,6 @@ public class Call {
         return call;
     }
 
-    public List<String> toCSV(){
-        List<String> csv = new ArrayList<>();
-        csv.add(id);
-        csv.add(source.getId());
-        csv.add(target.getId());
-        csv.add(lineNum+"");
-        csv.add(Boolean.toString(isPolluted));
-        csv.add(String.join("|", ArrayUtils.toStringArray(pollutedPosition.toArray())));
-        csv.add(realCallType);
-        csv.add(invokerType);
-        return csv;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -102,27 +88,4 @@ public class Call {
     public int hashCode() {
         return new HashCodeBuilder(17, 37).append(source).append(target).append(lineNum).append(invokerType).append(realCallType).toHashCode();
     }
-
-    //    @Override
-//    public boolean equals(Object o) {
-//        if (this == o) return true;
-//        if (o == null || getClass() != o.getClass()) return false;
-//
-//        Call call = (Call) o;
-//
-//        return source.getHandle().equals(call.getSource().getHandle())
-//                && target.getHandle().equals(call.getTarget().getHandle())
-//                && ((realCallType == null && call.getRealCallType() == null) || (realCallType != null && realCallType.equals(call.getRealCallType())))
-//                && ((invokerType == null && call.getInvokerType() == null) || (invokerType != null && invokerType.equals(call.getInvokerType())));
-//    }
-//
-//    @Override
-//    public int hashCode() {
-//        return new HashCodeBuilder()
-//                .append(source)
-//                .append(target)
-//                .append(realCallType)
-//                .append(invokerType)
-//                .toHashCode();
-//    }
 }

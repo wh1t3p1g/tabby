@@ -35,12 +35,12 @@ public class MethodReference {
     private String subSignature;
     private String returnType;
     private int modifiers;
+    private String classname;
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = Set2JsonStringConverter.class)
     private Set<String> parameters = new HashSet<>();
 
-    private String classname;
 //    @Transient
 //    private String body;
 
@@ -111,50 +111,6 @@ public class MethodReference {
         return methodRef;
     }
 
-    public List<String> toCSV(){
-        List<String> csv = new ArrayList<>();
-        csv.add(id);
-        csv.add(name);
-        csv.add(signature);
-        csv.add(subSignature);
-        csv.add(modifiers+"");
-        csv.add(Boolean.toString(isStatic));
-        csv.add(Boolean.toString(hasParameters));
-        csv.add(Boolean.toString(isSink));
-        csv.add(Boolean.toString(isSource));
-        csv.add(Boolean.toString(isPolluted));
-        csv.add(String.join("|", parameters));
-        csv.add(GlobalConfiguration.GSON.toJson(actions));
-        csv.add(pollutedPosition != null ? toStr(pollutedPosition) : "");
-        csv.add(returnType);
-        return csv;
-    }
-
-    public String toStr(Map<String, String> positions){
-        StringBuilder sb = new StringBuilder();
-        positions.forEach((position, related)->{
-            sb.append(position).append("~").append(related).append(";");
-        });
-        return sb.toString();
-    }
-
-    public String toStr(Set<Integer> positions){
-        StringBuilder sb = new StringBuilder();
-        positions.forEach((position)->{
-            sb.append(position).append("|");
-        });
-        return sb.toString();
-    }
-
-    public Call findCall(MethodReference target){
-        for(Call call:callEdge){
-            if(call.getTarget().equals(target)){
-                return call;
-            }
-        }
-        return null;
-    }
-
     public SootMethod getMethod(){
         SootMethod method = null;
         try{
@@ -172,7 +128,5 @@ public class MethodReference {
     public void addAction(String key, String value){
         actions.put(key, value);
     }
-
-
 
 }

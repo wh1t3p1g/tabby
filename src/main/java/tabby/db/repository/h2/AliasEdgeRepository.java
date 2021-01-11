@@ -1,6 +1,8 @@
 package tabby.db.repository.h2;
 
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
+import org.springframework.data.repository.query.Param;
 import tabby.db.bean.edge.Alias;
 
 /**
@@ -9,7 +11,7 @@ import tabby.db.bean.edge.Alias;
  */
 public interface AliasEdgeRepository extends CrudRepository<Alias, String> {
 
-//    @Query("CALL CSVWRITE('?1', 'SELECT * FROM ALIAS');")
-//    void save2CSV(String path);
+    @Query(value = "CALL CSVWRITE(:path, 'SELECT * FROM ALIAS')", nativeQuery=true)
+    void save2Csv(@Param("path") String path);
 
 }

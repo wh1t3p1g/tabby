@@ -19,7 +19,9 @@ import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.db.bean.ref.MethodReference;
 import tabby.db.service.MethodRefService;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 /**
  * 收集所有调用关系，这部分不做污点分析

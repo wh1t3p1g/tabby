@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.ref.ClassReference;
@@ -30,8 +29,7 @@ public class ClassRefService {
     private ClassRepository classRepository;
 
     public void clear(){
-        methodRefRepository.deleteAll();
-        classRefRepository.deleteAll();
+        classRefRepository.clearAll();
     }
 
     public void importClassRef(){
@@ -73,13 +71,19 @@ public class ClassRefService {
         log.info("All classes cache cleared!");
     }
 
-    @Async
     public void save(ClassReference ref){
         classRepository.save(ref);
     }
 
-    @Async
     public void save(Iterable<ClassReference> refs){
         classRepository.saveAll(refs);
     }
+
+    public void save2Csv(){
+//        int count = classRepository.countAll();
+        classRepository.save2Csv(GlobalConfiguration.CLASSES_CACHE_PATH);
+//        System.out.println(count);
+//        List<ClassReference> refs = new ArrayList<>();
+    }
+
 }

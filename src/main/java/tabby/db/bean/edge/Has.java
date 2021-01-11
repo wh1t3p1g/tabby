@@ -11,8 +11,6 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -45,11 +43,4 @@ public class Has {
         return has;
     }
 
-    public List<String> toCSV(){
-        List<String> csv = new ArrayList<>();
-        csv.add(id);
-        csv.add(classRef.getId());
-        csv.add(methodRef.getId());
-        return csv;
-    }
 }

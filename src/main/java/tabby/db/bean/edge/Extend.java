@@ -9,8 +9,6 @@ import javax.persistence.Convert;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 import javax.persistence.Table;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -43,11 +41,4 @@ public class Extend {
         return extend;
     }
 
-    public List<String> toCSV(){
-        List<String> csv = new ArrayList<>();
-        csv.add(id);
-        csv.add(source.getId());
-        csv.add(target.getId());
-        return csv;
-    }
 }

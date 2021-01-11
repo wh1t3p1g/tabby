@@ -10,8 +10,6 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.retry.annotation.EnableRetry;
-import org.springframework.scheduling.annotation.EnableAsync;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import tabby.config.SootConfiguration;
 import tabby.core.Analyser;
 import tabby.util.FileUtils;
@@ -21,11 +19,9 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.Executor;
 
 @Slf4j
 @SpringBootApplication
-@EnableAsync
 @EnableRetry
 @EntityScan("tabby.db.bean")
 @EnableNeo4jRepositories("tabby.db.repository.neo4j")
@@ -35,10 +31,6 @@ public class TabbyApplication {
     private Analyser analyser;
 
     private String target;
-
-    private boolean isJDKOnly = false;
-
-    private boolean isSaveOnly = false;
 
     private boolean isJDKProcess = false;
 
@@ -59,11 +51,13 @@ public class TabbyApplication {
                 if(arguments.containsOption("isJDKProcess")){
                     isJDKProcess = true;
                 }
+
                 if(arguments.containsOption("isSaveOnly")){
                     analyser.save();
+                    return;
                 }else if(arguments.containsOption("isJDKOnly")){
                     targets.putAll(jdkDependencies);
-                }else if(arguments.getNonOptionArgs().size() != 1){
+                }else if(arguments.getNonOptionArgs().size() == 1){
                     target = arguments.getNonOptionArgs().get(0);
                     String path = String.join(File.separator, System.getProperty("user.dir"), target);
                     if(!FileUtils.fileExists(path)){
@@ -90,16 +84,6 @@ public class TabbyApplication {
             }
 
         };
-    }
-
-    @Bean
-    public Executor taskExecutor() {
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.setCorePoolSize(4);
-        executor.setMaxPoolSize(4);
-        executor.setQueueCapacity(500);
-        executor.initialize();
-        return executor;
     }
 
 }

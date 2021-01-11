@@ -44,12 +44,14 @@ public class Analyser {
         try{
             Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
             List<String> stuff = new ArrayList<>();
+            List<String> newIgnore = new ArrayList<>();
             targets.forEach((filename, filepath) -> {
                 if(!rulesContainer.isIgnore(filename)){
                     stuff.add(filepath);
+                    newIgnore.add(filename);
                 }
             });
-            rulesContainer.getIgnored().addAll(stuff);
+            rulesContainer.getIgnored().addAll(newIgnore);
             Options.v().set_process_dir(stuff);
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();
@@ -62,23 +64,20 @@ public class Analyser {
             PackManager.v().runPacks();
             callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
 //            clean(); // clean caches
-            rulesContainer.saveStatus();
-
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
         }catch (CompilationDeathException e){
             if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
                 throw e;
-            } else {
-                return;
             }
         }
     }
 
     public void save(){
         dataContainer.save2CSV();
-//        dataContainer.save2Neo4j();
+        dataContainer.save2Neo4j();
+        clean();
     }
 
     public Map<String, String> getJdkDependencies(){
@@ -112,7 +111,9 @@ public class Analyser {
             File[] files = cacheDir.listFiles();
             if(files != null){
                 for(File file: files){
-                    Files.deleteIfExists(file.toPath());
+                    if(file.getName().endsWith(".csv")){
+                        Files.deleteIfExists(file.toPath());
+                    }
                 }
             }
         } catch (IOException e) {

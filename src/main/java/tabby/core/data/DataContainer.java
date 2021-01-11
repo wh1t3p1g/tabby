@@ -52,50 +52,57 @@ public class DataContainer {
         switch (type){
             case "class":
                 if(!savedClassRefs.isEmpty()){
-                    List<ClassReference> refs = new ArrayList<>(savedClassRefs.values());
-                    classRefService.save(refs);
+//                    List<ClassReference> refs = new ArrayList<>(savedClassRefs.values());
+//                    classRefService.save(refs);
+                    classRefService.save(savedClassRefs.values());
                     savedClassRefs.clear();
                 }
                 break;
             case "method":
                 if(!savedMethodRefs.isEmpty()){
-                    List<MethodReference> refs = new ArrayList<>(savedMethodRefs.values());
-                    methodRefService.save(refs);
+//                    List<MethodReference> refs = new ArrayList<>(savedMethodRefs.values());
+//                    methodRefService.save(refs);
+                    methodRefService.save(savedMethodRefs.values());
                     savedMethodRefs.clear();
                 }
                 break;
             case "has":
                 if(!savedHasNodes.isEmpty()){
-                    Set<Has> refs = new HashSet<>(savedHasNodes);
-                    relationshipsService.saveAllHasEdges(refs);
+//                    Set<Has> refs = new HashSet<>(savedHasNodes);
+//                    relationshipsService.saveAllHasEdges(refs);
+                    relationshipsService.saveAllHasEdges(savedHasNodes);
                     savedHasNodes.clear();
                 }
                 break;
             case "call":
                 if(!savedCallNodes.isEmpty()){
-                    Set<Call> refs = new HashSet<>(savedCallNodes);
-                    relationshipsService.saveAllCallEdges(refs);
+//                    Set<Call> refs = new HashSet<>(savedCallNodes);
+//                    relationshipsService.saveAllCallEdges(refs);
+                    relationshipsService.saveAllCallEdges(savedCallNodes);
                     savedCallNodes.clear();
                 }
                 break;
             case "extend":
                 if(!savedExtendNodes.isEmpty()){
-                    Set<Extend> refs = new HashSet<>(savedExtendNodes);
-                    relationshipsService.saveAllExtendEdges(refs);
+//                    Set<Extend> refs = new HashSet<>(savedExtendNodes);
+//                    relationshipsService.saveAllExtendEdges(refs);
+                    relationshipsService.saveAllExtendEdges(savedExtendNodes);
                     savedExtendNodes.clear();
                 }
                 break;
             case "interfaces":
                 if(!savedInterfacesNodes.isEmpty()){
-                    Set<Interfaces> refs = new HashSet<>(savedInterfacesNodes);
-                    relationshipsService.saveAllInterfacesEdges(refs);
+//                    Set<Interfaces> refs = new HashSet<>(savedInterfacesNodes);
+//                    relationshipsService.saveAllInterfacesEdges(refs);
+                    relationshipsService.saveAllInterfacesEdges(savedInterfacesNodes);
                     savedInterfacesNodes.clear();
                 }
                 break;
             case "alias":
                 if(!savedAliasNodes.isEmpty()){
-                    Set<Alias> refs = new HashSet<>(savedAliasNodes);
-                    relationshipsService.saveAllAliasEdges(refs);
+//                    Set<Alias> refs = new HashSet<>(savedAliasNodes);
+//                    relationshipsService.saveAllAliasEdges(refs);
+                    relationshipsService.saveAllAliasEdges(savedAliasNodes);
                     savedAliasNodes.clear();
                 }
                 break;
@@ -132,7 +139,7 @@ public class DataContainer {
     public ClassReference getClassRefByName(String name){
         ClassReference ref = savedClassRefs.getOrDefault(name, null);
         if(ref != null) return ref;
-        // find from mongodb
+        // find from h2
         ref = classRefService.getClassRefByName(name);
         return ref;
     }
@@ -140,7 +147,7 @@ public class DataContainer {
     public MethodReference getMethodRefBySignature(String signature){
         MethodReference ref = savedMethodRefs.getOrDefault(signature, null);
         if(ref != null) return ref;
-        // find from mongodb
+        // find from h2
         ref = methodRefService.getMethodRefBySignature(signature);
         return ref;
     }
@@ -220,6 +227,8 @@ public class DataContainer {
 
     public void save2CSV(){
         log.info("Save cache to CSV.");
+        classRefService.save2Csv();
+        methodRefService.save2Csv();
         relationshipsService.save2CSV();
     }
 

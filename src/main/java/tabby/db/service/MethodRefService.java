@@ -4,7 +4,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.ref.MethodReference;
@@ -24,6 +23,7 @@ public class MethodRefService {
     private MethodRefRepository methodRefRepository;
     @Autowired
     private MethodRepository methodRepository;
+
 
     public void importMethodRef(){
         if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
@@ -45,12 +45,14 @@ public class MethodRefService {
         log.info("All methods cache cleared!");
     }
 
-    @Async
     public void save(MethodReference ref){
         methodRepository.save(ref);
     }
-    @Async
     public void save(Iterable<MethodReference> refs){
         methodRepository.saveAll(refs);
+    }
+
+    public void save2Csv(){
+        methodRepository.save2Csv(GlobalConfiguration.METHODS_CACHE_PATH);
     }
 }

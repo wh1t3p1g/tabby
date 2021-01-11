@@ -7,7 +7,10 @@ import tabby.config.GlobalConfiguration;
 import tabby.util.FileUtils;
 
 import java.io.FileNotFoundException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -24,6 +27,7 @@ public class RulesContainer {
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
+        Runtime.getRuntime().addShutdownHook(new Thread(this::saveStatus));
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -79,6 +83,9 @@ public class RulesContainer {
 
     private void loadIgnore(){
         ignored = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.IGNORE_PATH, List.class);
+        if(ignored == null){
+            ignored = new ArrayList<>();
+        }
     }
 
     public void saveStatus(){

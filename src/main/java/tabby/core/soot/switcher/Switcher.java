@@ -45,7 +45,6 @@ public class Switcher {
                     || method.isPhantom()){
                 methodRef.setInitialed(true);
                 methodRef.setActionInitialed(true);
-//                methodRef.getActions().put("return", "clear");
                 return null;
             }
 

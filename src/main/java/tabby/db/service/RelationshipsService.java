@@ -2,6 +2,7 @@ package tabby.db.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import tabby.config.GlobalConfiguration;
 import tabby.db.bean.edge.*;
 import tabby.db.repository.h2.*;
 
@@ -40,24 +41,24 @@ public class RelationshipsService {
     public void saveAllHasEdges(Iterable<Has> edges){
         hasEdgeRepository.saveAll(edges);
     }
-
     public void saveAllCallEdges(Iterable<Call> edges){
         callEdgeRepository.saveAll(edges);
     }
-
     public void saveAllExtendEdges(Iterable<Extend> edges){
         extendEdgeRepository.saveAll(edges);
     }
-
     public void saveAllAliasEdges(Iterable<Alias> edges){
         aliasEdgeRepository.saveAll(edges);
     }
-
     public void saveAllInterfacesEdges(Iterable<Interfaces> edges){
         interfacesEdgeRepository.saveAll(edges);
     }
 
     public void save2CSV(){
-//        aliasEdgeRepository.save2CSV(GlobalConfiguration.ALIAS_RELATIONSHIP_CACHE_PATH);
+        aliasEdgeRepository.save2Csv(GlobalConfiguration.ALIAS_RELATIONSHIP_CACHE_PATH);
+        hasEdgeRepository.save2Csv(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH);
+        extendEdgeRepository.save2Csv(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH);
+        callEdgeRepository.save2Csv(GlobalConfiguration.CALL_RELATIONSHIP_CACHE_PATH);
+        interfacesEdgeRepository.save2Csv(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH);
     }
 }

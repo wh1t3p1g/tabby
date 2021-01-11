@@ -25,6 +25,9 @@ public interface ClassRefRepository extends Neo4jRepository<String, UUID> {
     @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH(c:Class{ID:row.CLASS_REF}) MATCH(m:Method { ID:row.METHOD_REF }) MERGE (c) -[e:HAS { ID:row.ID }]-> (m)\", {batchSize:1000, iterateList:true, parallel:false})")
     void loadHasEdgeFromCSV(String path);
 
+    @Query("match (n) detach delete n")
+    void clearAll();
+
 //    @Query("")
 //    void buildClassRef();
 

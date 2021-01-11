@@ -32,7 +32,7 @@ public class ClassReference {
     private boolean hasSuperClass = false;
     private boolean hasInterfaces = false;
     private boolean isInitialed = false;
-    private boolean serializable = false;
+    private boolean isSerializable = false;
     /**
      * [[name, modifiers, type],...]
      */
@@ -80,16 +80,4 @@ public class ClassReference {
         return classRef;
     }
 
-    public List<String> toCSV(){
-        List<String> ret = new ArrayList<>();
-        ret.add(id);
-        ret.add(name);
-        ret.add(superClass);
-        ret.add(String.join("|", interfaces));
-        ret.add(Boolean.toString(isInterface));
-        ret.add(Boolean.toString(hasSuperClass));
-        ret.add(Boolean.toString(hasInterfaces));
-        ret.add(String.join("|", fields));
-        return ret;
-    }
 }
