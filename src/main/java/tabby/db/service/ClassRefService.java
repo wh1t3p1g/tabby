@@ -12,6 +12,8 @@ import tabby.db.repository.neo4j.ClassRefRepository;
 import tabby.db.repository.neo4j.MethodRefRepository;
 import tabby.util.FileUtils;
 
+import java.util.List;
+
 
 /**
  * @author wh1t3P1g
@@ -80,10 +82,11 @@ public class ClassRefService {
     }
 
     public void save2Csv(){
-//        int count = classRepository.countAll();
         classRepository.save2Csv(GlobalConfiguration.CLASSES_CACHE_PATH);
-//        System.out.println(count);
-//        List<ClassReference> refs = new ArrayList<>();
+    }
+
+    public List<ClassReference> loadNecessaryClassRefs(){
+        return classRepository.findAllNecessaryClassRefs();
     }
 
 }

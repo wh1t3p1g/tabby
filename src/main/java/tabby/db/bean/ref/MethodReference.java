@@ -10,6 +10,7 @@ import tabby.db.bean.edge.Alias;
 import tabby.db.bean.edge.Call;
 import tabby.db.converter.Map2JsonStringConverter;
 import tabby.db.converter.Set2JsonStringConverter;
+import tabby.db.converter.SetInteger2JsonStringConverter;
 
 import javax.persistence.*;
 import java.util.*;
@@ -68,7 +69,7 @@ public class MethodReference {
     @Convert(converter = Map2JsonStringConverter.class)
     private Map<String, String> actions = new HashMap<>();
 
-    @Convert(converter = Set2JsonStringConverter.class)
+    @Convert(converter = SetInteger2JsonStringConverter.class)
     private Set<Integer> pollutedPosition = new HashSet<>();
 
     @org.springframework.data.annotation.Transient

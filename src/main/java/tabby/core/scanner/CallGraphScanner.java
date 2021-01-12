@@ -46,8 +46,10 @@ public class CallGraphScanner {
     }
 
     public void collect(Collection<MethodReference> targets) {
-        log.info("Build call graph. START!");
         List<MethodReference> clonedTargets = new ArrayList<>(targets);
+        log.info("Load necessary method refs.");
+        dataContainer.loadNecessaryMethodRefs();
+        log.info("Build call graph. START!");
         clonedTargets.forEach(this::collect);
         log.info("Build call graph. DONE!");
     }
@@ -63,7 +65,7 @@ public class CallGraphScanner {
                 methodRef.setPolluted(methodRef.isSink());
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
-            //sun.util.resources.LocaleNames: java.lang.Object[][] getContents()
+
             InvokeExprSwitcher invokeExprSwitcher = new InvokeExprSwitcher();
             invokeExprSwitcher.setSource(methodRef);
             invokeExprSwitcher.setDataContainer(dataContainer);

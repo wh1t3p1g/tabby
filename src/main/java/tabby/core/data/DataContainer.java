@@ -215,12 +215,24 @@ public class DataContainer {
         return null;
     }
 
+    public void loadNecessaryMethodRefs(){
+        List<MethodReference> refs = methodRefService.loadNecessaryMethodRefs();
+        refs.forEach(ref ->{
+            savedMethodRefs.put(ref.getSignature(), ref);
+        });
+    }
+
+    public void loadNecessaryClassRefs(){
+        List<ClassReference> refs = classRefService.loadNecessaryClassRefs();
+        refs.forEach(ref ->{
+            savedClassRefs.put(ref.getName(), ref);
+        });
+    }
+
     public void save2Neo4j(){
         log.info("Save cache to Neo4j.");
         classRefService.clear(); // TODO 初始化图数据库 正式版去掉
-//        log.info("Load "+ savedMethodRefs.size()+ " method reference cache");
         methodRefService.importMethodRef();
-//        log.info("Load "+ savedClassRefs.size() +" class reference cache");
         classRefService.importClassRef();
         classRefService.buildEdge();
     }

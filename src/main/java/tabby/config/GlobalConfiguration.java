@@ -23,4 +23,5 @@ public class GlobalConfiguration {
     public static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_INTERFACES.csv");
 
     public static Gson GSON = new Gson();
+
 }

@@ -8,7 +8,7 @@ import soot.Unit;
 import soot.Value;
 import tabby.db.bean.ref.MethodReference;
 import tabby.db.converter.MethodRef2StringConverter;
-import tabby.db.converter.Set2JsonStringConverter;
+import tabby.db.converter.SetInteger2JsonStringConverter;
 
 import javax.persistence.*;
 import java.util.*;
@@ -61,7 +61,7 @@ public class Call {
      *                  a可控，则填充0
      */
     @Column(length = 1000)
-    @Convert(converter = Set2JsonStringConverter.class)
+    @Convert(converter = SetInteger2JsonStringConverter.class)
     private Set<Integer> pollutedPosition = new HashSet<>();
     private boolean isPolluted = false;
 

@@ -45,17 +45,19 @@ public class TabbyApplication {
     CommandLineRunner run(){
         return args -> {
             try{
-                Map<String, String> jdkDependencies = analyser.getJdkDependencies();
-                Map<String, String> classpaths = new HashMap<>(jdkDependencies);
-                Map<String, String> targets = new HashMap<>();
                 if(arguments.containsOption("isJDKProcess")){
                     isJDKProcess = true;
                 }
-
                 if(arguments.containsOption("isSaveOnly")){
                     analyser.save();
                     return;
-                }else if(arguments.containsOption("isJDKOnly")){
+                }
+
+                Map<String, String> jdkDependencies = analyser.getJdkDependencies();
+                Map<String, String> classpaths = new HashMap<>(jdkDependencies);
+                Map<String, String> targets = new HashMap<>();
+
+                if(arguments.containsOption("isJDKOnly")){
                     targets.putAll(jdkDependencies);
                 }else if(arguments.getNonOptionArgs().size() == 1){
                     target = arguments.getNonOptionArgs().get(0);

@@ -14,21 +14,21 @@ import java.util.Set;
  * @since 2021/1/8
  */
 @Converter
-public class Set2JsonStringConverter implements AttributeConverter<Set<String>,String> {
+public class SetInteger2JsonStringConverter implements AttributeConverter<Set<Integer>,String> {
     @Override
-    public String convertToDatabaseColumn(Set<String> attribute) {
+    public String convertToDatabaseColumn(Set<Integer> attribute) {
         if(attribute == null){
-            return "";
+            return "[]";
         }
         return GlobalConfiguration.GSON.toJson(attribute);
     }
 
     @Override
-    public Set<String> convertToEntityAttribute(String dbData) {
+    public Set<Integer> convertToEntityAttribute(String dbData) {
         if(dbData == null || "".equals(dbData)){
             return new HashSet<>();
         }
-        Type objectType = new TypeToken<Set<String>>(){}.getType();
+        Type objectType = new TypeToken<Set<Integer>>(){}.getType();
         return GlobalConfiguration.GSON.fromJson(dbData, objectType);
     }
 }

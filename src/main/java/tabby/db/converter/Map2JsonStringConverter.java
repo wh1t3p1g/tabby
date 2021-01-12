@@ -1,9 +1,11 @@
 package tabby.db.converter;
 
+import com.google.gson.reflect.TypeToken;
 import tabby.config.GlobalConfiguration;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -26,7 +28,7 @@ public class Map2JsonStringConverter implements AttributeConverter<Map<String, S
         if(dbData == null || "".equals(dbData)){
             return new HashMap<>();
         }
-
-        return (Map<String, String>) GlobalConfiguration.GSON.fromJson(dbData, Map.class);
+        Type objectType = new TypeToken<Map<String, String>>(){}.getType();
+        return GlobalConfiguration.GSON.fromJson(dbData, objectType);
     }
 }

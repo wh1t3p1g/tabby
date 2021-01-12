@@ -11,6 +11,8 @@ import tabby.db.repository.h2.MethodRepository;
 import tabby.db.repository.neo4j.MethodRefRepository;
 import tabby.util.FileUtils;
 
+import java.util.List;
+
 /**
  * @author wh1t3P1g
  * @since 2020/10/10
@@ -54,5 +56,9 @@ public class MethodRefService {
 
     public void save2Csv(){
         methodRepository.save2Csv(GlobalConfiguration.METHODS_CACHE_PATH);
+    }
+
+    public List<MethodReference> loadNecessaryMethodRefs(){
+        return methodRepository.findAllNecessaryMethodRefs();
     }
 }

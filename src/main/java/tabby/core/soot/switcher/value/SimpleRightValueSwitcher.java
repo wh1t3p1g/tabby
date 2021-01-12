@@ -14,44 +14,53 @@ import tabby.core.soot.switcher.Switcher;
  */
 @Slf4j
 public class SimpleRightValueSwitcher extends ValueSwitcher {
-
+    @Override
     public void caseInterfaceInvokeExpr(InterfaceInvokeExpr v) {
         caseInvokeExpr(v, "InterfaceInvoke");
     }
 
+    @Override
     public void caseSpecialInvokeExpr(SpecialInvokeExpr v) {
         caseInvokeExpr(v, "SpecialInvoke");
     }
 
+    @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
         caseInvokeExpr(v, "StaticInvoke");
     }
 
+    @Override
     public void caseVirtualInvokeExpr(VirtualInvokeExpr v) {
         caseInvokeExpr(v, "VirtualInvoke");
     }
 
+    @Override
     public void caseDynamicInvokeExpr(DynamicInvokeExpr v) {
         defaultCase(v);
     }
 
+    @Override
     public void caseCastExpr(CastExpr v) {
         Value value = v.getOp();
         value.apply(this);
     }
 
+    @Override
     public void caseNewArrayExpr(NewArrayExpr v) {
 //        setResult(TabbyVariable.makeAnyNewRightInstance(v));
     }
 
+    @Override
     public void caseNewMultiArrayExpr(NewMultiArrayExpr v) {
         defaultCase(v);
     }
 
+    @Override
     public void caseNewExpr(NewExpr v) {
 //        setResult(TabbyVariable.makeAnyNewRightInstance(v));
     }
 
+    @Override
     public void caseArrayRef(ArrayRef v) {
         TabbyVariable var = null;
         Value baseValue = v.getBase();
@@ -70,15 +79,18 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
         }
     }
 
+    @Override
     public void caseLocal(Local v) {
         setResult(context.getOrAdd(v));
     }
 
+    @Override
     public void caseStaticFieldRef(StaticFieldRef v) {
         TabbyVariable var = context.getGlobalMap().get(v); // 如果globalMap中找不到实例，说明此时的变量是不可控的，直接制空
         setResult(var);
     }
 
+    @Override
     public void caseInstanceFieldRef(InstanceFieldRef v) {
         TabbyVariable var = null;
         SootField sootField = v.getField();
@@ -90,10 +102,14 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
         setResult(var);
     }
 
+    @Override
+    public void caseAddExpr(AddExpr v) {
+        super.caseAddExpr(v);
+    }
+
     public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
 //        log.debug(invokeExpr.getMethodRef().getSignature());
         setResult(Switcher.doInvokeExprAnalysis(invokeExpr, dataContainer, context));
 //        log.debug(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
-
 }

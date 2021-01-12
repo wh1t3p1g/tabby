@@ -1,9 +1,11 @@
 package tabby.db.converter;
 
+import com.google.gson.reflect.TypeToken;
 import tabby.config.GlobalConfiguration;
 
 import javax.persistence.AttributeConverter;
 import javax.persistence.Converter;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -27,7 +29,7 @@ public class List2JsonStringConverter implements AttributeConverter<List<String>
         if(dbData == null || "".equals(dbData)){
             return new ArrayList<>();
         }
-
-        return (List<String>) GlobalConfiguration.GSON.fromJson(dbData, List.class);
+        Type objectType = new TypeToken<List<String>>(){}.getType();
+        return GlobalConfiguration.GSON.fromJson(dbData, objectType);
     }
 }
