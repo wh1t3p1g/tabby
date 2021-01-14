@@ -78,6 +78,12 @@ public class CallGraphScanner {
                 return;
             }
 
+//            if ("<com.sun.jndi.ldap.LdapAttribute: javax.naming.directory.DirContext getAttributeDefinition()>".equals(method.getSignature())) {
+//                System.out.println(1);
+//            } else {
+//                return;
+//            }
+
             Context context = Context.newInstance(method.getSignature());
             context.setHeadMethodContext(true);
             PollutedVarsPointsToAnalysis pta =

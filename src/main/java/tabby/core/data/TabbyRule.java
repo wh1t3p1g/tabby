@@ -44,6 +44,7 @@ public class TabbyRule {
         private String type;
         private Map<String, String> actions;
         private Set<Integer> polluted;
+        private List<String> signatures;
 
         public Rule() {
         }
@@ -79,5 +80,10 @@ public class TabbyRule {
         public String getType() {
             return type;
         }
+
+        public List<String> getSignatures(){
+            return signatures;
+        }
+
     }
 }

@@ -54,7 +54,12 @@ public class TabbyApplication {
                 }
 
                 Map<String, String> jdkDependencies = analyser.getJdkDependencies();
-                Map<String, String> classpaths = new HashMap<>(jdkDependencies);
+                Map<String, String> classpaths = null;
+                if(arguments.containsOption("excludeJDK")){
+                    classpaths = new HashMap<>();
+                }else{
+                    classpaths = new HashMap<>(jdkDependencies);
+                }
                 Map<String, String> targets = new HashMap<>();
 
                 if(arguments.containsOption("isJDKOnly")){

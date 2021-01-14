@@ -27,7 +27,7 @@ public class RulesContainer {
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
-        Runtime.getRuntime().addShutdownHook(new Thread(this::saveStatus));
+//        Runtime.getRuntime().addShutdownHook(new Thread(this::saveStatus));
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -38,6 +38,10 @@ public class RulesContainer {
             }
         }
         return null;
+    }
+
+    public TabbyRule getRule(String classname){
+        return rules.getOrDefault(classname, null);
     }
 
     public boolean isIgnore(String jar){

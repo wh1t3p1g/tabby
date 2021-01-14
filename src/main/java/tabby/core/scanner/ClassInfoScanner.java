@@ -46,7 +46,30 @@ public class ClassInfoScanner {
         classes.forEach(classname ->{
             ClassInfoScanner.collect(classname, dataContainer, rulesContainer, false);
         });
+        dataContainer.getSavedClassRefs().forEach((name, ref) -> {
+            makeAliasRelation(ref, dataContainer);
+        });
         log.info("Collect "+classes.size()+" classes information. DONE!");
+    }
+
+    public static void makeAliasRelation(ClassReference ref, DataContainer dataContainer){
+        if(ref == null)return;
+        // build alias relationship
+        if(ref.getHasEdge() == null) return;
+
+        ref.getHasEdge().forEach(has -> {
+            MethodReference sourceRef = has.getMethodRef();
+            SootMethod sootMethod = sourceRef.getMethod();
+            if(sootMethod == null)return;
+            SootMethodRef sootMethodRef = sootMethod.makeRef();
+            MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
+            if(targetRef != null){
+                Alias alias = Alias.newInstance(sourceRef, targetRef);
+                sourceRef.setAliasEdge(alias);
+                dataContainer.store(alias);
+            }
+        });
+        ref.setInitialed(true);
     }
 
     /**
@@ -58,6 +81,7 @@ public class ClassInfoScanner {
         ClassReference classRef = null;
         try{
             SootClass cls = Scene.v().getSootClass(classname);
+
             if(!cls.isPhantom() || force) {
                 classRef = ClassReference.newInstance(cls.getName());
                 classRef.setInterface(cls.isInterface());
@@ -95,19 +119,7 @@ public class ClassInfoScanner {
                         extractMethodInfo(method, classRef, relatedClassnames, dataContainer, rulesContainer);
                     }
                 }
-                // build alias relationship
-                classRef.getHasEdge().forEach(has -> {
-                    MethodReference sourceRef = has.getMethodRef();
-                    SootMethod sootMethod = sourceRef.getMethod();
-                    SootMethodRef sootMethodRef = sootMethod.makeRef();
-                    MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-                    if(targetRef != null){
-                        Alias alias = Alias.newInstance(sourceRef, targetRef);
-                        sourceRef.setAliasEdge(alias);
-                        dataContainer.store(alias);
-                    }
-                });
-                classRef.setInitialed(true);
+
                 dataContainer.store(classRef);
             }
         }catch (Exception e){
@@ -135,6 +147,7 @@ public class ClassInfoScanner {
         String classname = ref.getName();
         MethodReference methodRef = MethodReference.newInstance(classname, method);
         TabbyRule.Rule rule = rulesContainer.getRule(classname, methodRef.getName());
+
         if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
             for (String relatedClassname : relatedClassnames) {
                 rule = rulesContainer.getRule(relatedClassname, methodRef.getName());
@@ -164,8 +177,8 @@ public class ClassInfoScanner {
 
         Has has = Has.newInstance(ref, methodRef);
         ref.getHasEdge().add(has);
-        dataContainer.store(methodRef);
         dataContainer.store(has);
+        dataContainer.store(methodRef);
     }
 
     public static void extractInterfaceInfo(String intface, ClassReference ref, DataContainer dataContainer, RulesContainer rulesContainer){

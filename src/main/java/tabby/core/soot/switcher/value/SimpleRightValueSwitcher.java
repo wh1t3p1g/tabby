@@ -47,7 +47,9 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     @Override
     public void caseNewArrayExpr(NewArrayExpr v) {
-//        setResult(TabbyVariable.makeAnyNewRightInstance(v));
+        TabbyVariable var = TabbyVariable.makeRandomInstance();
+        var.getValue().setArray(true);
+        setResult(var);
     }
 
     @Override
@@ -57,7 +59,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     @Override
     public void caseNewExpr(NewExpr v) {
-//        setResult(TabbyVariable.makeAnyNewRightInstance(v));
+        setResult(TabbyVariable.makeRandomInstance());
     }
 
     @Override
@@ -102,14 +104,9 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
         setResult(var);
     }
 
-    @Override
-    public void caseAddExpr(AddExpr v) {
-        super.caseAddExpr(v);
-    }
-
     public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
-//        log.debug(invokeExpr.getMethodRef().getSignature());
+        log.debug("Analysis: "+invokeExpr.getMethodRef().getSignature());
         setResult(Switcher.doInvokeExprAnalysis(invokeExpr, dataContainer, context));
-//        log.debug(invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+        log.debug("Analysis: "+invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 }

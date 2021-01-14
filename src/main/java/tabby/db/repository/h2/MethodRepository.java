@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface MethodRepository extends CrudRepository<MethodReference, String> {
 
+    @Query(value = "select * from METHODS where SIGNATURE = :signature limit 1", nativeQuery = true)
     MethodReference findMethodReferenceBySignature(String signature);
 
     @Query(value = "CALL CSVWRITE(:path, 'SELECT * FROM METHODS')", nativeQuery=true)

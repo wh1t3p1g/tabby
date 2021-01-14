@@ -5,9 +5,7 @@ import soot.Local;
 import soot.Value;
 import soot.jimple.StaticFieldRef;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 函数的域表示
@@ -19,13 +17,11 @@ import java.util.Map;
 @Data
 public class Context {
 
-
     private String methodSignature; // 当前函数签名
     private Map<Local, TabbyVariable> initialMap;
-    private TabbyVariable thisVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
+    private Local thisVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
     private TabbyVariable baseVar;// 前面调用函数的base变量，比如a.func1() a为base变量
-    private Map<Integer, TabbyVariable> args = new HashMap<>(); // 前置函数的入参
-    private Map<Integer, TabbyVariable> currentArgs = new HashMap<>(); // 当前新的入参绑定
+    private Map<Integer, Local> args = new HashMap<>(); // 前置函数的入参
     private Context preContext;// 如果当前函数为被调用的函数，那么preContext指向之前的函数context
     private int depth; // 当前函数调用深度，限制无限循环的情况
     // 经过flowThough 函数时，拷贝 in集合
@@ -63,17 +59,6 @@ public class Context {
         return subContext;
     }
 
-    public TabbyVariable getLocalVariable(Local local) {
-        return localMap.get(local);
-    }
-
-    public TabbyVariable getVariable(Value value){
-        if(value instanceof Local){
-            return localMap.get((Local) value);
-        }else{
-            return globalMap.getOrDefault(value, null);
-        }
-    }
 
     /**
      * 接受 Local 和 staticField
@@ -96,7 +81,6 @@ public class Context {
                 var = TabbyVariable.makeLocalInstance((Local)sootValue);
                 localMap.put((Local) sootValue, var);
             }
-
         }else if(sootValue instanceof StaticFieldRef){ // find from global map
             var = globalMap.get(sootValue);
             if(var == null){
@@ -108,31 +92,23 @@ public class Context {
     }
 
     public void bindThis(Value value) {
-//        if(baseVar != null){
-//            thisVar = baseVar.deepClone(new ArrayList<>());
-//        }else{
-//            thisVar = TabbyVariable.makeSpecialLocalInstance((Local)value, "this");
-//        }
-        thisVar = getOrAdd(value);
-        thisVar.setThis(true);
-        thisVar.getValue().setPolluted(true);
-        thisVar.getValue().setRelatedType("this");
-        thisVar.getFieldMap().forEach((fieldName, fieldVar) -> {
-            if(fieldVar != null){
-                fieldVar.getValue().setPolluted(true);
-                fieldVar.getValue().setRelatedType("this|"+fieldName);
-            }
-        });
-//        bindLocalAndVariable((Local) value, thisVar);
+        if(value instanceof Local){
+            thisVar = (Local) value;
+            TabbyVariable var = getOrAdd(thisVar);
+            var.setThis(true);
+            var.getValue().setPolluted(true);
+            var.getValue().setRelatedType("this");
+            var.getFieldMap().forEach((fieldName, fieldVar) -> {
+                if(fieldVar != null){
+                    fieldVar.getValue().setPolluted(true);
+                    fieldVar.getValue().setRelatedType("this|"+fieldName);
+                }
+            });
+        }
     }
 
     public void bindArg(Local local, int paramIndex) {// 仅用在函数调用处，绑定下一层的变量信息
         TabbyVariable paramVar = getOrAdd(local);
-//        if(args.containsKey(paramIndex) && args.get(paramIndex) != null){ // 跟上一层的变量进行绑定
-//            paramVar = args.get(paramIndex).deepClone(new ArrayList<>());
-//        }else{
-//            paramVar = TabbyVariable.makeSpecialLocalInstance(local, "param-"+paramIndex);
-//        }
         paramVar.setParam(true);
         paramVar.setParamIndex(paramIndex);
         paramVar.getValue().setPolluted(true);
@@ -143,8 +119,7 @@ public class Context {
                 fieldVar.getValue().setRelatedType("param-"+paramIndex+"|"+fieldName);
             }
         });
-        currentArgs.put(paramIndex, paramVar);
-//        bindLocalAndVariable(local, paramVar);
+        args.put(paramIndex, local);
     }
 
     /**

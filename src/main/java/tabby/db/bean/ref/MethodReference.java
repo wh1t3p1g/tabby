@@ -1,6 +1,7 @@
 package tabby.db.bean.ref;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.annotation.Relationship;
 import soot.Scene;
 import soot.SootClass;
@@ -21,6 +22,7 @@ import java.util.*;
  */
 @Data
 @Entity
+@Slf4j
 @Table(name = "methods")
 public class MethodReference {
 

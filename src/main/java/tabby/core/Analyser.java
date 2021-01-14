@@ -63,6 +63,7 @@ public class Analyser {
             log.info("Run soot packs!");
             PackManager.v().runPacks();
             callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
+            rulesContainer.saveStatus();
 //            clean(); // clean caches
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
@@ -75,6 +76,7 @@ public class Analyser {
     }
 
     public void save(){
+        log.info("Start to save cache.");
         dataContainer.save2CSV();
         dataContainer.save2Neo4j();
         clean();

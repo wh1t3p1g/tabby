@@ -30,6 +30,9 @@ import java.util.*;
 public class DataContainer {
 
     @Autowired
+    private RulesContainer rulesContainer;
+
+    @Autowired
     private ClassRefService classRefService;
     @Autowired
     private MethodRefService methodRefService;
@@ -52,56 +55,42 @@ public class DataContainer {
         switch (type){
             case "class":
                 if(!savedClassRefs.isEmpty()){
-//                    List<ClassReference> refs = new ArrayList<>(savedClassRefs.values());
-//                    classRefService.save(refs);
                     classRefService.save(savedClassRefs.values());
                     savedClassRefs.clear();
                 }
                 break;
             case "method":
                 if(!savedMethodRefs.isEmpty()){
-//                    List<MethodReference> refs = new ArrayList<>(savedMethodRefs.values());
-//                    methodRefService.save(refs);
                     methodRefService.save(savedMethodRefs.values());
                     savedMethodRefs.clear();
                 }
                 break;
             case "has":
                 if(!savedHasNodes.isEmpty()){
-//                    Set<Has> refs = new HashSet<>(savedHasNodes);
-//                    relationshipsService.saveAllHasEdges(refs);
                     relationshipsService.saveAllHasEdges(savedHasNodes);
                     savedHasNodes.clear();
                 }
                 break;
             case "call":
                 if(!savedCallNodes.isEmpty()){
-//                    Set<Call> refs = new HashSet<>(savedCallNodes);
-//                    relationshipsService.saveAllCallEdges(refs);
                     relationshipsService.saveAllCallEdges(savedCallNodes);
                     savedCallNodes.clear();
                 }
                 break;
             case "extend":
                 if(!savedExtendNodes.isEmpty()){
-//                    Set<Extend> refs = new HashSet<>(savedExtendNodes);
-//                    relationshipsService.saveAllExtendEdges(refs);
                     relationshipsService.saveAllExtendEdges(savedExtendNodes);
                     savedExtendNodes.clear();
                 }
                 break;
             case "interfaces":
                 if(!savedInterfacesNodes.isEmpty()){
-//                    Set<Interfaces> refs = new HashSet<>(savedInterfacesNodes);
-//                    relationshipsService.saveAllInterfacesEdges(refs);
                     relationshipsService.saveAllInterfacesEdges(savedInterfacesNodes);
                     savedInterfacesNodes.clear();
                 }
                 break;
             case "alias":
                 if(!savedAliasNodes.isEmpty()){
-//                    Set<Alias> refs = new HashSet<>(savedAliasNodes);
-//                    relationshipsService.saveAllAliasEdges(refs);
                     relationshipsService.saveAllAliasEdges(savedAliasNodes);
                     savedAliasNodes.clear();
                 }
@@ -144,11 +133,27 @@ public class DataContainer {
         return ref;
     }
 
-    public MethodReference getMethodRefBySignature(String signature){
+    public MethodReference getMethodRefBySignature(String classname, String function, String signature){
         MethodReference ref = savedMethodRefs.getOrDefault(signature, null);
         if(ref != null) return ref;
         // find from h2
         ref = methodRefService.getMethodRefBySignature(signature);
+        // new from rules
+        if(ref == null){
+            TabbyRule.Rule rule = rulesContainer.getRule(classname, function);
+            if(rule != null && rule.getSignatures().contains(signature)){
+                ref = MethodReference.newInstance(function, signature);
+                ref.setSink(rule.isSink());
+                ref.setPolluted(rule.isSink());
+                ref.setIgnore(rule.isIgnore());
+                ref.setSource(rule.isSource());
+                ref.setActions(rule.getActions());
+                ref.setPollutedPosition(rule.getPolluted());
+                ref.setInitialed(true);
+                ref.setActionInitialed(true);
+                store(ref);
+            }
+        }
         return ref;
     }
 
@@ -162,7 +167,8 @@ public class DataContainer {
      * @return
      */
     public MethodReference getMethodRefBySignature(SootMethodRef sootMethodRef){
-        MethodReference target = getMethodRefBySignature(sootMethodRef.getSignature());
+        SootClass cls = sootMethodRef.getDeclaringClass();
+        MethodReference target = getMethodRefBySignature(cls.getName(), sootMethodRef.getName(), sootMethodRef.getSignature());
         if(target != null){
             return target;
         }
@@ -208,7 +214,7 @@ public class DataContainer {
     private MethodReference findMethodRef(SootClass cls, NumberedString subSignature){
         try{
             SootMethod targetMethod = cls.getMethod(subSignature);
-            return getMethodRefBySignature(targetMethod.getSignature());
+            return getMethodRefBySignature(cls.getName(), targetMethod.getName(), targetMethod.getSignature());
         }catch (RuntimeException e){
             // 当前类没找到函数，继续往父类找
         }

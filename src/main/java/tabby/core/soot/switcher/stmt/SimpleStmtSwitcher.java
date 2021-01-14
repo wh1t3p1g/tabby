@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import soot.Local;
+import soot.PrimType;
 import soot.Value;
 import soot.jimple.*;
 import tabby.core.data.TabbyVariable;
@@ -30,9 +31,10 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
     public void caseInvokeStmt(InvokeStmt stmt) {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
-//        log.debug(ie.getMethodRef().getSignature());
+        if("<java.lang.Object: void <init>()>".equals(ie.getMethodRef().getSignature())) return;
+        log.debug("Analysis: "+ie.getMethodRef().getSignature());
         Switcher.doInvokeExprAnalysis(ie, dataContainer, context);
-//        log.debug(ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+        log.debug("Analysis: "+ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
     }
 
     @Override
@@ -51,6 +53,9 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         }
         if(rop instanceof Constant && !(rop instanceof StringConstant)){
             unbind = true;
+        }
+        if(rvar != null && rvar.getValue() != null && rvar.getValue().getType() instanceof PrimType){
+            rvar = null; // 剔除基础元素的污点传递，对于我们来说，这部分是无用的分析
         }
         // 处理左值
         if(rvar != null || unbind){
@@ -84,61 +89,20 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
 //        super.caseRetStmt(stmt);
 //    }
 
-
-    @Override
-    public void caseReturnVoidStmt(ReturnVoidStmt stmt) {
-//        for(TabbyVariable arg:context.getArgs().values()){
-//            if(arg == null) continue;
-//            String position = "param-"+arg.getValue().getParamIndex();
-//            if(arg.isPolluted()){
-//                if(!position.equals(arg.getValue().getRelatedType())){
-//                    context.getReturnActions().put(position, arg.getValue().getRelatedType());
-//                }
-//            }else{
-//                context.getReturnActions().put(position, "clear");
-//            }
-//            for(TabbyVariable argField:arg.getFieldMap().values()){
-//                if(argField == null) continue;
-//                String fieldPosition = position + "|" + argField.getName();
-//                if(argField.isPolluted()){
-//                    if(!argField.getValue().getRelatedType().equals(position)){
-//                        context.getReturnActions().put(fieldPosition, arg.getValue().getRelatedType());
-//                    }
-//                }else{
-//                    context.getReturnActions().put(fieldPosition, "clear");
-//                }
-//            }
-//        }
-//        if(context.getBaseVar() != null){
-//            TabbyVariable baseVar = context.getBaseVar();
-//            for(TabbyVariable thisField:baseVar.getFieldMap().values()){
-//                if(thisField == null) continue;
-//                String fieldPosition = "this|" + thisField.getName();
-//                if(thisField.isPolluted()){
-//                    if(!thisField.getValue().getRelatedType().equals(fieldPosition)){
-//                        context.getReturnActions().put(fieldPosition, baseVar.getValue().getRelatedType());
-//                    }
-//                }else{
-//                    context.getReturnActions().put(fieldPosition, "clear");
-//                }
-//            }
-//        }
-    }
-
     @Override
     public void caseReturnStmt(ReturnStmt stmt) {
         Value value = stmt.getOp();
         TabbyVariable var = null;
         // 近似处理 只要有一种return的情况是可控的，就认为函数返回是可控的
         // 并结算当前的入参区别
-        if(context.getReturnVar() != null && context.getReturnVar().isPolluted()) return;
+        if(context.getReturnVar() != null && context.getReturnVar().containsPollutedVar()) return;
         rightValueSwitcher.setContext(context);
         rightValueSwitcher.setDataContainer(dataContainer);
         rightValueSwitcher.setResult(null);
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
-        if(var != null && var.isPolluted() && reset){
+        if(var != null && var.isPolluted(-1) && reset){
             methodRef.addAction("return", var.getValue().getRelatedType());
         }
     }

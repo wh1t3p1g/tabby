@@ -36,6 +36,7 @@ public class ClassRefService {
 
     public void importClassRef(){
         if(FileUtils.fileExists(GlobalConfiguration.CLASSES_CACHE_PATH)){
+            log.info("Build Class Refs");
             classRefRepository.loadClassRefFromCSV(GlobalConfiguration.CLASSES_CACHE_PATH);
         }
     }

@@ -1,123 +1,147 @@
 [
   {"name":"java.io.FileInputStream", "rules":[
-    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]}
+    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": ["<java.io.FileInputStream: void <init>(java.lang.String)>", "<java.io.FileInputStream: void <init>(java.io.File)>","<java.io.FileInputStream: void <init>(java.io.FileDescriptor)>"]}
   ]},
   {"name":"java.io.FileOutputStream", "rules": [
-    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0]}
+    {"function": "<init>", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": ["<java.io.FileOutputStream: void <init>(java.lang.String,boolean)>","<java.io.FileOutputStream: void <init>(java.lang.String)>","<java.io.FileOutputStream: void <init>(java.io.File,boolean)>","<java.io.FileOutputStream: void <init>(java.io.FileDescriptor)>","<java.io.FileOutputStream: void <init>(java.io.File)>"]}
   ]},
 
   {"name":"java.nio.file.Files", "rules": [
-    {"function": "newInputStream", "type": "sink", "actions": {}, "polluted": [0]},
-    {"function": "newOutputStream", "type": "sink", "actions": {}, "polluted": [0]},
-    {"function": "newBufferedReader","type": "sink", "actions": {}, "polluted": [0]},
-    {"function": "newBufferedWriter", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "newInputStream", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.InputStream newInputStream(java.nio.file.Path,java.nio.file.OpenOption[])>"]},
+    {"function": "newOutputStream", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.OutputStream newOutputStream(java.nio.file.Path,java.nio.file.OpenOption[])>"]},
+    {"function": "newBufferedReader","type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.BufferedReader newBufferedReader(java.nio.file.Path)>","<java.nio.file.Files: java.io.BufferedReader newBufferedReader(java.nio.file.Path,java.nio.charset.Charset)>"]},
+    {"function": "newBufferedWriter", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.BufferedWriter newBufferedWriter(java.nio.file.Path,java.nio.charset.Charset,java.nio.file.OpenOption[])>","<java.nio.file.Files: java.io.BufferedWriter newBufferedWriter(java.nio.file.Path,java.nio.file.OpenOption[])>"]}
   ]},
   {"name":"java.lang.Class", "rules": [
-    {"function": "forName", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0,2]},
-    {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1]},
-    {"function": "getDeclaredMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]},
-    {"function": "getConstructor", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "forName", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0,2], "signatures": ["<java.lang.Class: java.lang.Class forName(java.lang.String,boolean,java.lang.ClassLoader)>"]},
+    {"function": "getMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [0,1], "signatures": ["<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>"]},
+    {"function": "getDeclaredMethod", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.Class: java.lang.reflect.Method getDeclaredMethod(java.lang.String,java.lang.Class[])>"]},
+    {"function": "getConstructor", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.Class: java.lang.reflect.Constructor getConstructor(java.lang.Class[])>"]}
   ]},
   {"name":"java.lang.reflect.Method", "rules": [
-    {"function": "invoke", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]}
+    {"function": "invoke", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>"]}
   ]},
   {"name":"java.lang.reflect.Constructor", "rules": [
-    {"function": "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0]}
+    {"function": "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.reflect.Constructor: java.lang.Object newInstance(java.lang.Object[])>"]}
   ]},
 
   {"name":"java.net.URLClassLoader", "rules": [
-    {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]}
   ]},
   {"name":"java.lang.Runtime", "rules": [
-    {"function": "exec", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "exec", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[])>"]}
   ]},
   {"name":"java.lang.ProcessBuilder", "rules": [
-    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "<init>", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessBuilder: void <init>(java.util.List)>","<java.lang.ProcessBuilder: void <init>(java.lang.String[])>"]}
   ]},
   {"name":"java.lang.ProcessImpl", "rules": [
-    {"function": "start", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "start", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessImpl: java.lang.Process start(java.lang.String[],java.util.Map,java.lang.String,java.lang.ProcessBuilder$Redirect[],boolean)>"]}
   ]},
   {"name":"java.lang.ClassLoader", "rules": [
-    {"function": "defineClass", "type": "sink", "actions": {}, "polluted": [1]}
+    {"function": "defineClass", "type": "sink", "actions": {}, "polluted": [1], "signatures": ["<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)>","<java.lang.ClassLoader: java.lang.Class defineClass(byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,java.nio.ByteBuffer,java.security.ProtectionDomain)>"]}
   ]},
   {"name":"javax.naming.Context", "rules": [
-    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<javax.naming.Context: java.lang.Object lookup(java.lang.String)>","<javax.naming.Context: java.lang.Object lookup(javax.naming.Name)>"]}
   ]},
   {"name":"java.rmi.registry.Registry", "rules": [
-    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0]}
+    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
   ]},
   {"name":"java.io.PrintStream", "rules": [
-    {"function": "print", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "print", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name":"sun.util.resources.OpenListResourceBundle", "rules": [
-    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name":"java.lang.Object", "rules": [
-    {"function": "hashCode", "type": "source", "actions": {}, "polluted": []},
-    {"function": "toString", "type": "source", "actions": {}, "polluted": []},
-    {"function": "getClass", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "hashCode", "type": "source", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: int hashCode()>"]},
+    {"function": "toString", "type": "source", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.String toString()>"]},
+    {"function": "getClass", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.Class getClass()>"]}
   ]},
   {"name":"java.lang.Comparable", "rules": [
-    {"function": "compareTo", "type": "source", "actions": {}, "polluted": []}
+    {"function": "compareTo", "type": "source", "actions": {}, "polluted": [], "signatures": ["<java.lang.Comparable: int compareTo(java.lang.Object)>"]}
   ]},
   {"name":"java.io.Serializable", "rules": [
-    {"function": "readObject", "type": "source", "actions": {}, "polluted": []}
+    {"function": "readObject", "type": "source", "actions": {}, "polluted": [], "signatures": []}
   ]},
 
 
   {"name":"javax.swing.plaf.nimbus.NimbusDefaults", "rules": [
-    {"function": "initializeDefaults", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "initializeDefaults", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name":"java.net.URL", "rules": [
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []},
-    {"function": "openConnection", "type": "sink", "actions": {"return": "this"}, "polluted": [-1]}
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.net.URL: void <init>(java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String,java.net.URLStreamHandler)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String,java.net.URLStreamHandler)>"]},
+    {"function": "openConnection", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": ["<java.net.URL: java.net.URLConnection openConnection()>","<java.net.URL: java.net.URLConnection openConnection(java.net.Proxy)>"]}
   ]},
   {"name":"javax.activation.DataSource", "rules": [
-    {"function": "getInputStream", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "getOutputStream", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "getInputStream", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<javax.activation.DataSource: java.io.InputStream getInputStream()>"]},
+    {"function": "getOutputStream", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<javax.activation.DataSource: java.io.OutputStream getOutputStream()>"]}
   ]},
   {"name": "java.io.ObjectInputStream", "rules": [
-    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: java.io.ObjectInputStream$GetField readFields()>"]},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void <init>(java.io.InputStream)>"]}
   ]},
   {"name": "java.util.Collections$CheckedMap$CheckedEntrySet", "rules": [
-    {"function": "iterator", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "iterator", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.util.Collections$CheckedMap$CheckedEntrySet: java.util.Iterator iterator()>"]}
   ]},
   {"name":"java.io.ByteArrayInputStream", "rules": [
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ByteArrayInputStream: void <init>(byte[],int,int)>","<java.io.ByteArrayInputStream: void <init>(byte[])>"]}
   ]},
   {"name":"java.lang.StringBuilder", "rules": [
-    {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "append", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "indexOf", "type": "know", "actions": {"return": "clear"}, "polluted": []},
-    {"function": "lastIndexOf", "type": "know", "actions": {"return": "clear"}, "polluted": []},
-    {"function": "insert", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "replace", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "reverse", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []}
+    {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.String toString()>"]},
+    {"function": "append", "type": "know", "actions": {"this":"param-0&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.AbstractStringBuilder append(java.lang.StringBuffer)>","<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.StringBuffer)>","<java.lang.StringBuilder: java.lang.AbstractStringBuilder append(java.lang.String)>","<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.String)>","<java.lang.StringBuilder: java.lang.StringBuilder append(java.lang.Object)>","<java.lang.StringBuilder: java.lang.AbstractStringBuilder append(java.lang.Object)>","<java.lang.StringBuilder: java.lang.StringBuilder append(char[])>"]},
+    {"function": "indexOf", "type": "know", "actions": {"return": "clear"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: int indexOf(java.lang.String,int)>","<java.lang.StringBuilder: int indexOf(java.lang.String)>"]},
+    {"function": "lastIndexOf", "type": "know", "actions": {"return": "clear"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: int lastIndexOf(java.lang.String,int)>","<java.lang.StringBuilder: int lastIndexOf(java.lang.String)>"]},
+    {"function": "insert", "type": "know", "actions": {"this":"param-1&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.StringBuilder insert(int,char[])>","<java.lang.StringBuilder: java.lang.AbstractStringBuilder insert(int,java.lang.Object)>","<java.lang.StringBuilder: java.lang.StringBuilder insert(int,java.lang.Object)>","<java.lang.StringBuilder: java.lang.StringBuilder insert(int,java.lang.String)>","<java.lang.StringBuilder: java.lang.AbstractStringBuilder insert(int,java.lang.String)>"]},
+    {"function": "replace", "type": "know", "actions": {"this":"param-2&remain","return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.StringBuilder replace(int,int,java.lang.String)>","<java.lang.StringBuilder: java.lang.AbstractStringBuilder replace(int,int,java.lang.String)>"]},
+    {"function": "reverse", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.AbstractStringBuilder reverse()>","<java.lang.StringBuilder: java.lang.StringBuilder reverse()>"]},
+    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.AbstractStringBuilder delete(int,int)>","<java.lang.StringBuilder: java.lang.StringBuilder delete(int,int)>"]},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: void <init>(java.lang.String)>"]}
+  ]},
+
+  {"name":"java.lang.StringBuffer", "rules": [
+    {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.String toString()>"]},
+    {"function": "append", "type": "know", "actions": {"this":"param-0&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.StringBuffer)>","<java.lang.StringBuffer: java.lang.StringBuffer append(char[])>","<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.Object)>","<java.lang.StringBuffer: java.lang.StringBuffer append(java.lang.String)>","<java.lang.StringBuffer: java.lang.StringBuffer append(char[],int,int)>"]},
+    {"function": "insert", "type": "know", "actions": {"this":"param-1&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.StringBuffer insert(int,java.lang.Object)>","<java.lang.StringBuffer: java.lang.StringBuffer insert(int,java.lang.String)>","<java.lang.StringBuffer: java.lang.StringBuffer insert(int,char[],int,int)>","<java.lang.StringBuffer: java.lang.StringBuffer insert(int,char[])>"]},
+    {"function": "replace", "type": "know", "actions": {"this":"param-2&remain","return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.StringBuffer replace(int,int,java.lang.String)>"]},
+    {"function": "reverse", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.StringBuffer reverse()>"]},
+    {"function": "delete", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: java.lang.StringBuffer delete(int,int)>"]},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.lang.StringBuffer: void <init>(java.lang.String)>"]}
+  ]},
+  {"name":"java.lang.String", "rules": [
+    {"function": "concat", "type": "know", "actions": {"this":"param-0&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.String: java.lang.String concat(java.lang.String)>"]},
+    {"function": "substring", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.String: java.lang.String substring(int)>","<java.lang.String: java.lang.String substring(int,int)>"]},
+    {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.String: java.lang.String toString()>"]},
+    {"function": "getBytes", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.String: byte[] getBytes()>"]},
+    {"function": "<init>", "type": "know", "actions": {"this":"param-0&remain", "return": "this"}, "polluted": [], "signatures": ["<java.lang.String: void <init>(java.lang.String)>",""]},
+    {"function": "split", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.String: java.lang.String[] split(java.lang.String)>","<java.lang.String: java.lang.String[] split(java.lang.String,int)>"]}
   ]},
   {"name":"java.util.List", "rules": [
-    {"function": "toArray", "type": "know", "actions": {"return": "this"}, "polluted": []},
-    {"function": "size", "type": "know", "actions": {"return": "clear"}, "polluted": []}
+    {"function": "toArray", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.util.List: java.lang.Object[] toArray(java.lang.Object[])>","<java.util.List: java.lang.Object[] toArray()>"]},
+    {"function": "size", "type": "know", "actions": {"return": "clear"}, "polluted": [], "signatures": ["<java.util.List: int size()>"]}
   ]},
   {"name": "javax.swing.plaf.nimbus.NimbusLookAndFeel", "rules": [
-    {"function": "getDefaults", "type": "ignore", "actions": {"return": "this|uiDefaults"}, "polluted": []}
+    {"function": "getDefaults", "type": "ignore", "actions": {"return": "this|<javax.swing.plaf.nimbus.NimbusLookAndFeel: javax.swing.UIDefaults uiDefaults>"}, "polluted": [], "signatures": []}
   ]},
   {"name": "sun.util.resources.TimeZoneNamesBundle", "rules": [
-    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
+  ]},
+  {"name": "sun.text.resources.DateFormatZoneData", "rules": [
+    {"function": "getContents", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name": "javax.swing.plaf.basic.BasicLookAndFeel", "rules": [
-    {"function": "initComponentDefaults", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "initComponentDefaults", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name": "com.sun.java.swing.plaf.gtk.GTKLookAndFeel", "rules": [
-    {"function": "getDefaults", "type": "ignore", "actions": {}, "polluted": []}
+    {"function": "getDefaults", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name": "java.io.ObjectInputStream$GetField", "rules": [
-    {"function": "get", "type": "know", "actions": {"return": "this"}, "polluted": []}
+    {"function": "get", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream$GetField: java.lang.Object get(java.lang.String,java.lang.Object)>","<java.io.ObjectInputStream$GetField: int get(java.lang.String,int)>","<java.io.ObjectInputStream$GetField: boolean get(java.lang.String,boolean)>","<java.io.ObjectInputStream$GetField: byte get(java.lang.String,byte)>","<java.io.ObjectInputStream$GetField: char get(java.lang.String,char)>","<java.io.ObjectInputStream$GetField: long get(java.lang.String,long)>"]}
+  ]},
+  {"name": "java.io.ObjectInputStream", "rules": [
+    {"function": "defaultReadObject", "type": "know", "actions": {}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void defaultReadObject()>"]}
   ]},
   {"name":"java.io.File", "rules": [
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": []},
-    {"function": "delete", "type": "sink", "actions": {}, "polluted": [-1]}
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.File: void <init>(java.net.URI)>","<java.io.File: void <init>(java.lang.String,java.lang.String)>","<java.io.File: void <init>(java.lang.String,int)>","<java.io.File: void <init>(java.lang.String)>","<java.io.File: void <init>(java.lang.String,java.io.File)>","<java.io.File: void <init>(java.io.File,java.lang.String)>"]},
+    {"function": "delete", "type": "sink", "actions": {}, "polluted": [-1], "signatures": ["<java.io.File: boolean delete()>"]}
   ]}
 ]

@@ -13,6 +13,7 @@ import java.util.List;
  */
 public interface ClassRepository extends CrudRepository<ClassReference, String> {
 
+    @Query(value = "select * from CLASSES where NAME = :name limit 1", nativeQuery = true)
     ClassReference findClassReferenceByName(String name);
 
     @Query(value="select count(*) from CLASSES", nativeQuery=true)

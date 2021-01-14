@@ -29,6 +29,7 @@ public class MethodRefService {
 
     public void importMethodRef(){
         if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
+            log.info("Build Method Refs");
             methodRefRepository.loadMethodRefFromCSV(GlobalConfiguration.METHODS_CACHE_PATH);
         }
     }

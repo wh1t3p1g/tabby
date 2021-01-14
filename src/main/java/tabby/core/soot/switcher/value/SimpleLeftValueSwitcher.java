@@ -3,6 +3,7 @@ package tabby.core.soot.switcher.value;
 import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
+import soot.PrimType;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.ArrayRef;
@@ -24,12 +25,15 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
      * @param v
      */
     public void caseLocal(Local v) {
+        if(v.getType() instanceof PrimType) return; // 提出无用的类属性传递
+
         TabbyVariable var = context.getOrAdd(v);
+
         generateAction(var, rvar, -1, unbind);
         if(unbind){
             var.clearVariableStatus();
         }else{
-            var.assign(rvar);
+            var.assign(rvar, false);
         }
     }
 
@@ -38,11 +42,12 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
      * @param v
      */
     public void caseStaticFieldRef(StaticFieldRef v) {
+        if(v.getField().getType() instanceof PrimType) return; // 提出无用的类属性传递
         TabbyVariable var = context.getOrAdd(v);
         if(unbind){
             context.unbind(v);
         } else {
-            var.assign(rvar);
+            var.assign(rvar, false);
         }
     }
 
@@ -80,6 +85,8 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
     public void caseInstanceFieldRef(InstanceFieldRef v) {
         SootField sootField = v.getField();
         Value base = v.getBase();
+        if(sootField.getType() instanceof PrimType) return; // 提出无用的类属性传递 是否需要剔除static类型？
+
         if(base instanceof Local){
             TabbyVariable baseVar = context.getOrAdd(base);
             TabbyVariable fieldVar = baseVar.getOrAddField(baseVar, sootField);
@@ -87,24 +94,24 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
             if(unbind){
                 fieldVar.clearVariableStatus();
             }else{
-                fieldVar.assign(rvar);
+                fieldVar.assign(rvar, false);
             }
         }
     }
 
     public void generateAction(TabbyVariable lvar, TabbyVariable rvar, int index, boolean unbind){
         if(!reset) return; // 不记录 actions
-        if(unbind && lvar.isPolluted()){
+        if(unbind && lvar.isPolluted(-1)){
             if(index != -1){
                 methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, "clear");
             }else{
                 methodRef.addAction(lvar.getValue().getRelatedType(), "clear");
             }
-        }else if(lvar.isPolluted()){
-            if(rvar != null && rvar.isPolluted()){
+        }else if(lvar.isPolluted(-1)){
+            if(rvar != null && rvar.isPolluted(-1)){
                 if(index != -1){
                     methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, rvar.getValue().getRelatedType());
-                }else{
+                }else if(!lvar.getValue().getRelatedType().equals(rvar.getValue().getRelatedType())){
                     methodRef.addAction(lvar.getValue().getRelatedType(), rvar.getValue().getRelatedType());
                 }
 

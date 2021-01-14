@@ -20,7 +20,7 @@ import java.util.UUID;
 @Setter
 public class TabbyValue implements Serializable {
 
-    private String uuid;
+    private UUID uuid;
     private Type type;
     private String typeName;
     private Value origin;
@@ -32,24 +32,14 @@ public class TabbyValue implements Serializable {
     // polluted
     private boolean isPolluted = false;
     // polluted positions like param-0,param-1,field-name1,this
-    private String relatedType;
-
-    private TabbyVariable relatedVar = null;
+    private String relatedType = null;
 
     public TabbyValue(){
-        uuid = UUID.randomUUID().toString();
-    }
-
-    public TabbyValue(String uuid){
-        if("".equals(uuid)){
-            this.uuid = UUID.randomUUID().toString();
-        }else{
-            this.uuid = uuid;
-        }
+        uuid = UUID.randomUUID();
     }
 
     public TabbyValue(Local value){
-        uuid = UUID.randomUUID().toString();
+        uuid = UUID.randomUUID();
         type = value.getType();
         typeName = type.toString();
         origin = value;
@@ -63,7 +53,8 @@ public class TabbyValue implements Serializable {
 
     public TabbyValue deepClone(){
         // try to clone value
-        TabbyValue newValue = new TabbyValue(uuid);
+        TabbyValue newValue = new TabbyValue();
+        newValue.setUuid(uuid);
         newValue.setPolluted(isPolluted);
         newValue.setRelatedType(relatedType);
         newValue.setField(isField);
@@ -72,7 +63,6 @@ public class TabbyValue implements Serializable {
         newValue.setType(type);
         newValue.setTypeName(typeName);
         newValue.setOrigin(origin);
-//        newValue.setRelatedVar(relatedVar);
 
         return newValue;
     }
@@ -88,6 +78,10 @@ public class TabbyValue implements Serializable {
         return false;
     }
 
+    public int compareTo(TabbyValue value){
+        return uuid.compareTo(value.getUuid());
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -96,11 +90,11 @@ public class TabbyValue implements Serializable {
 
         TabbyValue that = (TabbyValue) o;
 
-        return new EqualsBuilder().append(isArray, that.isArray).append(isField, that.isField).append(isStatic, that.isStatic).append(isPolluted, that.isPolluted).append(type, that.type).append(typeName, that.typeName).append(origin, that.origin).append(relatedType, that.relatedType).isEquals();
+        return new EqualsBuilder().append(isArray, that.isArray).append(isField, that.isField).append(isStatic, that.isStatic).append(isPolluted, that.isPolluted).append(type, that.type).append(typeName, that.typeName).append(relatedType, that.relatedType).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(type).append(typeName).append(origin).append(isArray).append(isField).append(isStatic).append(isPolluted).append(relatedType).toHashCode();
+        return new HashCodeBuilder(17, 37).append(type).append(typeName).append(isArray).append(isField).append(isStatic).append(isPolluted).append(relatedType).toHashCode();
     }
 }

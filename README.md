@@ -61,10 +61,10 @@ https://repo.spring.io/release/org/springframework/spring/4.1.4.RELEASE/
 neo4j 第一次运行新库时 耗时长（第二次之后有缓存，会快一点，但时间长了会有很大的硬盘占用，可以删除库再新建）
 ```
 初始化 节点限制 可以极大的加快载入速度
-CREATE CONSTRAINT ON (c:Class) ASSERT c.ID IS UNIQUE;
-CREATE CONSTRAINT ON (m:Method) ASSERT m.ID IS UNIQUE;
-CREATE INDEX FOR (n:Class) ON (n.NAME);
-CREATE INDEX FOR (n1:Method) ON (n1.SIGNATURE,n1.SUB_SIGNATURE);
+CREATE CONSTRAINT IF NOT EXISTS ON (c:Class) ASSERT c.ID IS UNIQUE;
+CREATE CONSTRAINT IF NOT EXISTS ON (m:Method) ASSERT m.ID IS UNIQUE;
+CREATE INDEX IF NOT EXISTS FOR (n:Class) ON (n.NAME);
+CREATE INDEX IF NOT EXISTS FOR (n1:Method) ON (n1.SIGNATURE,n1.SUB_SIGNATURE);
 :schema 查看表库
 :sysinfo 查看数据库信息
 ```

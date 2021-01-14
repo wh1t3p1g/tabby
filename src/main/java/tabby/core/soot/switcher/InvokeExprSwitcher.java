@@ -80,7 +80,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     public void buildCallRelationship(String classname, SootMethodRef sootMethodRef, String invokerType){
         MethodReference target = dataContainer.getMethodRefBySignature(sootMethodRef);// 递归父类，接口 查找目标函数
-        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getSignature());
+        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getClassname(), this.source.getName(), this.source.getSignature());
         if(target == null){
             // 为了保证target函数的存在，重建methodRef
             // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
@@ -88,6 +88,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             if(classRef == null){// lambda 的情况
                 SootClass cls = sootMethodRef.getDeclaringClass();
                 classRef = ClassInfoScanner.collect(cls.getName(), dataContainer, rulesContainer, true);
+                ClassInfoScanner.makeAliasRelation(classRef, dataContainer);
             }
             target = dataContainer.getMethodRefBySignature(sootMethodRef);
             if(target == null){
@@ -177,7 +178,6 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             return -2;
         }
         TabbyVariable var = null;
-        String related = null;
         if(value instanceof Local){
             var = localMap.get(value);
         }else if(value instanceof StaticFieldRef){
@@ -199,11 +199,11 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             Value base = ifr.getBase();
             if(base instanceof Local){
                 var = localMap.get(base);
-                var = var.getField(sootField.getName());
+                var = var.getField(sootField.getSignature());
             }
         }
-        if(var != null && var.isPolluted()){
-            related = var.getValue().getRelatedType();
+        if(var != null && var.isPolluted(-1)){
+            String related = var.getValue().getRelatedType();
             if(related != null){
                 if(related.startsWith("this")){
                     return -1;

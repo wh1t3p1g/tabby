@@ -31,11 +31,10 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     private Context context; // 同一函数内共享的上下文内容
     private DataContainer dataContainer;
-    private Map<Local,TabbyVariable> emptyMap;
-    private Map<Local,TabbyVariable> initialMap;
+    private Map<Local, TabbyVariable> emptyMap;
+    private Map<Local, TabbyVariable> initialMap;
     private StmtSwitcher stmtSwitcher;
     private MethodReference methodRef;
-    private Set<Unit> blockStack = new HashSet<>(); // 存储已调用分析过的Unit，防止循环分析
     private Body body;
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
@@ -68,10 +67,10 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
                         baseVar = TabbyVariable.makeLocalInstance((Local) base);
                         initialMap.put((Local) base, baseVar);
                     }
-                    TabbyVariable fieldVar = baseVar.getField(sootField.getName());
+                    TabbyVariable fieldVar = baseVar.getField(sootField.getSignature());
                     if(fieldVar == null){
                         fieldVar = TabbyVariable.makeFieldInstance(baseVar, sootField);
-                        baseVar.addField(sootField.getName(), fieldVar);
+                        baseVar.addField(sootField.getSignature(), fieldVar);
                     }
                 }
             }else if(value instanceof ArrayRef){
@@ -90,9 +89,8 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     }
 
     @Override
-    protected void flowThrough(Map<Local,TabbyVariable> in, Unit d, Map<Local,TabbyVariable> out) {
-//        System.out.println(d);
-        Map<Local,TabbyVariable> newIn = new HashMap<>();
+    protected void flowThrough(Map<Local, TabbyVariable> in, Unit d, Map<Local, TabbyVariable> out) {
+        Map<Local, TabbyVariable> newIn = new HashMap<>();
         copy(in, newIn);
         context.setLocalMap(newIn);
         context.setInitialMap(initialMap);
@@ -118,22 +116,27 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected Map<Local, TabbyVariable> newInitialFlow() {
-//        Map<Local, TabbyVariable> initialedLocalMap = new HashMap<>();
-//        initialMap.forEach((local, var) -> {
-//            initialedLocalMap.put(local, var.deepClone(new ArrayList<>()));
-//        });
         return new HashMap<>(emptyMap);
     }
 
 
     @Override
-    protected void merge(Map<Local,TabbyVariable> in1, Map<Local,TabbyVariable> in2, Map<Local,TabbyVariable> out) {
+    protected void merge(Map<Local, TabbyVariable> in1, Map<Local, TabbyVariable> in2, Map<Local, TabbyVariable> out) {
+        // TODO 修正
         out.clear();
+        copy(in2, out);
         in1.forEach((local, variable) -> {
             if(variable == null) return;
             if(out.containsKey(local)){ // 遇到相同变量，保留可控变量，如果均可控，则直接保留out的
-                if(!out.get(local).isPolluted() && variable.isPolluted()){ // 聚合时仅保留可控变量
+                TabbyVariable var = out.get(local);
+                boolean flag1 = variable.isPolluted(-1);
+                boolean flag2 = var.isPolluted(-1);
+                if(!flag2 && flag1){ // 聚合时仅保留可控变量
                     out.put(local, variable.deepClone(new ArrayList<>()));
+                }else if(flag2 && flag1){
+                    // compareTo 仅为保持留下来的内容是固定的
+                    TabbyVariable remain = var.getValue().compareTo(variable.getValue()) > 0 ? var : variable;
+                    out.put(local, remain.deepClone(new ArrayList<>()));
                 }
             }else{
                 out.put(local, variable.deepClone(new ArrayList<>()));
@@ -142,7 +145,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     }
 
     @Override
-    protected void copy(Map<Local,TabbyVariable> source, Map<Local,TabbyVariable> dest) {
+    protected void copy(Map<Local, TabbyVariable> source, Map<Local, TabbyVariable> dest) {
         dest.clear();
         source.forEach((local, variable) -> {
             dest.put(local, variable.deepClone(new ArrayList<>()));
@@ -152,7 +155,8 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
                                                            Body body,
                                                            DirectedGraph<Unit> graph,
-                                                           DataContainer dataContainer, Context context, boolean reset){
+                                                           DataContainer dataContainer,
+                                                           Context context, boolean reset){
         PollutedVarsPointsToAnalysis analysis = new PollutedVarsPointsToAnalysis(graph);
         // 配置switchers
         StmtSwitcher switcher = new SimpleStmtSwitcher();

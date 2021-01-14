@@ -2,10 +2,7 @@ package tabby.core.soot.switcher;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
-import soot.Modifier;
-import soot.SootMethod;
-import soot.Value;
-import soot.ValueBox;
+import soot.*;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.SpecialInvokeExpr;
@@ -39,7 +36,10 @@ public class Switcher {
      * @param method
      * @param methodRef
      */
-    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context, DataContainer dataContainer, SootMethod method, MethodReference methodRef, boolean force){
+    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context,
+                                                                DataContainer dataContainer,
+                                                                SootMethod method,
+                                                                MethodReference methodRef, boolean force){
         try{
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())
                     || method.isPhantom()){
@@ -55,7 +55,8 @@ public class Switcher {
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
-                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, dataContainer, context, !methodRef.isActionInitialed());
+                    PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph,
+                            dataContainer, context, !methodRef.isActionInitialed());
 
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
@@ -79,10 +80,11 @@ public class Switcher {
         TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context); // 调用对象
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参 baseVar是否可控
-        boolean flag = baseVar != null && baseVar.isPolluted();
+        boolean flag = baseVar != null && baseVar.containsPollutedVar();
+
 
         for(TabbyVariable var: args.values()){
-            if(var != null && var.isPolluted()){
+            if(var != null && var.containsPollutedVar()){
                 flag = true;
                 break;
             }
@@ -94,8 +96,12 @@ public class Switcher {
 //            baseVar = TabbyVariable.makeRandomInstance();
 //        }
         // do method call back actions
-        MethodReference methodRef = dataContainer.getMethodRefBySignature(invokeExpr.getMethod().getSignature());
+        SootClass cls = invokeExpr.getMethod().getDeclaringClass();
+        SootMethod method = invokeExpr.getMethod();
+
+        MethodReference methodRef = dataContainer.getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
         if(methodRef == null) return null;
+
         if((!methodRef.isInitialed() || !methodRef.isActionInitialed()) // never analysis with pta
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
             // do call method analysis
@@ -116,8 +122,12 @@ public class Switcher {
                 if ("clear".equals(newRelated)) {
                     oldVar.clearVariableStatus();
                 } else {
+                    boolean remain = false;
+                    if(newRelated != null && newRelated.contains("&remain")){
+                        remain = true;
+                    }
                     newVar = parsePosition(newRelated, baseVar, args, false);
-                    oldVar.assign(newVar);
+                    oldVar.assign(newVar, remain);
                 }
             }
         }
@@ -140,7 +150,7 @@ public class Switcher {
             }
         }
         if(baseVar == null && invokeExpr instanceof SpecialInvokeExpr){
-            baseVar = context.getThisVar();
+            baseVar = context.getOrAdd(context.getThisVar());
         }
         return baseVar;
     }
@@ -164,6 +174,9 @@ public class Switcher {
         TabbyVariable retVar = null;
         String[] positions = position.split("\\|");
         for(String pos:positions){
+            if(pos.contains("&remain")){ // 通常为 xxx&remain 表示 处理时需要保留原有的污点状态
+                pos = pos.split("&")[0];
+            }
             if("this".equals(pos)){ // this
                 retVar = baseVar;
             }else if(pos.startsWith("param-")){ // param-0
@@ -175,8 +188,8 @@ public class Switcher {
                 TabbyVariable tempVar = retVar.getElement(index);
                 if(created && tempVar == null){
                     tempVar = TabbyVariable.makeRandomInstance();
-                    tempVar.getValue().setPolluted(retVar.isPolluted());
-                    if(retVar.isPolluted()){
+                    tempVar.getValue().setPolluted(retVar.isPolluted(-1));
+                    if(retVar.isPolluted(-1)){
                         tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+index);
                     }
                     retVar.addElement(index, tempVar);
@@ -185,12 +198,10 @@ public class Switcher {
             }else if(retVar != null){ // 类似 this|name
                 TabbyVariable tempVar = retVar.getField(pos);
                 if(created && tempVar == null){
-                    tempVar = TabbyVariable.makeRandomInstance();
-                    if(retVar.isPolluted()){
-                        tempVar.getValue().setPolluted(true);
-                        tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+pos);
+                    SootField field = retVar.getSootField(pos);
+                    if(field != null){
+                        tempVar = retVar.getOrAddField(retVar, field);
                     }
-                    retVar.addField(pos, tempVar);
                 }
                 retVar = tempVar;
             }else{
