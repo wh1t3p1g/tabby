@@ -10,6 +10,7 @@ import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import org.springframework.retry.annotation.EnableRetry;
+import tabby.config.GlobalConfiguration;
 import tabby.config.SootConfiguration;
 import tabby.core.Analyser;
 import tabby.util.FileUtils;
@@ -48,6 +49,9 @@ public class TabbyApplication {
                 if(arguments.containsOption("isJDKProcess")){
                     isJDKProcess = true;
                 }
+                if(arguments.containsOption("vv")){
+                    GlobalConfiguration.DEBUG = true;
+                }
                 if(arguments.containsOption("isSaveOnly")){
                     analyser.save();
                     return;
@@ -82,6 +86,7 @@ public class TabbyApplication {
 
                 SootConfiguration.initSootOption();
                 analyser.runSootAnalysis(targets, new ArrayList<>(classpaths.values()) );
+
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() +
                         "\nPlease use java -jar tabby target_directory [--isJDKOnly] !" +

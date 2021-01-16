@@ -7,6 +7,7 @@ import soot.Local;
 import soot.PrimType;
 import soot.Value;
 import soot.jimple.*;
+import tabby.config.GlobalConfiguration;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.Switcher;
 
@@ -32,9 +33,13 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         // extract baseVar and args
         InvokeExpr ie = stmt.getInvokeExpr();
         if("<java.lang.Object: void <init>()>".equals(ie.getMethodRef().getSignature())) return;
-        log.debug("Analysis: "+ie.getMethodRef().getSignature());
+        if(GlobalConfiguration.DEBUG){
+            log.debug("Analysis: "+ie.getMethodRef().getSignature() + "; "+context.getTopMethodSignature());
+        }
         Switcher.doInvokeExprAnalysis(ie, dataContainer, context);
-        log.debug("Analysis: "+ie.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+        if(GlobalConfiguration.DEBUG) {
+            log.debug("Analysis: " + ie.getMethodRef().getName() + " done, return to" + context.getMethodSignature() + "; "+context.getTopMethodSignature());
+        }
     }
 
     @Override

@@ -10,6 +10,7 @@ import soot.Type;
 import soot.Value;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -33,6 +34,7 @@ public class TabbyValue implements Serializable {
     private boolean isPolluted = false;
     // polluted positions like param-0,param-1,field-name1,this
     private String relatedType = null;
+    private Date date = new Date(System.currentTimeMillis());
 
     public TabbyValue(){
         uuid = UUID.randomUUID();
@@ -78,8 +80,8 @@ public class TabbyValue implements Serializable {
         return false;
     }
 
-    public int compareTo(TabbyValue value){
-        return uuid.compareTo(value.getUuid());
+    public boolean before(TabbyValue value){
+        return date.before(value.getDate());
     }
 
     @Override

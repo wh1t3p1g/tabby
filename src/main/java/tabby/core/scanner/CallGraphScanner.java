@@ -40,6 +40,10 @@ public class CallGraphScanner {
     @Autowired
     private RulesContainer rulesContainer;
 
+    private static int total;
+    private static int split;
+    private static int current;
+
     public void run(Collection<MethodReference> targets) {
         collect(targets);
         save();
@@ -50,12 +54,19 @@ public class CallGraphScanner {
         log.info("Load necessary method refs.");
         dataContainer.loadNecessaryMethodRefs();
         log.info("Build call graph. START!");
+        total = clonedTargets.size();
+        split = total / 10;
+        log.info("Analysis total {} methods.", total);
         clonedTargets.forEach(this::collect);
         log.info("Build call graph. DONE!");
     }
 
     public void collect(MethodReference methodRef){
         try{
+            current += 1;
+            if(current%split == 0){
+                log.info("Status: {}%, Remain: {}", String.format("%.1f",current*0.1/total*1000), (total-current));
+            }
             SootMethod method = methodRef.getMethod();
             if(method == null) return; // 提取不出内容，不分析
             if(method.isPhantom() || methodRef.isSink()
@@ -70,7 +81,6 @@ public class CallGraphScanner {
             invokeExprSwitcher.setSource(methodRef);
             invokeExprSwitcher.setDataContainer(dataContainer);
             invokeExprSwitcher.setRulesContainer(rulesContainer);
-            log.debug(method.getSignature());
 
             if(method.isStatic() && method.getParameterCount() == 0){ // 静态函数 且 函数入参数量为0 此类函数 对于反序列化来说 均不可控 不进行分析
                 methodRef.setInitialed(true);
@@ -78,11 +88,13 @@ public class CallGraphScanner {
                 return;
             }
 
-//            if ("<com.sun.jndi.ldap.LdapAttribute: javax.naming.directory.DirContext getAttributeDefinition()>".equals(method.getSignature())) {
+//            if ("<com.thoughtworks.xstream.core.util.ObjectIdDictionary$WeakIdWrapper: void <init>(com.thoughtworks.xstream.core.util.ObjectIdDictionary,java.lang.Object)>".equals(method.getSignature())) {
 //                System.out.println(1);
 //            } else {
 //                return;
 //            }
+
+            log.debug(method.getSignature());
 
             Context context = Context.newInstance(method.getSignature());
             context.setHeadMethodContext(true);

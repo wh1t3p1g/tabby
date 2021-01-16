@@ -5,6 +5,7 @@ import soot.Local;
 import soot.SootField;
 import soot.Value;
 import soot.jimple.*;
+import tabby.config.GlobalConfiguration;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.Switcher;
 
@@ -45,22 +46,22 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
         value.apply(this);
     }
 
-    @Override
-    public void caseNewArrayExpr(NewArrayExpr v) {
-        TabbyVariable var = TabbyVariable.makeRandomInstance();
-        var.getValue().setArray(true);
-        setResult(var);
-    }
-
-    @Override
-    public void caseNewMultiArrayExpr(NewMultiArrayExpr v) {
-        defaultCase(v);
-    }
-
-    @Override
-    public void caseNewExpr(NewExpr v) {
-        setResult(TabbyVariable.makeRandomInstance());
-    }
+//    @Override
+//    public void caseNewArrayExpr(NewArrayExpr v) {
+//        TabbyVariable var = TabbyVariable.makeRandomInstance();
+//        var.getValue().setArray(true);
+//        setResult(var);
+//    }
+//
+//    @Override
+//    public void caseNewMultiArrayExpr(NewMultiArrayExpr v) {
+//        defaultCase(v);
+//    }
+//
+//    @Override
+//    public void caseNewExpr(NewExpr v) {
+//        setResult(TabbyVariable.makeRandomInstance());
+//    }
 
     @Override
     public void caseArrayRef(ArrayRef v) {
@@ -105,8 +106,14 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
     }
 
     public void caseInvokeExpr(InvokeExpr invokeExpr, String invokeType){
-        log.debug("Analysis: "+invokeExpr.getMethodRef().getSignature());
+        if(GlobalConfiguration.DEBUG) {
+            log.debug("Analysis: " + invokeExpr.getMethodRef().getSignature() + "; "+context.getTopMethodSignature());
+        }
+
         setResult(Switcher.doInvokeExprAnalysis(invokeExpr, dataContainer, context));
-        log.debug("Analysis: "+invokeExpr.getMethodRef().getName()+" done, return to"+context.getMethodSignature());
+
+        if(GlobalConfiguration.DEBUG) {
+            log.debug("Analysis: " + invokeExpr.getMethodRef().getName() + " done, return to" + context.getMethodSignature() + "; "+context.getTopMethodSignature());
+        }
     }
 }

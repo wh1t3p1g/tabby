@@ -3,6 +3,7 @@ package tabby.config;
 import com.google.gson.Gson;
 
 import java.io.File;
+import java.util.Map;
 
 /**
  * @author wh1t3P1g
@@ -23,5 +24,6 @@ public class GlobalConfiguration {
     public static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_INTERFACES.csv");
 
     public static Gson GSON = new Gson();
+    public static boolean DEBUG = false;
 
 }

@@ -22,6 +22,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author wh1t3P1g
@@ -42,6 +43,7 @@ public class Analyser {
 
     public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
         try{
+            long start = System.nanoTime();
             Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
             List<String> stuff = new ArrayList<>();
             List<String> newIgnore = new ArrayList<>();
@@ -64,7 +66,8 @@ public class Analyser {
             PackManager.v().runPacks();
             callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
             rulesContainer.saveStatus();
-//            clean(); // clean caches
+            log.info("Cost {} minutes"
+                    , TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - start));
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
@@ -73,13 +76,17 @@ public class Analyser {
                 throw e;
             }
         }
+
     }
 
     public void save(){
         log.info("Start to save cache.");
+        long start = System.nanoTime();
         dataContainer.save2CSV();
         dataContainer.save2Neo4j();
         clean();
+        log.info("Cost {} minutes"
+                , TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - start));
     }
 
     public Map<String, String> getJdkDependencies(){

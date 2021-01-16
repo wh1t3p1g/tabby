@@ -124,23 +124,40 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     protected void merge(Map<Local, TabbyVariable> in1, Map<Local, TabbyVariable> in2, Map<Local, TabbyVariable> out) {
         // TODO 修正
         out.clear();
-        copy(in2, out);
-        in1.forEach((local, variable) -> {
-            if(variable == null) return;
-            if(out.containsKey(local)){ // 遇到相同变量，保留可控变量，如果均可控，则直接保留out的
-                TabbyVariable var = out.get(local);
-                boolean flag1 = variable.isPolluted(-1);
-                boolean flag2 = var.isPolluted(-1);
-                if(!flag2 && flag1){ // 聚合时仅保留可控变量
-                    out.put(local, variable.deepClone(new ArrayList<>()));
-                }else if(flag2 && flag1){
-                    // compareTo 仅为保持留下来的内容是固定的
-                    TabbyVariable remain = var.getValue().compareTo(variable.getValue()) > 0 ? var : variable;
-                    out.put(local, remain.deepClone(new ArrayList<>()));
-                }
-            }else{
-                out.put(local, variable.deepClone(new ArrayList<>()));
+
+        in1.forEach((local, var) -> {
+            // 筛选出所有的可控变量，剔除不可控变量 因为对后续的分析无任何帮助
+            if(var != null && var.isPolluted(-1)){
+                out.put(local, var.deepClone(new ArrayList<>()));
             }
+        });
+
+        in2.forEach((local, var) -> {
+            if(var == null) return;
+            boolean polluted = var.isPolluted(-1);
+            if(!out.containsKey(local) && polluted){
+                out.put(local, var.deepClone(new ArrayList<>()));
+            }else if(out.containsKey(local) && polluted){ // 均可控时，选取老的变量
+                TabbyVariable temp = out.get(local);
+                if(var.equals(temp)) return;
+                if(context.getMaybeLocalMap().containsKey(local)){
+                    Set<TabbyVariable> vars = context.getMaybeLocalMap().get(local);
+                    vars.add(temp.deepClone(new ArrayList<>()));
+                    vars.add(var.deepClone(new ArrayList<>()));
+                    // 历史上出现过相同的情况，取用第一个变量值
+                    out.put(local, (TabbyVariable)vars.toArray()[0]); // 第一个为第一次的in1的支路结果
+                }else{
+                    Set<TabbyVariable> vars = new HashSet<>();
+                    vars.add(temp.deepClone(new ArrayList<>()));
+                    vars.add(var.deepClone(new ArrayList<>()));
+                    context.getMaybeLocalMap().put(local, vars);
+                    // 此时保留in1的结果
+                }
+            }
+            // 如果遇到相同变量，由于当前out集均为可控变量，所以直接采用out集的结果
+            // 也就是默认采用in1支路的运行结果
+            // 这里会存在一些问题，比如可能因为in2支路的污点情况，丢失后续的相关路径
+            // 但tabby做近似处理，暂不考虑这个情况
         });
     }
 

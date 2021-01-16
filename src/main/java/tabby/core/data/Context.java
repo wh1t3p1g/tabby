@@ -26,6 +26,7 @@ public class Context {
     private int depth; // 当前函数调用深度，限制无限循环的情况
     // 经过flowThough 函数时，拷贝 in集合
     private Map<Local, TabbyVariable> localMap;
+    private Map<Local, Set<TabbyVariable>> maybeLocalMap = new HashMap<>();
     private Map<Value, TabbyVariable> globalMap = new HashMap<>();
     // return 后需要修改的内容,主要针对入参的修正
     // 比如 param-0:clear 表示当前的函数参数param0的可控状态清楚
@@ -34,6 +35,7 @@ public class Context {
     // 用于return给当前
     private TabbyVariable returnVar;
     private boolean isHeadMethodContext = false;
+    private String topMethodSignature;
 
     public Context(){
         this.localMap = new HashMap<>();
@@ -41,6 +43,7 @@ public class Context {
 
     public Context(String methodSignature, Context preContext, int depth) {
         this.methodSignature = methodSignature;
+        this.topMethodSignature = methodSignature;
         this.depth = depth;
         this.preContext = preContext;
         this.localMap = new HashMap<>();
@@ -56,6 +59,7 @@ public class Context {
     public Context createSubContext(String methodSignature) {
         Context subContext = new Context(methodSignature, this,depth + 1);
         subContext.setGlobalMap(globalMap); // 同步所有globalmap
+        subContext.setTopMethodSignature(topMethodSignature);
         return subContext;
     }
 
@@ -158,5 +162,6 @@ public class Context {
 
     public void clear(){
         globalMap.clear();
+        maybeLocalMap.clear();
     }
 }

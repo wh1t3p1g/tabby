@@ -92,9 +92,6 @@ public class Switcher {
 
         if(!flag) return null; // baseVar，入参均不可控，返回值必不可控，无需做分析
 
-//        if(baseVar == null){
-//            baseVar = TabbyVariable.makeRandomInstance();
-//        }
         // do method call back actions
         SootClass cls = invokeExpr.getMethod().getDeclaringClass();
         SootMethod method = invokeExpr.getMethod();

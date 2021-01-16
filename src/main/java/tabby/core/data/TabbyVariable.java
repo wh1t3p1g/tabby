@@ -38,7 +38,6 @@ public class TabbyVariable {
     // arrays
     private Map<Integer, TabbyVariable> elements = new HashMap<>();
 
-
     private TabbyVariable(){
         uuid = UUID.randomUUID().toString();
     }
@@ -248,6 +247,7 @@ public class TabbyVariable {
         if(m.find()){
             String classname = m.group(1);
             String fieldname = m.group(3);
+            classname = classname.replace("'", "");// 处理'
             fieldname = fieldname.replace("'",""); // 处理'
             SootClass cls = Scene.v().getSootClass(classname);
             try{
