@@ -12,7 +12,7 @@ TABBY是一款针对Java语言的静态代码分析工具。
 它使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为语义提取工具，将JAR文件转化为代码属性图。
 并使用 [Neo4j](https://neo4j.com/) 图数据库来存储生成的代码属性图CPG。
 
-## #1 How To Use
+## #1 使用方法
 
 使用Tabby需要有以下环境：
 - JDK8的环境
@@ -36,9 +36,7 @@ TABBY是一款针对Java语言的静态代码分析工具。
 
 - [现有利用链覆盖]()
 - CVE-xxx
-
-#### 子项目
-Java反序列化利用框架[ysomap](https://github.com/wh1t3p1g/ysomap)
+- 子项目： Java反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 
 ## #4 问题
 
