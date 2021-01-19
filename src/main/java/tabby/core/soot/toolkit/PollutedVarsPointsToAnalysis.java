@@ -99,20 +99,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         stmtSwitcher.setDataContainer(dataContainer);
         d.apply(stmtSwitcher);
         out.putAll(context.getLocalMap());
-        // 考虑以下几种情况： sable thesis 2003 36页
-        //      assignment statement p = q;
-        //      Identity statement p := @this checked
-        //      Allocation statement p = new java.lang.String, p = newarray (int)[12]
-        //      field store p.f = q
-        //      field load p.f = q
-        //      static field store Class.field = q
-        //      static field load p = Class.field
-        //      array store p[i] = q
-        //      array load p = q[i]
-        //      cast statement p = (T) q
-        //      invocation statement
-        //      return statement
-        //      throw statement
+
     }
 
     @Override

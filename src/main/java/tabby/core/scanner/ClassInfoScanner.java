@@ -212,7 +212,6 @@ public class ClassInfoScanner {
     public void save(){
         log.info("Save remained data to graphdb. START!");
         dataContainer.save("class");
-//        dataContainer.check("method", false);
         dataContainer.save("has");
         dataContainer.save("alias");
         dataContainer.save("extend");
