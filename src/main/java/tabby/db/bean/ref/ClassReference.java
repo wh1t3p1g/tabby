@@ -19,7 +19,6 @@ import java.util.*;
 @Data
 @Entity
 @Table(name = "classes")
-//@NodeEntity(label="Class")
 public class ClassReference {
 
     @Id
@@ -48,7 +47,7 @@ public class ClassReference {
     /**
      * 继承边
      */
-    @Transient // for mongodb
+    @Transient
     @Relationship(type="EXTEND")
     private transient Extend extendEdge = null;
 
@@ -56,7 +55,7 @@ public class ClassReference {
      * 类成员函数 has边
      * Object A has Method B
      */
-    @Transient // for mongodb
+    @Transient
     @Relationship(type="HAS", direction = "UNDIRECTED")
     private transient List<Has> hasEdge = new ArrayList<>();
 
@@ -66,7 +65,7 @@ public class ClassReference {
      * A -[:INTERFACE]-> B
      * B -[:INTERFACE]-> A
      */
-    @Transient // for mongodb
+    @Transient
     @Relationship(type="INTERFACE", direction = "UNDIRECTED")
     private transient Set<Interfaces> interfaceEdge = new HashSet<>();
 
@@ -76,7 +75,6 @@ public class ClassReference {
         classRef.setName(name);
         classRef.setInterfaces(new ArrayList<>());
         classRef.setFields(new HashSet<>());
-//        classRef.setAnnotations(new HashSet<>());
         return classRef;
     }
 

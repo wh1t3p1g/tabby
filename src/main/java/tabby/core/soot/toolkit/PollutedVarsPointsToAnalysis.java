@@ -19,9 +19,8 @@ import tabby.db.bean.ref.MethodReference;
 import java.util.*;
 
 /**
- * 流不敏感指针分析 may alias analysis
+ * May alias analysis
  * 主要工作：维护一个当前Unit之前以及之后的变量状态，提供给可控变量分析
- * 工作阶段：位于sinks开始的后向调用分析，前置已存在相应的函数表
  * @author wh1t3P1g
  * @since 2020/11/24
  */
@@ -130,11 +129,8 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
                     out.put(local, in1Var.deepClone(new ArrayList<>()));
                 }
             }
-
-            // 如果遇到相同变量，由于当前out集均为可控变量，所以直接采用out集的结果
-            // 也就是默认采用in1支路的运行结果
-            // 这里会存在一些问题，比如可能因为in2支路的污点情况，丢失后续的相关路径
-            // 但tabby做近似处理，暂不考虑这个情况
+            // 存在什么问题？
+            // 对于两者皆可控的情况，我们舍弃其中一方都会导致后续路径污点的丢失
         });
     }
 
@@ -146,16 +142,6 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
             TabbyVariable variable = entry.getValue();
             dest.put(value, variable.deepClone(new ArrayList<>()));
         }
-    }
-
-    public void clean(Map<Local, TabbyVariable> localMap){
-        Map<Local, TabbyVariable> copied = new HashMap<>();
-        copy(localMap, copied);
-        copied.forEach((value, var) -> {
-            if(var == null || !var.containsPollutedVar(new ArrayList<>())){
-                localMap.remove(value);
-            }
-        });
     }
 
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,

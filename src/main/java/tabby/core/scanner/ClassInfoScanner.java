@@ -124,7 +124,6 @@ public class ClassInfoScanner {
             }
         }catch (Exception e){
             // class not found
-//            e.printStackTrace();
         }
         return classRef;
     }

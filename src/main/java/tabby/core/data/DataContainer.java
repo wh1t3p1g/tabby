@@ -265,7 +265,7 @@ public class DataContainer {
 
     public void save2Neo4j(){
         log.info("Save cache to Neo4j.");
-        classRefService.clear(); // TODO 初始化图数据库 正式版去掉
+        classRefService.clear();
         methodRefService.importMethodRef();
         classRefService.importClassRef();
         classRefService.buildEdge();

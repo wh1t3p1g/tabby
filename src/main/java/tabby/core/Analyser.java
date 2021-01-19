@@ -89,6 +89,10 @@ public class Analyser {
                 , TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - start));
     }
 
+    /**
+     * 这里提取的是jdk8版本下的jre信息
+     * @return jre
+     */
     public Map<String, String> getJdkDependencies(){
         String javaHome = System.getProperty("java.home");
         String[] jre = new String[]{"lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
@@ -103,15 +107,6 @@ public class Analyser {
         }
         log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
         return exists;
-    }
-
-    private void setClassPath(List<String> targets) throws IOException {
-        List<String> exists = (List<String>) getJdkDependencies().values();
-        log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
-        if(targets != null){
-            exists.addAll(targets);
-        }
-        Scene.v().setSootClassPath(String.join(File.pathSeparator, exists));
     }
 
     public void clean(){

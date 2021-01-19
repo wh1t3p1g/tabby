@@ -17,7 +17,6 @@ import java.util.UUID;
  */
 @Getter
 @Setter
-//@RelationshipEntity(type="EXTEND")
 @Entity
 @Table(name = "Extend")
 public class Extend {
@@ -25,11 +24,9 @@ public class Extend {
     @Id
     private String id;
 
-//    @StartNode
     @Convert(converter = ClassRef2StringConverter.class)
     private ClassReference source;
 
-//    @EndNode
     @Convert(converter = ClassRef2StringConverter.class)
     private ClassReference target;
 

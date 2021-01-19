@@ -65,10 +65,6 @@ public class Switcher {
         }catch (RuntimeException e){
             // TODO 无法分析body
             e.printStackTrace();
-            // 这种情况两种处理方式
-            // 1. 根据rule 判断是否是sink函数
-            // 2. 近似处理
-            //      先判断当前args有没有可控的变量，如果有，则直接将left 和 其他参数都置为可控
         }
         return null;
     }

@@ -88,12 +88,6 @@ public class CallGraphScanner {
                 return;
             }
 
-//            if ("<javax.management.BadAttributeValueExpException: void readObject(java.io.ObjectInputStream)>".equals(method.getSignature())) {
-//                System.out.println(1);
-//            }else{
-//                return;
-//            }
-
             log.debug(method.getSignature());
 
             Context context = Context.newInstance(method.getSignature());
@@ -106,7 +100,6 @@ public class CallGraphScanner {
             invokeExprSwitcher.setPta(pta);
             invokeExprSwitcher.setGlobalMap(context.getGlobalMap());
             JimpleBody body = (JimpleBody) method.retrieveActiveBody();
-//            methodRef.setBody(body.toString());
             for(Unit unit: body.getUnits()){
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){

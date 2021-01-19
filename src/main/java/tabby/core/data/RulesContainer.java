@@ -27,7 +27,6 @@ public class RulesContainer {
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
-//        Runtime.getRuntime().addShutdownHook(new Thread(this::saveStatus));
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -58,19 +57,6 @@ public class RulesContainer {
         }
         return false;
     }
-
-    public Map<String, String> getFunctionActions(String classname, String method){
-        if(rules.containsKey(classname)){
-            TabbyRule rule = rules.get(classname);
-            if(rule.contains(method)){
-                TabbyRule.Rule tr = rule.getRule(method);
-                return tr.getActions();
-            }
-        }
-        return null;
-    }
-
-
 
     @SuppressWarnings({"unchecked"})
     private void load() throws FileNotFoundException {

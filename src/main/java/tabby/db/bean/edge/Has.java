@@ -19,7 +19,6 @@ import java.util.UUID;
  */
 @Getter
 @Setter
-//@RelationshipEntity(type="HAS")
 @Entity
 @Table(name = "Has")
 public class Has {
@@ -27,11 +26,9 @@ public class Has {
     @Id
     private String id;
 
-//    @StartNode
     @Convert(converter = ClassRef2StringConverter.class)
     private ClassReference classRef;
 
-//    @EndNode
     @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference methodRef;
 

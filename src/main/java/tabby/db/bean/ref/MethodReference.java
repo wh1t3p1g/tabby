@@ -44,9 +44,6 @@ public class MethodReference {
     @Convert(converter = Set2JsonStringConverter.class)
     private Set<String> parameters = new HashSet<>();
 
-//    @Transient
-//    private String body;
-
     private boolean isSink = false;
     private boolean isSource = false;
     private boolean isStatic = false;
@@ -85,7 +82,6 @@ public class MethodReference {
     @Relationship(type="ALIAS", direction = "UNDIRECTED")
     private transient Alias aliasEdge;
 
-    // TODO 后续添加分析后的数据字段
     public static MethodReference newInstance(String name, String signature){
         MethodReference methodRef = new MethodReference();
         methodRef.setName(name);
@@ -110,7 +106,6 @@ public class MethodReference {
                 methodRef.getParameters().add(GlobalConfiguration.GSON.toJson(param));
             }
         }
-//        methodRef.setCachedMethod(method);
         return methodRef;
     }
 

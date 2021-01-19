@@ -14,14 +14,6 @@ import tabby.core.soot.switcher.Switcher;
 import java.util.ArrayList;
 
 /**
- * 粗略的域敏感分析，遵循以下原则：
- * 单独的InvokeStmt
- *      a.func(b) 如果b为可控变量，a不可控，则置a为可控变量；如果a为可控变量，b不可控，则置b为可控变量
- * AssignStmt类型下的函数调用
- *      a = b.func(c) 如果b、c中存在可控变量，则置a为可控变量
- *      a = b         如果b为可控变量，则a为可控变量
- * 分析过程只保存，是否可控变量(polluted)，以及可控位(this,param-0,param-1,......)
- *
  * @author wh1t3P1g
  * @since 2020/12/12
  */

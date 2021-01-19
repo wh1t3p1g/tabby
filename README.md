@@ -4,9 +4,11 @@
 ![License](https://img.shields.io/badge/License-apache%202-green.svg)
 
 TABBY is a Java Code Analysis Tool based on [Soot](https://github.com/soot-oss/soot). 
+
 It can parse JAR files to CPG (Code Property Graph) based on [Neo4j](https://neo4j.com/).
 
 TABBY是一款针对Java语言的静态代码分析工具。
+
 它使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为语义提取工具，将JAR文件转化为代码属性图。
 并使用 [Neo4j](https://neo4j.com/) 图数据库来存储生成的代码属性图CPG。
 

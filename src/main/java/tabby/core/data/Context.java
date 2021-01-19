@@ -77,7 +77,6 @@ public class Context {
      */
     public TabbyVariable getOrAdd(Value sootValue) {
         TabbyVariable var = null;
-        String valueStr = sootValue.toString();
         if(sootValue instanceof Local){ // find from local map
             var = localMap.get(sootValue);
             if(var == null){ // 新建变量 先从初始表中获取，如果初始表里没有，再新建变量
@@ -108,7 +107,6 @@ public class Context {
                     var = baseVar.getOrAddField(baseVar, sootField);
                     var.setOrigin(ifr);
                 }
-//                    localMap.put((Local) sootValue, var);
             }
         }
         return var;
@@ -143,17 +141,6 @@ public class Context {
             }
         });
         args.put(paramIndex, local);
-    }
-
-    /**
-     * bind是一个重制的过程，修改当前变量的绑定状态
-     * 如 a变量本来对应2个可能Variable，但是一旦调用bind，则原有的2个可能变量被取消
-     * 不存在 只更新2个可能Variable中的某一个
-     * @param local
-     * @param var
-     */
-    public void bindLocalAndVariable(Local local, TabbyVariable var) {
-        localMap.put(local, var);
     }
 
     public void unbind(Value value){

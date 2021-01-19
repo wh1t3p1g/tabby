@@ -17,7 +17,6 @@ import java.util.UUID;
  */
 @Getter
 @Setter
-//@RelationshipEntity(type="ALIAS")
 @Entity
 @Table(name = "Alias")
 public class Alias {
@@ -25,11 +24,9 @@ public class Alias {
     @Id
     private String id;
 
-//    @StartNode
     @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference source;
 
-//    @EndNode
     @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference target;
 

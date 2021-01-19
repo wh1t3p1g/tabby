@@ -19,7 +19,6 @@ import java.util.*;
  */
 @Getter
 @Setter
-//@RelationshipEntity(type="CALL")
 @Entity
 @Table(name = "Call")
 public class Call {
@@ -27,7 +26,6 @@ public class Call {
     @Id
     private String id;
 
-//    @StartNode
     @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference source;
 
@@ -37,7 +35,6 @@ public class Call {
      * 或者直接指向当前的父类的第一个函数
      * 在进行实际检索过程中，可适当进行横向纵向的查找
      */
-//    @EndNode
     @Convert(converter = MethodRef2StringConverter.class)
     private MethodReference target;
 

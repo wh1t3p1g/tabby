@@ -3,7 +3,6 @@ package tabby.config;
 import com.google.gson.Gson;
 
 import java.io.File;
-import java.util.Map;
 
 /**
  * @author wh1t3P1g
