@@ -89,10 +89,12 @@ public class TabbyApplication {
 
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() +
-                        "\nPlease use java -jar tabby target_directory [--isJDKOnly] !" +
+                        "\nPlease use java -jar tabby target_directory [--isJDKOnly｜--isJDKProcess|--isSaveOnly|--excludeJDK] !" +
                         "\ntarget_directory 为相对路径" +
                         "\n--isJDKOnly出现时，仅处理JDK的内容" +
-                        "\nExample: java -jar tabby cases/jars");
+                        "\n--excludeJDK出现时，不添加当前运行jre环境" +
+                        "\n--isJDKProcess出现时，将处理当前运行jre环境的分析" +
+                        "\nExample: java -jar tabby cases/jars --isJDKProcess");
             }
 
         };
