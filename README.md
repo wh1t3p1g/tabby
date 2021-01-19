@@ -99,4 +99,4 @@ https://github.com/Fraunhofer-AISEC/codyze 是否存在参考价值
 4. 直到最后到达source点
 
 
-TODO ： BeanComparator compare 的 alias边没有做好
+TODO ： p_parseComponent 污点丢失

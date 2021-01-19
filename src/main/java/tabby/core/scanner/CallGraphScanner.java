@@ -88,9 +88,9 @@ public class CallGraphScanner {
                 return;
             }
 
-//            if ("<com.thoughtworks.xstream.core.util.ObjectIdDictionary$WeakIdWrapper: void <init>(com.thoughtworks.xstream.core.util.ObjectIdDictionary,java.lang.Object)>".equals(method.getSignature())) {
+//            if ("<javax.management.BadAttributeValueExpException: void readObject(java.io.ObjectInputStream)>".equals(method.getSignature())) {
 //                System.out.println(1);
-//            } else {
+//            }else{
 //                return;
 //            }
 

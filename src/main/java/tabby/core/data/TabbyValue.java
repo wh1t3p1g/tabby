@@ -10,7 +10,6 @@ import soot.Type;
 import soot.Value;
 
 import java.io.Serializable;
-import java.util.Date;
 import java.util.UUID;
 
 /**
@@ -34,7 +33,6 @@ public class TabbyValue implements Serializable {
     private boolean isPolluted = false;
     // polluted positions like param-0,param-1,field-name1,this
     private String relatedType = null;
-    private Date date = new Date(System.currentTimeMillis());
 
     public TabbyValue(){
         uuid = UUID.randomUUID();
@@ -80,10 +78,6 @@ public class TabbyValue implements Serializable {
         return false;
     }
 
-    public boolean before(TabbyValue value){
-        return date.before(value.getDate());
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -92,11 +86,20 @@ public class TabbyValue implements Serializable {
 
         TabbyValue that = (TabbyValue) o;
 
-        return new EqualsBuilder().append(isArray, that.isArray).append(isField, that.isField).append(isStatic, that.isStatic).append(isPolluted, that.isPolluted).append(type, that.type).append(typeName, that.typeName).append(relatedType, that.relatedType).isEquals();
+        return new EqualsBuilder()
+                .append(isArray, that.isArray)
+                .append(isField, that.isField)
+                .append(isStatic, that.isStatic)
+                .append(isPolluted, that.isPolluted)
+                .append(type, that.type).append(typeName, that.typeName)
+                .append(relatedType, that.relatedType).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(type).append(typeName).append(isArray).append(isField).append(isStatic).append(isPolluted).append(relatedType).toHashCode();
+        return new HashCodeBuilder(17, 37)
+                .append(type).append(typeName).append(isArray)
+                .append(isField).append(isStatic).append(isPolluted)
+                .append(relatedType).toHashCode();
     }
 }

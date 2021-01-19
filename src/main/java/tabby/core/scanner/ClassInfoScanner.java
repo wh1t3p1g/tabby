@@ -63,7 +63,7 @@ public class ClassInfoScanner {
             if(sootMethod == null)return;
             SootMethodRef sootMethodRef = sootMethod.makeRef();
             MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-            if(targetRef != null){
+            if(targetRef != null && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")){
                 Alias alias = Alias.newInstance(sourceRef, targetRef);
                 sourceRef.setAliasEdge(alias);
                 dataContainer.store(alias);

@@ -4,7 +4,6 @@ import lombok.Getter;
 import lombok.Setter;
 import soot.Local;
 import soot.PrimType;
-import soot.SootField;
 import soot.Value;
 import soot.jimple.ArrayRef;
 import soot.jimple.InstanceFieldRef;
@@ -83,19 +82,13 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
      * @param v
      */
     public void caseInstanceFieldRef(InstanceFieldRef v) {
-        SootField sootField = v.getField();
-        Value base = v.getBase();
-        if(sootField.getType() instanceof PrimType) return; // 提出无用的类属性传递 是否需要剔除static类型？
+        if(v.getField().getType() instanceof PrimType) return; // 提出无用的类属性传递 是否需要剔除static类型？
+        TabbyVariable fieldVar = context.getOrAdd(v);
 
-        if(base instanceof Local){
-            TabbyVariable baseVar = context.getOrAdd(base);
-            TabbyVariable fieldVar = baseVar.getOrAddField(baseVar, sootField);
-            generateAction(fieldVar, rvar, -1, unbind);
-            if(unbind){
-                fieldVar.clearVariableStatus();
-            }else{
-                fieldVar.assign(rvar, false);
-            }
+        if(unbind){
+            fieldVar.clearVariableStatus();
+        }else{
+            fieldVar.assign(rvar, false);
         }
     }
 

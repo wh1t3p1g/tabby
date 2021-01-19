@@ -70,6 +70,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
                     TabbyVariable fieldVar = baseVar.getField(sootField.getSignature());
                     if(fieldVar == null){
                         fieldVar = TabbyVariable.makeFieldInstance(baseVar, sootField);
+                        fieldVar.setOrigin(value);
                         baseVar.addField(sootField.getSignature(), fieldVar);
                     }
                 }
@@ -122,38 +123,27 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected void merge(Map<Local, TabbyVariable> in1, Map<Local, TabbyVariable> in2, Map<Local, TabbyVariable> out) {
-        // TODO 修正
+        // if else while 分支汇聚的时候 对结果集进行处理 交集
         out.clear();
 
-        in1.forEach((local, var) -> {
-            // 筛选出所有的可控变量，剔除不可控变量 因为对后续的分析无任何帮助
-            if(var != null && var.isPolluted(-1)){
-                out.put(local, var.deepClone(new ArrayList<>()));
-            }
-        });
-
-        in2.forEach((local, var) -> {
-            if(var == null) return;
-            boolean polluted = var.isPolluted(-1);
-            if(!out.containsKey(local) && polluted){
-                out.put(local, var.deepClone(new ArrayList<>()));
-            }else if(out.containsKey(local) && polluted){ // 均可控时，选取老的变量
-                TabbyVariable temp = out.get(local);
-                if(var.equals(temp)) return;
-                if(context.getMaybeLocalMap().containsKey(local)){
-                    Set<TabbyVariable> vars = context.getMaybeLocalMap().get(local);
-                    vars.add(temp.deepClone(new ArrayList<>()));
-                    vars.add(var.deepClone(new ArrayList<>()));
-                    // 历史上出现过相同的情况，取用第一个变量值
-                    out.put(local, (TabbyVariable)vars.toArray()[0]); // 第一个为第一次的in1的支路结果
+        in2.forEach((local, in2Var) -> {// 取交集
+            TabbyVariable in1Var = in1.get(local);
+            if(in1Var != null){
+                boolean in1VarPolluted = in1Var.containsPollutedVar(new ArrayList<>());
+                boolean in2VarPolluted = in2Var.containsPollutedVar(new ArrayList<>());
+                if(in1VarPolluted){
+                    // 1. in1可控 in2不可控
+                    // 2. in1可控 in2可控 优先选择in1
+                    out.put(local, in1Var.deepClone(new ArrayList<>()));
+                }else if(in2VarPolluted){
+                    // 3. in1不可控 in2可控
+                    out.put(local, in2Var.deepClone(new ArrayList<>()));
                 }else{
-                    Set<TabbyVariable> vars = new HashSet<>();
-                    vars.add(temp.deepClone(new ArrayList<>()));
-                    vars.add(var.deepClone(new ArrayList<>()));
-                    context.getMaybeLocalMap().put(local, vars);
-                    // 此时保留in1的结果
+                    // 4. in1 in2 不可控 优先选择in1
+                    out.put(local, in1Var.deepClone(new ArrayList<>()));
                 }
             }
+
             // 如果遇到相同变量，由于当前out集均为可控变量，所以直接采用out集的结果
             // 也就是默认采用in1支路的运行结果
             // 这里会存在一些问题，比如可能因为in2支路的污点情况，丢失后续的相关路径
@@ -164,8 +154,20 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     @Override
     protected void copy(Map<Local, TabbyVariable> source, Map<Local, TabbyVariable> dest) {
         dest.clear();
-        source.forEach((local, variable) -> {
-            dest.put(local, variable.deepClone(new ArrayList<>()));
+        for (Map.Entry<Local, TabbyVariable> entry : source.entrySet()) {
+            Local value = entry.getKey();
+            TabbyVariable variable = entry.getValue();
+            dest.put(value, variable.deepClone(new ArrayList<>()));
+        }
+    }
+
+    public void clean(Map<Local, TabbyVariable> localMap){
+        Map<Local, TabbyVariable> copied = new HashMap<>();
+        copy(localMap, copied);
+        copied.forEach((value, var) -> {
+            if(var == null || !var.containsPollutedVar(new ArrayList<>())){
+                localMap.remove(value);
+            }
         });
     }
 

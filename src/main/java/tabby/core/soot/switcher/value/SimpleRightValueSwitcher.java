@@ -2,7 +2,6 @@ package tabby.core.soot.switcher.value;
 
 import lombok.extern.slf4j.Slf4j;
 import soot.Local;
-import soot.SootField;
 import soot.Value;
 import soot.jimple.*;
 import tabby.config.GlobalConfiguration;
@@ -95,13 +94,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     @Override
     public void caseInstanceFieldRef(InstanceFieldRef v) {
-        TabbyVariable var = null;
-        SootField sootField = v.getField();
-        Value base = v.getBase();
-        if(base instanceof Local){
-            TabbyVariable baseVar = context.getOrAdd(base);
-            var = baseVar.getOrAddField(baseVar, sootField);
-        }
+        TabbyVariable var = context.getOrAdd(v);
         setResult(var);
     }
 

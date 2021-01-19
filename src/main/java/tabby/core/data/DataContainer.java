@@ -184,25 +184,31 @@ public class DataContainer {
         while(tmpCls.hasSuperclass()){
             SootClass superCls = tmpCls.getSuperclass();
             target = findMethodRef(superCls, sootMethodRef.getSubSignature());
+            if(target == null){
+                target = findMethodRef(superCls, sootMethodRef);
+            }
             if(target != null){
                 return target;
             }
             tmpCls = superCls;
         }
         if(cls.getInterfaceCount() > 0){
-            return findMethodRefFromInterfaces(cls, sootMethodRef.getSubSignature());
+            return findMethodRefFromInterfaces(cls, sootMethodRef);
         }
         return null;
     }
 
-    private MethodReference findMethodRefFromInterfaces(SootClass cls, NumberedString subSignature){
+    private MethodReference findMethodRefFromInterfaces(SootClass cls, SootMethodRef sootMethodRef){
         MethodReference target = null;
         for(SootClass interCls:cls.getInterfaces()){
-            target = findMethodRef(interCls, subSignature);
+            target = findMethodRef(interCls, sootMethodRef.getSubSignature());
+            if(target == null){// try to get method using method name
+                target = findMethodRef(interCls, sootMethodRef);
+            }
             if(target != null){
                 return target;
             }else if(interCls.getInterfaceCount() > 0){
-                target = findMethodRefFromInterfaces(interCls, subSignature);
+                target = findMethodRefFromInterfaces(interCls, sootMethodRef);
                 if(target != null){
                     return target;
                 }
@@ -217,6 +223,28 @@ public class DataContainer {
             return getMethodRefBySignature(cls.getName(), targetMethod.getName(), targetMethod.getSignature());
         }catch (RuntimeException e){
             // 当前类没找到函数，继续往父类找
+        }
+        return null;
+    }
+
+    private MethodReference findMethodRef(SootClass cls, SootMethodRef sootMethodRef){
+
+        try{
+            SootMethod method = cls.getMethodByName(sootMethodRef.getName());
+            return getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
+        }catch (RuntimeException e){
+            // 找到了多个名字为methodName的函数
+            try{
+                SootMethod target = sootMethodRef.resolve();
+                for(SootMethod method:cls.getMethods()){// 对找到的第一个符合条件的函数进行返回
+                    if(sootMethodRef.getName().equals(method.getName()) && target.getParameterCount() == method.getParameterCount()){
+                        return getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
+                    }
+                }
+            }catch (Exception ignored){
+
+            }
+
         }
         return null;
     }

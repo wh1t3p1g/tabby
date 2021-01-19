@@ -2,10 +2,15 @@ package tabby.core.data;
 
 import lombok.Data;
 import soot.Local;
+import soot.SootField;
 import soot.Value;
+import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * 函数的域表示
@@ -72,6 +77,7 @@ public class Context {
      */
     public TabbyVariable getOrAdd(Value sootValue) {
         TabbyVariable var = null;
+        String valueStr = sootValue.toString();
         if(sootValue instanceof Local){ // find from local map
             var = localMap.get(sootValue);
             if(var == null){ // 新建变量 先从初始表中获取，如果初始表里没有，再新建变量
@@ -90,6 +96,19 @@ public class Context {
             if(var == null){
                 var = TabbyVariable.makeStaticFieldInstance((StaticFieldRef) sootValue);
                 globalMap.put(sootValue, var);
+            }
+        }else if(sootValue instanceof InstanceFieldRef){
+            InstanceFieldRef ifr = (InstanceFieldRef) sootValue;
+            SootField sootField = ifr.getField();
+            Value base = ifr.getBase();
+            if(base instanceof Local){
+                TabbyVariable baseVar = getOrAdd(base);
+                var = baseVar.getField(sootField.getSignature());
+                if(var == null){
+                    var = baseVar.getOrAddField(baseVar, sootField);
+                    var.setOrigin(ifr);
+                }
+//                    localMap.put((Local) sootValue, var);
             }
         }
         return var;

@@ -202,8 +202,13 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
                 var = var.getField(sootField.getSignature());
             }
         }
-        if(var != null && var.isPolluted(-1)){
-            String related = var.getValue().getRelatedType();
+        if(var != null){
+            String related = null;
+            if(var.isPolluted(-1)){ // var本身是pollted的情况
+                related = var.getValue().getRelatedType();
+            }else if(var.containsPollutedVar(new ArrayList<>())){ // 当前var的类属性，element元素是polluted的情况
+                related = var.getFirstPollutedVarRelatedType();
+            }
             if(related != null){
                 if(related.startsWith("this")){
                     return -1;

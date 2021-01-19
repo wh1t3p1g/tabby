@@ -15,6 +15,7 @@ import tabby.core.data.TabbyVariable;
 import tabby.core.soot.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.db.bean.ref.MethodReference;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -80,11 +81,11 @@ public class Switcher {
         TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context); // 调用对象
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参 baseVar是否可控
-        boolean flag = baseVar != null && baseVar.containsPollutedVar();
+        boolean flag = baseVar != null && baseVar.containsPollutedVar(new ArrayList<>());
 
 
         for(TabbyVariable var: args.values()){
-            if(var != null && var.containsPollutedVar()){
+            if(var != null && var.containsPollutedVar(new ArrayList<>())){
                 flag = true;
                 break;
             }

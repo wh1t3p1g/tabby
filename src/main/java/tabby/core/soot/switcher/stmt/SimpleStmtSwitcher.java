@@ -11,6 +11,8 @@ import tabby.config.GlobalConfiguration;
 import tabby.core.data.TabbyVariable;
 import tabby.core.soot.switcher.Switcher;
 
+import java.util.ArrayList;
+
 /**
  * 粗略的域敏感分析，遵循以下原则：
  * 单独的InvokeStmt
@@ -100,7 +102,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         TabbyVariable var = null;
         // 近似处理 只要有一种return的情况是可控的，就认为函数返回是可控的
         // 并结算当前的入参区别
-        if(context.getReturnVar() != null && context.getReturnVar().containsPollutedVar()) return;
+        if(context.getReturnVar() != null && context.getReturnVar().containsPollutedVar(new ArrayList<>())) return;
         rightValueSwitcher.setContext(context);
         rightValueSwitcher.setDataContainer(dataContainer);
         rightValueSwitcher.setResult(null);

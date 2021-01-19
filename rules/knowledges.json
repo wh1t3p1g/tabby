@@ -46,6 +46,9 @@
   {"name":"java.rmi.registry.Registry", "rules": [
     {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
   ]},
+  {"name":"com.sun.jndi.ldap", "rules": [
+    {"function": "c_lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
+  ]},
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
@@ -75,10 +78,6 @@
   {"name":"javax.activation.DataSource", "rules": [
     {"function": "getInputStream", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<javax.activation.DataSource: java.io.InputStream getInputStream()>"]},
     {"function": "getOutputStream", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<javax.activation.DataSource: java.io.OutputStream getOutputStream()>"]}
-  ]},
-  {"name": "java.io.ObjectInputStream", "rules": [
-    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: java.io.ObjectInputStream$GetField readFields()>"]},
-    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void <init>(java.io.InputStream)>"]}
   ]},
   {"name": "java.util.Collections$CheckedMap$CheckedEntrySet", "rules": [
     {"function": "iterator", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.util.Collections$CheckedMap$CheckedEntrySet: java.util.Iterator iterator()>"]}
@@ -139,7 +138,9 @@
     {"function": "get", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream$GetField: java.lang.Object get(java.lang.String,java.lang.Object)>","<java.io.ObjectInputStream$GetField: int get(java.lang.String,int)>","<java.io.ObjectInputStream$GetField: boolean get(java.lang.String,boolean)>","<java.io.ObjectInputStream$GetField: byte get(java.lang.String,byte)>","<java.io.ObjectInputStream$GetField: char get(java.lang.String,char)>","<java.io.ObjectInputStream$GetField: long get(java.lang.String,long)>"]}
   ]},
   {"name": "java.io.ObjectInputStream", "rules": [
-    {"function": "defaultReadObject", "type": "know", "actions": {}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void defaultReadObject()>"]}
+    {"function": "defaultReadObject", "type": "know", "actions": {}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void defaultReadObject()>"]},
+    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: java.io.ObjectInputStream$GetField readFields()>"]},
+    {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void <init>(java.io.InputStream)>"]}
   ]},
   {"name":"java.io.File", "rules": [
     {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.File: void <init>(java.net.URI)>","<java.io.File: void <init>(java.lang.String,java.lang.String)>","<java.io.File: void <init>(java.lang.String,int)>","<java.io.File: void <init>(java.lang.String)>","<java.io.File: void <init>(java.lang.String,java.io.File)>","<java.io.File: void <init>(java.io.File,java.lang.String)>"]},

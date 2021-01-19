@@ -32,6 +32,7 @@ public class TabbyVariable {
     // 后续会改变的是，当前参数的value
     private TabbyValue value = null;
     private TabbyVariable owner = null;
+    private String firstPollutedVarRelatedType = null;
 
     // fields
     private Map<String, TabbyVariable> fieldMap = new HashMap<>();
@@ -62,21 +63,14 @@ public class TabbyVariable {
 
     public static TabbyVariable makeLocalInstance(Local local){
         TabbyValue tabbyValue = TabbyValue.newInstance(local);
-        TabbyVariable tabbyVariable = new TabbyVariable(local, tabbyValue);
-        if(!(local.getType() instanceof PrimType) && !(local.getType() instanceof ArrayType)){
-            SootClass cls = ((RefType)local.getType()).getSootClass();
-            for(SootField sootField:cls.getFields()){// construct fields
-                TabbyVariable fieldVar = makeFieldInstance(null, sootField);
-                fieldVar.setOwner(tabbyVariable);
-                tabbyVariable.fieldMap.put(sootField.getSignature(), fieldVar);
-            }
-        }
-        return tabbyVariable;
+        return new TabbyVariable(local, tabbyValue);
     }
 
     public static TabbyVariable makeStaticFieldInstance(StaticFieldRef staticFieldRef){
         SootField sootField = staticFieldRef.getField();
-        return makeFieldInstance(null, sootField);
+        TabbyVariable field = makeFieldInstance(null, sootField);
+        field.setOrigin(staticFieldRef);
+        return field;
     }
 
     public static TabbyVariable makeFieldInstance(TabbyVariable baseVar, SootField sootField){
@@ -170,18 +164,26 @@ public class TabbyVariable {
         }
     }
 
-    public boolean containsPollutedVar(){
+    public boolean containsPollutedVar(List<TabbyVariable> queue){
+        if(queue.contains(this)){
+            return value.isPolluted();
+        }else{
+            queue.add(this);
+        }
         if(value.isPolluted()){
+            firstPollutedVarRelatedType = value.getRelatedType();
             return true;
         }else if(elements != null && elements.size() >0){
             for(TabbyVariable element:elements.values()){
-                if(element.isPolluted(-1)){
+                if(element.containsPollutedVar(queue)){
+                    firstPollutedVarRelatedType = element.getFirstPollutedVarRelatedType();
                     return true;
                 }
             }
         }else if(fieldMap != null && fieldMap.size() >0){
             for(TabbyVariable field:fieldMap.values()){
-                if(field.isPolluted(-1)){
+                if(field.containsPollutedVar(queue)){
+                    firstPollutedVarRelatedType = field.getFirstPollutedVarRelatedType();
                     return true;
                 }
             }
@@ -317,36 +319,6 @@ public class TabbyVariable {
         return clonedVar;
     }
 
-    public void union(TabbyVariable var){
-        TabbyVariable clonedVar = var.deepClone(new ArrayList<>());
-        Map<Integer, TabbyVariable> newElements = new HashMap<>(elements);
-        Map<String, TabbyVariable> newFieldMap = new HashMap<>(fieldMap);
-
-        if(!isPolluted(-1) && clonedVar.isPolluted(-1)){
-            value = clonedVar.getValue();
-        }
-
-        elements = union(clonedVar.getElements(), newElements);
-        fieldMap = union(clonedVar.getFieldMap(), newFieldMap);
-    }
-
-    public static <T> Map<T, TabbyVariable> union(Map<T, TabbyVariable> oldMap, Map<T, TabbyVariable> newMap){
-        oldMap.forEach((key, value) -> {
-            if(newMap.containsKey(key) && value != null){
-                TabbyVariable temp = newMap.get(key);
-                if(temp == null) return;
-                if(!temp.containsPollutedVar() && value.containsPollutedVar()){
-                    newMap.put(key, value);
-                }else if(temp.containsPollutedVar() && value.containsPollutedVar()){
-                    temp.union(value);
-                }
-            }else{
-                newMap.put(key, value);
-            }
-        });
-        return newMap;
-    }
-
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -355,11 +327,70 @@ public class TabbyVariable {
 
         TabbyVariable that = (TabbyVariable) o;
 
-        return new EqualsBuilder().append(isThis, that.isThis).append(isParam, that.isParam).append(paramIndex, that.paramIndex).append(name, that.name).append(origin, that.origin).append(value, that.value).isEquals();
+        if(elements.size() != that.elements.size()) return false;
+        if(fieldMap.size() != that.fieldMap.size()) return false;
+
+        EqualsBuilder builder = new EqualsBuilder()
+                .append(isThis, that.isThis)
+                .append(isParam, that.isParam)
+                .append(paramIndex, that.paramIndex)
+                .append(name, that.name)
+                .append(origin, that.origin)
+                .append(value, that.value);
+
+        if(!builder.isEquals()) return false;
+
+        for(Map.Entry<Integer, TabbyVariable> entry:elements.entrySet()){
+            if(!equals(entry.getValue(), that.elements.get(entry.getKey()))){
+                return false;
+            }
+        }
+
+        for(Map.Entry<String, TabbyVariable> entry:fieldMap.entrySet()){
+            if(!equals(entry.getValue(), that.fieldMap.get(entry.getKey()))){
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public boolean equals(TabbyVariable var1, TabbyVariable var2){// 只检查一层
+        if(var1 == var2) return true;
+
+        if(var1 == null || var2 == null) return false;
+
+        EqualsBuilder builder = new EqualsBuilder()
+                .append(var1.isThis, var2.isThis)
+                .append(var1.isParam, var2.isParam)
+                .append(var1.paramIndex, var2.paramIndex)
+                .append(var1.name, var2.name)
+                .append(var1.origin, var2.origin)
+                .append(var1.value, var2.value);
+
+        return builder.isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(name).append(origin).append(isThis).append(isParam).append(paramIndex).append(value).toHashCode();
+        HashCodeBuilder builder = new HashCodeBuilder(17, 37)
+                .append(name).append(origin).append(isThis)
+                .append(isParam).append(paramIndex).append(value);
+
+        for(TabbyVariable element:elements.values()){ // 只检查一层
+            builder.append(element.name).append(element.origin)
+                    .append(element.isThis).append(element.isParam)
+                    .append(element.paramIndex).append(element.value);
+        }
+
+        for(TabbyVariable field:fieldMap.values()){ // 只检查一层
+            builder.append(field.name).append(field.origin)
+                    .append(field.isThis).append(field.isParam)
+                    .append(field.paramIndex).append(field.value);
+        }
+
+        return builder.toHashCode();
     }
+
+
 }
