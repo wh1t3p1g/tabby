@@ -114,7 +114,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             call.setRealCallType(classname);
             call.setInvokerType(invokerType);
             call.setPolluted(isPolluted);
-            call.setPollutedPosition(new HashSet<>(pollutedPosition));
+            call.setPollutedPosition(new ArrayList<>(pollutedPosition));
             call.setUnit(unit);
             call.setLineNum(unit.getJavaSourceStartLineNumber());
             source.getCallEdge().add(call);

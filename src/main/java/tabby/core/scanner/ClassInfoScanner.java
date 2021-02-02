@@ -167,9 +167,9 @@ public class ClassInfoScanner {
 
         if (rule != null) {
             Map<String, String> actions = rule.getActions();
-            Set<Integer> polluted = rule.getPolluted();
+            List<Integer> polluted = rule.getPolluted();
             methodRef.setActions(actions!=null?actions:new HashMap<>());
-            methodRef.setPollutedPosition(polluted!=null?polluted:new HashSet<>());
+            methodRef.setPollutedPosition(polluted!=null?polluted:new ArrayList<>());
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
         }

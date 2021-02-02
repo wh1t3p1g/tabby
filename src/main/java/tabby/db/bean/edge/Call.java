@@ -7,11 +7,13 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import soot.Unit;
 import soot.Value;
 import tabby.db.bean.ref.MethodReference;
+import tabby.db.converter.ListInteger2JsonStringConverter;
 import tabby.db.converter.MethodRef2StringConverter;
-import tabby.db.converter.SetInteger2JsonStringConverter;
 
 import javax.persistence.*;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 /**
  * @author wh1t3P1g
@@ -58,8 +60,8 @@ public class Call {
      *                  a可控，则填充0
      */
     @Column(length = 1000)
-    @Convert(converter = SetInteger2JsonStringConverter.class)
-    private Set<Integer> pollutedPosition = new HashSet<>();
+    @Convert(converter = ListInteger2JsonStringConverter.class)
+    private List<Integer> pollutedPosition = new ArrayList<>();
     private boolean isPolluted = false;
 
     public static Call newInstance(MethodReference source, MethodReference target){

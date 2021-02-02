@@ -9,9 +9,9 @@ import soot.SootMethod;
 import tabby.config.GlobalConfiguration;
 import tabby.db.bean.edge.Alias;
 import tabby.db.bean.edge.Call;
+import tabby.db.converter.ListInteger2JsonStringConverter;
 import tabby.db.converter.Map2JsonStringConverter;
 import tabby.db.converter.Set2JsonStringConverter;
-import tabby.db.converter.SetInteger2JsonStringConverter;
 
 import javax.persistence.*;
 import java.util.*;
@@ -68,8 +68,8 @@ public class MethodReference {
     @Convert(converter = Map2JsonStringConverter.class)
     private Map<String, String> actions = new HashMap<>();
 
-    @Convert(converter = SetInteger2JsonStringConverter.class)
-    private Set<Integer> pollutedPosition = new HashSet<>();
+    @Convert(converter = ListInteger2JsonStringConverter.class)
+    private List<Integer> pollutedPosition = new ArrayList<>();
 
     @org.springframework.data.annotation.Transient
     @Relationship(type="CALL")

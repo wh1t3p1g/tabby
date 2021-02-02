@@ -5,7 +5,6 @@ import lombok.Data;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 
 /**
  * @author wh1t3P1g
@@ -43,7 +42,7 @@ public class TabbyRule {
         private String function;
         private String type;
         private Map<String, String> actions;
-        private Set<Integer> polluted;
+        private List<Integer> polluted;
         private List<String> signatures;
 
         public Rule() {
@@ -69,7 +68,7 @@ public class TabbyRule {
             return actions;
         }
 
-        public Set<Integer> getPolluted(){
+        public List<Integer> getPolluted(){
             return polluted;
         }
 

@@ -1,9 +1,11 @@
-# TABBY
+# tabby-release
 ![Platforms](https://img.shields.io/badge/Platforms-OSX-green.svg)
 ![Java version](https://img.shields.io/badge/Java-8%2b-blue.svg)
 ![License](https://img.shields.io/badge/License-apache%202-green.svg)
 
-TABBY is a Java Code Analysis Tool based on [Soot](https://github.com/soot-oss/soot). 
+A repository with tabby releases
+
+TABBY is a Java Code Analysis Tool based on [Soot](https://github.com/soot-oss/soot).
 
 It can parse JAR files to CPG (Code Property Graph) based on [Neo4j](https://neo4j.com/).
 
