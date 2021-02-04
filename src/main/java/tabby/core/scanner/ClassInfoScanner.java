@@ -52,26 +52,6 @@ public class ClassInfoScanner {
         log.info("Collect "+classes.size()+" classes information. DONE!");
     }
 
-    public static void makeAliasRelation(ClassReference ref, DataContainer dataContainer){
-        if(ref == null)return;
-        // build alias relationship
-        if(ref.getHasEdge() == null) return;
-
-        ref.getHasEdge().forEach(has -> {
-            MethodReference sourceRef = has.getMethodRef();
-            SootMethod sootMethod = sourceRef.getMethod();
-            if(sootMethod == null)return;
-            SootMethodRef sootMethodRef = sootMethod.makeRef();
-            MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-            if(targetRef != null && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")){
-                Alias alias = Alias.newInstance(sourceRef, targetRef);
-                sourceRef.setAliasEdge(alias);
-                dataContainer.store(alias);
-            }
-        });
-        ref.setInitialed(true);
-    }
-
     /**
      * 根据单个类进行类信息收集
      * @param classname 待收集的类名
@@ -127,6 +107,28 @@ public class ClassInfoScanner {
         }
         return classRef;
     }
+
+    public static void makeAliasRelation(ClassReference ref, DataContainer dataContainer){
+        if(ref == null)return;
+        // build alias relationship
+        if(ref.getHasEdge() == null) return;
+
+        ref.getHasEdge().forEach(has -> {
+            MethodReference sourceRef = has.getMethodRef();
+            SootMethod sootMethod = sourceRef.getMethod();
+            if(sootMethod == null)return;
+            SootMethodRef sootMethodRef = sootMethod.makeRef();
+            MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
+            if(targetRef != null && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")){
+                Alias alias = Alias.newInstance(sourceRef, targetRef);
+                sourceRef.setAliasEdge(alias);
+                dataContainer.store(alias);
+            }
+        });
+        ref.setInitialed(true);
+    }
+
+
 
     public static void extractSuperClassInfo(String superclass, ClassReference ref, DataContainer dataContainer, RulesContainer rulesContainer){
         ClassReference superclassRef = dataContainer.getClassRefByName(superclass);

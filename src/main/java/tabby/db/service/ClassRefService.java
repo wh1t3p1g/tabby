@@ -36,30 +36,29 @@ public class ClassRefService {
 
     public void importClassRef(){
         if(FileUtils.fileExists(GlobalConfiguration.CLASSES_CACHE_PATH)){
-            log.info("Build Class Refs");
             classRefRepository.loadClassRefFromCSV(GlobalConfiguration.CLASSES_CACHE_PATH);
         }
     }
 
     public void buildEdge(){
         if(FileUtils.fileExists(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH)){
-            log.info("Build Extend relationship");
+            log.info("Save Extend relationship");
             classRefRepository.loadExtendEdgeFromCSV(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH);
         }
         if(FileUtils.fileExists(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH)){
-            log.info("Build Interface relationship");
+            log.info("Save Interface relationship");
             classRefRepository.loadInterfacesEdgeFromCSV(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH);
         }
         if(FileUtils.fileExists(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH)){
-            log.info("Build Has relationship");
+            log.info("Save Has relationship");
             classRefRepository.loadHasEdgeFromCSV(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH);
         }
         if(FileUtils.fileExists(GlobalConfiguration.CALL_RELATIONSHIP_CACHE_PATH)){
-            log.info("Build Call relationship");
+            log.info("Save Call relationship");
             methodRefRepository.loadCallEdgeFromCSV(GlobalConfiguration.CALL_RELATIONSHIP_CACHE_PATH);
         }
         if(FileUtils.fileExists(GlobalConfiguration.ALIAS_RELATIONSHIP_CACHE_PATH)){
-            log.info("Build Alias relationship");
+            log.info("Save Alias relationship");
             methodRefRepository.loadAliasEdgeFromCSV(GlobalConfiguration.ALIAS_RELATIONSHIP_CACHE_PATH);
         }
     }

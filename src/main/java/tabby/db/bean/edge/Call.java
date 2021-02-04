@@ -62,7 +62,6 @@ public class Call {
     @Column(length = 1000)
     @Convert(converter = ListInteger2JsonStringConverter.class)
     private List<Integer> pollutedPosition = new ArrayList<>();
-    private boolean isPolluted = false;
 
     public static Call newInstance(MethodReference source, MethodReference target){
         Call call = new Call();

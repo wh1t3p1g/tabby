@@ -17,7 +17,7 @@ public class ClassRef2StringConverter implements AttributeConverter<ClassReferen
             return "";
         }
 
-        return attribute.getId();
+        return attribute.getName();
     }
 
     @Override
@@ -26,7 +26,7 @@ public class ClassRef2StringConverter implements AttributeConverter<ClassReferen
             return null;
         }
         ClassReference classRef = new ClassReference();
-        classRef.setId(dbData);
+        classRef.setName(dbData);
         return classRef;
     }
 }

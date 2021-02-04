@@ -5,10 +5,7 @@ import lombok.Setter;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.converter.ClassRef2StringConverter;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.UUID;
 
 /**

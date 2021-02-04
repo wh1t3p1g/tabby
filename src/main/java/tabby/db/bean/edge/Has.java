@@ -2,15 +2,14 @@ package tabby.db.bean.edge;
 
 import lombok.Getter;
 import lombok.Setter;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 import tabby.db.bean.ref.ClassReference;
 import tabby.db.bean.ref.MethodReference;
 import tabby.db.converter.ClassRef2StringConverter;
 import tabby.db.converter.MethodRef2StringConverter;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.UUID;
 
 /**
@@ -40,4 +39,19 @@ public class Has {
         return has;
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+
+        if (o == null || getClass() != o.getClass()) return false;
+
+        Has has = (Has) o;
+
+        return new EqualsBuilder().append(classRef.getName(), has.classRef.getName()).append(methodRef.getSignature(), has.methodRef.getSignature()).isEquals();
+    }
+
+    @Override
+    public int hashCode() {
+        return new HashCodeBuilder(17, 37).append(classRef.getName()).append(methodRef.getSignature()).toHashCode();
+    }
 }

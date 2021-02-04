@@ -5,10 +5,7 @@ import lombok.Setter;
 import tabby.db.bean.ref.MethodReference;
 import tabby.db.converter.MethodRef2StringConverter;
 
-import javax.persistence.Convert;
-import javax.persistence.Entity;
-import javax.persistence.Id;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.util.UUID;
 
 /**
@@ -37,5 +34,7 @@ public class Alias {
         alias.setTarget(target);
         return alias;
     }
+
+
 
 }

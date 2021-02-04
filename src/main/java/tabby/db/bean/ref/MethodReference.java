@@ -1,5 +1,6 @@
 package tabby.db.bean.ref;
 
+import com.google.common.hash.Hashing;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.neo4j.ogm.annotation.Relationship;
@@ -14,6 +15,7 @@ import tabby.db.converter.Map2JsonStringConverter;
 import tabby.db.converter.Set2JsonStringConverter;
 
 import javax.persistence.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -84,8 +86,18 @@ public class MethodReference {
 
     public static MethodReference newInstance(String name, String signature){
         MethodReference methodRef = new MethodReference();
+        String id = null;
+        if(signature == null || signature.isEmpty()){
+            id = Hashing.sha256()
+                    .hashString(UUID.randomUUID().toString(), StandardCharsets.UTF_8)
+                    .toString();
+        }else{
+            id = Hashing.sha256() // 相同signature生成的id值也相同
+                    .hashString(signature, StandardCharsets.UTF_8)
+                    .toString();
+        }
         methodRef.setName(name);
-        methodRef.setId(UUID.randomUUID().toString());
+        methodRef.setId(id);
         methodRef.setSignature(signature);
         return methodRef;
     }

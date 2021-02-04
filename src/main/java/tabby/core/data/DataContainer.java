@@ -264,10 +264,13 @@ public class DataContainer {
     }
 
     public void save2Neo4j(){
-        log.info("Save cache to Neo4j.");
+        log.info("Clean old data in Neo4j.");
         classRefService.clear();
+        log.info("Save methods to Neo4j.");
         methodRefService.importMethodRef();
+        log.info("Save classes to Neo4j.");
         classRefService.importClassRef();
+        log.info("Save relation to Neo4j.");
         classRefService.buildEdge();
     }
 
@@ -276,6 +279,7 @@ public class DataContainer {
         classRefService.save2Csv();
         methodRefService.save2Csv();
         relationshipsService.save2CSV();
+        log.info("Save cache to CSV. DONE!");
     }
 
 }
