@@ -79,11 +79,11 @@ public class Call {
 
         Call call = (Call) o;
 
-        return new EqualsBuilder().append(lineNum, call.lineNum).append(source, call.source).append(target, call.target).append(invokerType, call.invokerType).append(realCallType, call.realCallType).isEquals();
+        return new EqualsBuilder().append(source.getId(), call.source.getId()).append(target.getId(), call.target.getId()).append(invokerType, call.invokerType).append(realCallType, call.realCallType).append(pollutedPosition, call.pollutedPosition).isEquals();
     }
 
     @Override
     public int hashCode() {
-        return new HashCodeBuilder(17, 37).append(source).append(target).append(lineNum).append(invokerType).append(realCallType).toHashCode();
+        return new HashCodeBuilder(17, 37).append(source.getId()).append(target.getId()).append(invokerType).append(realCallType).append(pollutedPosition).toHashCode();
     }
 }

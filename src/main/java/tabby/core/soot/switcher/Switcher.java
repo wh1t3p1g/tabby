@@ -99,6 +99,10 @@ public class Switcher {
         if((!methodRef.isInitialed() || !methodRef.isActionInitialed()) // never analysis with pta
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
             // do call method analysis
+            //  TODO 分析interfaceInvoke时，
+            //   由于获取到的method是没有函数内容的，所以需要找到对应的具体实现来进行分析
+            //   这里继续进行简化，对于无返回的函数调用，可以仍然保持原状，也就是舍弃了函数参数在函数体内可能发生的变化
+            //   对于有返回的函数调用，则找到一个会影响返回值的具体实现
             Context subContext = context.createSubContext(methodRef.getSignature());
             Switcher.doMethodAnalysis(subContext, dataContainer, invokeExpr.getMethod(), methodRef, false);
         }
