@@ -79,7 +79,6 @@ public class Switcher {
         // 检查当前的调用 是否需要分析 看入参 baseVar是否可控
         boolean flag = baseVar != null && baseVar.containsPollutedVar(new ArrayList<>());
 
-
         for(TabbyVariable var: args.values()){
             if(var != null && var.containsPollutedVar(new ArrayList<>())){
                 flag = true;

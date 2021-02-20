@@ -36,7 +36,7 @@ public class MethodReference {
     @Column(columnDefinition = "TEXT")
     private String signature;
 
-    @Column(length = 1000)
+    @Column(columnDefinition = "TEXT")
     private String subSignature;
     private String returnType;
     private int modifiers;

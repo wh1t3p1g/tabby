@@ -161,3 +161,17 @@ match (m1:Method {SIGNATURE:"<java.util.PriorityQueue: void readObject(java.io.O
 
 //cc2
 match (m1:Method {SIGNATURE:"<java.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {isSink:true}) return *
+
+
+
+match path=(c:Class)-[:INTERFACE|EXTENDS*]->(c1:Class {NAME:"java.lang.reflect.InvocationHandler"}) 
+where exists{ 
+  match (c)-[:INTERFACE|EXTENDS*]->(c2:Class {NAME:"java.io.Serializable"})
+} 
+return path
+
+
+match (source:Method {NAME:"readObject"})
+match (sink:Method {IS_SINK:true,NAME:"lookup"})<-[:CALL]-(m1:Method)
+call apoc.algo.allSimplePaths(m1, source, "<CALL|ALIAS", 12) yield path
+return * limit 20

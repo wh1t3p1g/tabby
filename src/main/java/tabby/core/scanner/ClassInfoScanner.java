@@ -119,7 +119,10 @@ public class ClassInfoScanner {
             if(sootMethod == null)return;
             SootMethodRef sootMethodRef = sootMethod.makeRef();
             MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-            if(targetRef != null && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")){
+            if(targetRef != null
+                    && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")
+                    && targetRef.getParameters().size() == sourceRef.getParameters().size()
+            ){ // 别名关系 参数类型可以不一样 但 参数数量一定要一样
                 Alias alias = Alias.newInstance(sourceRef, targetRef);
                 sourceRef.setAliasEdge(alias);
                 dataContainer.store(alias);

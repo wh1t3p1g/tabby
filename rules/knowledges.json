@@ -24,6 +24,12 @@
   {"name":"java.lang.reflect.Constructor", "rules": [
     {"function": "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.reflect.Constructor: java.lang.Object newInstance(java.lang.Object[])>"]}
   ]},
+  {"name":"java.sql.DriverManager", "rules": [
+    {"function": "getConnection", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
+  {"name":"java.sql.Driver", "rules": [
+    {"function": "connect", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
 
   {"name":"java.net.URLClassLoader", "rules": [
     {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]}
@@ -48,6 +54,9 @@
   ]},
   {"name":"com.sun.jndi.ldap", "rules": [
     {"function": "c_lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
+  ]},
+  {"name":"org.springframework.jndi.JndiTemplate", "rules": [
+    {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": []}
   ]},
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
@@ -139,7 +148,8 @@
   ]},
   {"name": "java.io.ObjectInputStream", "rules": [
     {"function": "defaultReadObject", "type": "know", "actions": {}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void defaultReadObject()>"]},
-    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: java.io.ObjectInputStream$GetField readFields()>"]},
+    {"function": "readFields", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "readObject", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
     {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ObjectInputStream: void <init>(java.io.InputStream)>"]}
   ]},
   {"name":"java.io.File", "rules": [

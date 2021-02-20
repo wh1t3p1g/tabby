@@ -25,7 +25,6 @@ public class Context {
     private String methodSignature; // 当前函数签名
     private Map<Local, TabbyVariable> initialMap;
     private Local thisVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
-    private TabbyVariable baseVar;// 前面调用函数的base变量，比如a.func1() a为base变量
     private Map<Integer, Local> args = new HashMap<>(); // 前置函数的入参
     private Context preContext;// 如果当前函数为被调用的函数，那么preContext指向之前的函数context
     private int depth; // 当前函数调用深度，限制无限循环的情况
@@ -33,13 +32,8 @@ public class Context {
     private Map<Local, TabbyVariable> localMap;
     private Map<Local, Set<TabbyVariable>> maybeLocalMap = new HashMap<>();
     private Map<Value, TabbyVariable> globalMap = new HashMap<>();
-    // return 后需要修改的内容,主要针对入参的修正
-    // 比如 param-0:clear 表示当前的函数参数param0的可控状态清楚
-    //     param-0:param-1 表示当前的函数参数param0的可控状态需要换成当前的这个relateTypes
-    private Map<String, String> returnActions = new HashMap<>();
     // 用于return给当前
     private TabbyVariable returnVar;
-    private boolean isHeadMethodContext = false;
     private String topMethodSignature;
 
     public Context(){

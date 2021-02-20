@@ -91,7 +91,6 @@ public class CallGraphScanner {
             log.debug(method.getSignature());
 
             Context context = Context.newInstance(method.getSignature());
-            context.setHeadMethodContext(true);
             PollutedVarsPointsToAnalysis pta =
                     Switcher.doMethodAnalysis(context, dataContainer, method, methodRef, true);
             if(pta == null){

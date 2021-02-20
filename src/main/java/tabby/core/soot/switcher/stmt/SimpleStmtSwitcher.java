@@ -78,6 +78,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         }
     }
 
+    // 暂不处理if语句中的条件语句
 //    @Override
 //    public void caseIfStmt(IfStmt stmt) {
 //        super.caseIfStmt(stmt);
