@@ -107,6 +107,7 @@ public class Analyser {
     public Map<String, String> getJdkDependencies(){
         String javaHome = System.getProperty("java.home");
         String[] jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
+//        String[] jre = new String[]{"lib/rt.jar","lib/jce.jar"};
 
         Map<String, String> exists = new HashMap<>();
         for(String cp:jre){

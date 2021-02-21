@@ -169,8 +169,9 @@ public class ClassInfoScanner {
         methodRef.setIgnore(isIgnore);
         methodRef.setSource(isSource);
         methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
-
-        if (rule != null) {
+        // 此处，对于sink、know、ignore类型的规则，直接选取先验知识
+        // 对于source类型 不赋予其actions和polluted
+        if (rule != null && !isSource) {
             Map<String, String> actions = rule.getActions();
             List<Integer> polluted = rule.getPolluted();
             methodRef.setActions(actions!=null?actions:new HashMap<>());

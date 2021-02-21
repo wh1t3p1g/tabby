@@ -64,6 +64,10 @@
   {"name":"sun.util.resources.OpenListResourceBundle", "rules": [
     {"function": "getContents", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
+  {"name":"java.lang.reflect.InvocationHandler", "rules": [
+    {"function": "invoke", "type": "source", "actions": {}, "polluted": [], "signatures": []}
+  ]},
+
   {"name":"java.lang.Object", "rules": [
     {"function": "hashCode", "type": "source", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: int hashCode()>"]},
     {"function": "toString", "type": "source", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.String toString()>"]},

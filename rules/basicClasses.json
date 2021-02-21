@@ -12,5 +12,6 @@
   "scala.runtime.java8.JFunction0$mcD$sp",
   "scala.runtime.java8.JFunction0$mcF$sp",
   "scala.runtime.java8.JFunction0$mcS$sp",
-  "scala.runtime.java8.JFunction0$mcB$sp"
+  "scala.runtime.java8.JFunction0$mcB$sp",
+  "com.codahale.metrics.Gauge"
 ]
