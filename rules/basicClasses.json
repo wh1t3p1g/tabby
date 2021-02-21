@@ -6,6 +6,11 @@
   "scala.runtime.java8.JFunction0$mcZ$sp",
   "scala.runtime.java8.JFunction0$mcJ$sp",
   "scala.runtime.java8.JFunction0$mcI$sp",
+  "scala.runtime.java8.JFunction1$mcZJ$sp",
   "scala.runtime.java8.JFunction1$mcZI$sp",
-  "scala.runtime.java8.JFunction1$mcVI$sp"
+  "scala.runtime.java8.JFunction1$mcVI$sp",
+  "scala.runtime.java8.JFunction0$mcD$sp",
+  "scala.runtime.java8.JFunction0$mcF$sp",
+  "scala.runtime.java8.JFunction0$mcS$sp",
+  "scala.runtime.java8.JFunction0$mcB$sp"
 ]
