@@ -24,6 +24,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 
+import static soot.SootClass.HIERARCHY;
+
 /**
  * @author wh1t3P1g
  * @since 2020/10/10
@@ -44,6 +46,7 @@ public class Analyser {
     public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
         try{
             long start = System.nanoTime();
+            addBasicClasses();
             Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
             List<String> stuff = new ArrayList<>();
             List<String> newIgnore = new ArrayList<>();
@@ -66,8 +69,8 @@ public class Analyser {
             PackManager.v().runPacks();
             callGraphScanner.run(dataContainer.getSavedMethodRefs().values());
             rulesContainer.saveStatus();
-            log.info("Cost {} minutes"
-                    , TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - start));
+            log.info("Cost {} seconds"
+                    , TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
@@ -79,23 +82,31 @@ public class Analyser {
 
     }
 
+    public void addBasicClasses(){
+        List<String> basicClasses = rulesContainer.getBasicClasses();
+        for(String cls:basicClasses){
+            Scene.v().addBasicClass(cls ,HIERARCHY);
+        }
+    }
+
     public void save(){
         log.info("Start to save cache.");
         long start = System.nanoTime();
         dataContainer.save2CSV();
         dataContainer.save2Neo4j();
         clean();
-        log.info("Cost {} minutes"
-                , TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - start));
+        log.info("Cost {} seconds"
+                , TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
     }
 
     /**
      * 这里提取的是jdk8版本下的jre信息
+     * 仅测试于MacOS
      * @return jre
      */
     public Map<String, String> getJdkDependencies(){
         String javaHome = System.getProperty("java.home");
-        String[] jre = new String[]{"lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
+        String[] jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
 
         Map<String, String> exists = new HashMap<>();
         for(String cp:jre){
@@ -105,7 +116,7 @@ public class Analyser {
                 exists.put(file.getName(), path);
             }
         }
-        log.info("Get " +exists.size()+" jre jars, supposed to be 15.");
+        log.info("Get " +exists.size()+" jre jars, supposed to be 19.");
         return exists;
     }
 
