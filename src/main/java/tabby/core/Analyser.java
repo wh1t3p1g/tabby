@@ -104,11 +104,15 @@ public class Analyser {
      * 仅测试于MacOS
      * @return jre
      */
-    public Map<String, String> getJdkDependencies(){
+    public Map<String, String> getJdkDependencies(boolean all){
         String javaHome = System.getProperty("java.home");
-        String[] jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
-//        String[] jre = new String[]{"lib/rt.jar","lib/jce.jar"};
 
+        String[] jre;
+        if(all){
+            jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
+        }else{// 对于正常分析其他的jar文件，不需要全量jdk依赖的分析，暂时添加这几个
+            jre = new String[]{"lib/rt.jar","lib/jce.jar","lib/ext/nashorn.jar"};
+        }
         Map<String, String> exists = new HashMap<>();
         for(String cp:jre){
             String path = String.join(File.separator, javaHome, cp);
@@ -117,7 +121,7 @@ public class Analyser {
                 exists.put(file.getName(), path);
             }
         }
-        log.info("Get " +exists.size()+" jre jars, supposed to be 19.");
+        log.info("Load " +exists.size()+" jre jars.");
         return exists;
     }
 

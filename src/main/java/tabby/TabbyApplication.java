@@ -34,6 +34,7 @@ public class TabbyApplication {
     private String target;
 
     private boolean isJDKProcess = false;
+    private boolean withAllJDK = false;
 
     @Resource
     private ApplicationArguments arguments;
@@ -49,6 +50,9 @@ public class TabbyApplication {
                 if(arguments.containsOption("isJDKProcess")){
                     isJDKProcess = true;
                 }
+                if(arguments.containsOption("withAllJDK") || arguments.containsOption("isJDKOnly")){
+                    withAllJDK = true;
+                }
                 if(arguments.containsOption("vv")){
                     GlobalConfiguration.DEBUG = true;
                 }
@@ -57,7 +61,7 @@ public class TabbyApplication {
                     return;
                 }
 
-                Map<String, String> jdkDependencies = analyser.getJdkDependencies();
+                Map<String, String> jdkDependencies = analyser.getJdkDependencies(withAllJDK);
                 Map<String, String> classpaths = null;
                 if(arguments.containsOption("excludeJDK")){
                     classpaths = new HashMap<>();
