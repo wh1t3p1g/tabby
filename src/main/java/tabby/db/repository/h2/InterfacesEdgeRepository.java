@@ -14,4 +14,6 @@ public interface InterfacesEdgeRepository extends CrudRepository<Interfaces, Str
     @Query(value = "CALL CSVWRITE(:path, 'SELECT * FROM INTERFACES')", nativeQuery=true)
     void save2Csv(@Param("path") String path);
 
+    @Query(value = "select count(*) from INTERFACES", nativeQuery=true)
+    int countAll();
 }

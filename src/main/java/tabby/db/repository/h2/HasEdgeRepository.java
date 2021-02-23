@@ -13,4 +13,7 @@ public interface HasEdgeRepository extends CrudRepository<Has, String> {
 
     @Query(value = "CALL CSVWRITE(:path, 'SELECT * FROM HAS')", nativeQuery=true)
     void save2Csv(@Param("path") String path);
+
+    @Query(value = "select count(*) from HAS", nativeQuery=true)
+    int countAll();
 }

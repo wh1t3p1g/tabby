@@ -92,6 +92,7 @@ public class Analyser {
     public void save(){
         log.info("Start to save cache.");
         long start = System.nanoTime();
+
         dataContainer.save2CSV();
         dataContainer.save2Neo4j();
         clean();

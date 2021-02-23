@@ -89,4 +89,8 @@ public class ClassRefService {
         return classRepository.findAllNecessaryClassRefs();
     }
 
+    public int countAll(){
+        return classRepository.countAll();
+    }
+
 }

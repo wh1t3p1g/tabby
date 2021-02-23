@@ -21,4 +21,7 @@ public interface MethodRepository extends CrudRepository<MethodReference, String
 
     @Query(value = "select * from METHODS where CLASSNAME like 'sun.%' or CLASSNAME like 'java.%'", nativeQuery = true)
     List<MethodReference> findAllNecessaryMethodRefs();
+
+    @Query(value = "select count(*) from METHODS", nativeQuery=true)
+    int countAll();
 }

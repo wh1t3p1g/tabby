@@ -61,4 +61,14 @@ public class RelationshipsService {
         callEdgeRepository.save2Csv(GlobalConfiguration.CALL_RELATIONSHIP_CACHE_PATH);
         interfacesEdgeRepository.save2Csv(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH);
     }
+
+    public int countAll(){
+        int sum = 0;
+        sum += aliasEdgeRepository.countAll();
+        sum += hasEdgeRepository.countAll();
+        sum += extendEdgeRepository.countAll();
+        sum += callEdgeRepository.countAll();
+        sum += interfacesEdgeRepository.countAll();
+        return sum;
+    }
 }

@@ -86,7 +86,8 @@
   ]},
   {"name":"java.net.URL", "rules": [
     {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.net.URL: void <init>(java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String,java.net.URLStreamHandler)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String,java.net.URLStreamHandler)>"]},
-    {"function": "openConnection", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": ["<java.net.URL: java.net.URLConnection openConnection()>","<java.net.URL: java.net.URLConnection openConnection(java.net.Proxy)>"]}
+    {"function": "openConnection", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": ["<java.net.URL: java.net.URLConnection openConnection()>","<java.net.URL: java.net.URLConnection openConnection(java.net.Proxy)>"]},
+    {"function": "openStream", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": []}
   ]},
   {"name":"javax.activation.DataSource", "rules": [
     {"function": "getInputStream", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<javax.activation.DataSource: java.io.InputStream getInputStream()>"]},

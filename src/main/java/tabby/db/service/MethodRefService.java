@@ -61,4 +61,8 @@ public class MethodRefService {
     public List<MethodReference> loadNecessaryMethodRefs(){
         return methodRepository.findAllNecessaryMethodRefs();
     }
+
+    public int countAll(){
+        return methodRepository.countAll();
+    }
 }
