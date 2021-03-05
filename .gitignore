@@ -46,4 +46,4 @@ lib/*
 runtime.json
 *.csv
 *.db
-ignore.json
+ignores.json
