@@ -87,9 +87,9 @@
         </dependency>
 
         <dependency>
-            <groupId>ca.mcgill.sable</groupId>
+            <groupId>org.soot-oss</groupId>
             <artifactId>soot</artifactId>
-            <version>4.1.0</version>
+            <version>4.2.1</version>
         </dependency>
 
         <dependency>

@@ -57,6 +57,7 @@ public class Analyser {
                 }
             });
             rulesContainer.getIgnored().addAll(newIgnore);
+            log.info("Total analyse {} jars", stuff.size());
             Options.v().set_process_dir(stuff);
             Main.v().autoSetOptions();
             Scene.v().loadNecessaryClasses();

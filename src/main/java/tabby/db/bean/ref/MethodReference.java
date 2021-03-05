@@ -41,6 +41,7 @@ public class MethodReference {
     private String returnType;
     private int modifiers;
     private String classname;
+    private int parameterSize;
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = Set2JsonStringConverter.class)
@@ -111,6 +112,7 @@ public class MethodReference {
         methodRef.setReturnType(method.getReturnType().toString());
         if(method.getParameterCount() > 0){
             methodRef.setHasParameters(true);
+            methodRef.setParameterSize(method.getParameterCount());
             for(int i=0; i<method.getParameterCount();i++){
                 List<Object> param = new ArrayList<>();
                 param.add(i); // param position

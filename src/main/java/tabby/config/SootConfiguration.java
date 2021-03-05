@@ -2,7 +2,6 @@ package tabby.config;
 
 import lombok.extern.slf4j.Slf4j;
 import soot.G;
-import soot.PhaseOptions;
 import soot.options.Options;
 
 import java.io.File;
@@ -33,8 +32,9 @@ public class SootConfiguration {
 //        Options.v().set_validate(true);
         Options.v().set_whole_program(true);// 开启 过程间分析
         Options.v().set_no_writeout_body_releasing(true); // 当输出内容后不释放获取的body数据
+//        Options.v().set_omit_excepting_unit_edges(true);
         // 设置自定义的package
-        PhaseOptions.v().setPhaseOption("cg","on");
+//        PhaseOptions.v().setPhaseOption("cg","on");
 
     }
 

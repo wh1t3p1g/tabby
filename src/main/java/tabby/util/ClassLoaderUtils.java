@@ -56,7 +56,7 @@ public class ClassLoaderUtils {
     }
 
     /**
-     * 从目标jar或者war中提取出classloader
+     * 从目标jar或者war中提取出libs的classloader
      * 针对单jar应用 或者 单war应用 （第三方单一jar不用这种方式来获取）
      * 一般都是war包来分析
      * @param jarPath 目标路径
@@ -65,9 +65,9 @@ public class ClassLoaderUtils {
      * @throws IOException
      */
     public static ClassLoader getClassLoader(Path jarPath, String type) throws IOException {
-
+        // TODO 当前版本没有考虑jar文件内可能存在的lib目录里的jar文件
         String tempDirectory = "jar".equals(type)? "exploded-jar" : "exploded-war";
-        String classesDirectory = "jar".equals(type) ? "BOOT-INF/classes" : "WEB-INF/classes";
+//        String classesDirectory = "jar".equals(type) ? "BOOT-INF/classes" : "WEB-INF/classes";
         String libDirectory = "jar".equals(type) ? "BOOT-INF/lib" : "WEB-INF/lib";
 
         Path tmpDir = registerTempDirectory(tempDirectory);
@@ -75,7 +75,7 @@ public class ClassLoaderUtils {
         extractFromJarPath(jarPath, tmpDir);
 
         final List<URL> classPathUrls = new ArrayList<>();
-        classPathUrls.add(tmpDir.resolve(classesDirectory).toUri().toURL());
+//        classPathUrls.add(tmpDir.resolve(classesDirectory).toUri().toURL());
         Files.list(tmpDir.resolve(libDirectory)).forEach(p -> {
             try {
                 classPathUrls.add(p.toUri().toURL());
