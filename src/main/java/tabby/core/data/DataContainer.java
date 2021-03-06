@@ -187,9 +187,11 @@ public class DataContainer {
         // 从父类找
         if(cls.hasSuperclass()){
             SootClass superCls = cls.getSuperclass();
-            target = findMethodRef(superCls, sootMethodRef);
-            if(target == null){// 往父类的父类找
-                target = findMethodRefFromFatherNodes(superCls, sootMethodRef);
+            // 先往父类找 深度查找
+            target = findMethodRefFromFatherNodes(superCls, sootMethodRef);
+            // 如果父类没找到，则查找当前的类
+            if(target == null){
+                target = findMethodRef(superCls, sootMethodRef);
             }
             if(target != null){
                 return target;
@@ -198,9 +200,11 @@ public class DataContainer {
         // 从接口找
         if(cls.getInterfaceCount() > 0){
             for(SootClass intface:cls.getInterfaces()){
-                target = findMethodRef(intface, sootMethodRef);
-                if(target == null){// 往接口的父类找
-                    target = findMethodRefFromFatherNodes(intface, sootMethodRef);
+                // 先往父类找 深度查找
+                target = findMethodRefFromFatherNodes(intface, sootMethodRef);
+                // 如果父类没找到，则查找当前的类
+                if(target == null){
+                    target = findMethodRef(intface, sootMethodRef);
                 }
                 if(target != null){
                     return target;
