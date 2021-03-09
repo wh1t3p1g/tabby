@@ -47,3 +47,4 @@ runtime.json
 *.csv
 *.db
 ignores.json
+cql.txt
