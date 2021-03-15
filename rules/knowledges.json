@@ -30,9 +30,16 @@
   {"name":"java.sql.Driver", "rules": [
     {"function": "connect", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
   ]},
-
+  {"name": "javax.naming.spi.DirectoryManager", "rules": [
+    {"function": "getObjectInstance", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
+  {"name": "java.lang.ClassLoader", "rules": [
+    {"function":  "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
+    {"function": "loadClass", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
   {"name":"java.net.URLClassLoader", "rules": [
-    {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]}
+    {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]},
+    {"function": "loadClass", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
   ]},
   {"name":"java.lang.Runtime", "rules": [
     {"function": "exec", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[])>"]}

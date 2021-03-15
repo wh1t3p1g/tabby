@@ -116,6 +116,9 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
             if("java.lang.String".equals(classname) // 这种情况一般均不可控，可控也没有意义
                     && ("equals".equals(target.getName()) || "hashCode".equals(target.getName()))) return;
 
+            if("java.lang.StringBuilder".equals(classname) // 这种情况一般均不可控，可控也没有意义
+                    && ("toString".equals(target.getName()) || "hashCode".equals(target.getName()))) return;
+
             Call call = Call.newInstance(source, target);
             call.setRealCallType(classname);
             call.setInvokerType(invokerType);

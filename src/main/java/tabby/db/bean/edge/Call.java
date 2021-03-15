@@ -43,7 +43,6 @@ public class Call {
     // 以下信息 保存调用现场
     private int lineNum = 0;
     private String invokerType;
-
     /**
      * 记录当前真实的调用类型
      * 比如 A.hashCode() 实际存的target为 object的hashCode函数，但是 realCallType应记录为A类
