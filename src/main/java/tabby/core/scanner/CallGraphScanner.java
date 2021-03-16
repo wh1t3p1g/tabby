@@ -95,6 +95,7 @@ public class CallGraphScanner {
                     Switcher.doMethodAnalysis(context, dataContainer, method, methodRef, true);
             if(pta == null){
                 log.error("pat null -> "+method.getSignature());
+                System.exit(0);
             }
             invokeExprSwitcher.setPta(pta);
             invokeExprSwitcher.setGlobalMap(context.getGlobalMap());

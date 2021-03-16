@@ -18,10 +18,7 @@ import tabby.util.ClassLoaderUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import static soot.SootClass.HIERARCHY;
@@ -47,21 +44,15 @@ public class Analyser {
         try{
             long start = System.nanoTime();
             addBasicClasses();
-            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
-            List<String> stuff = new ArrayList<>();
-            List<String> newIgnore = new ArrayList<>();
-            targets.forEach((filename, filepath) -> {
-                if(!rulesContainer.isIgnore(filename)){
-                    stuff.add(filepath);
-                    newIgnore.add(filename);
-                }
-            });
-            rulesContainer.getIgnored().addAll(newIgnore);
-            log.info("Total analyse {} jars", stuff.size());
-            Options.v().set_process_dir(stuff);
+            // set class paths
+            Scene.v().setSootClassPath(String.join(File.pathSeparator, new HashSet<>(classpaths)));
+            // get target filepaths
+            List<String> realTargets = getTargets(targets);
             Main.v().autoSetOptions();
+            // load all classes
             Scene.v().loadNecessaryClasses();
-            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(stuff);
+            // get all classes' info
+            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(realTargets);
 
             // 类信息抽取
             classInfoScanner.run(runtimeClasses);
@@ -80,7 +71,21 @@ public class Analyser {
                 throw e;
             }
         }
+    }
 
+    public List<String> getTargets(Map<String, String> targets){
+        Set<String> stuff = new HashSet<>();
+        List<String> newIgnore = new ArrayList<>();
+        targets.forEach((filename, filepath) -> {
+            if(!rulesContainer.isIgnore(filename)){
+                stuff.add(filepath);
+                newIgnore.add(filename);
+            }
+        });
+        rulesContainer.getIgnored().addAll(newIgnore);
+        log.info("Total analyse {} targets.", stuff.size());
+        Options.v().set_process_dir(new ArrayList<>(stuff));
+        return new ArrayList<>(stuff);
     }
 
     public void addBasicClasses(){
