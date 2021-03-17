@@ -154,8 +154,9 @@ public class ClassInfoScanner {
 
         if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
             for (String relatedClassname : relatedClassnames) {
-                rule = rulesContainer.getRule(relatedClassname, methodRef.getName());
-                if (rule != null && rule.isIgnore()) {
+                TabbyRule.Rule tmpRule = rulesContainer.getRule(relatedClassname, methodRef.getName());
+                if (tmpRule != null && tmpRule.isIgnore()) {
+                    rule = tmpRule;
                     break;
                 }
             }

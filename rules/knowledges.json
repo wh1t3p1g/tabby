@@ -33,10 +33,7 @@
   {"name": "javax.naming.spi.DirectoryManager", "rules": [
     {"function": "getObjectInstance", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
   ]},
-  {"name": "java.lang.ClassLoader", "rules": [
-    {"function":  "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
-    {"function": "loadClass", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
+
   {"name":"java.net.URLClassLoader", "rules": [
     {"function": "newInstance", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]},
     {"function": "loadClass", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
@@ -51,7 +48,9 @@
     {"function": "start", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessImpl: java.lang.Process start(java.lang.String[],java.util.Map,java.lang.String,java.lang.ProcessBuilder$Redirect[],boolean)>"]}
   ]},
   {"name":"java.lang.ClassLoader", "rules": [
-    {"function": "defineClass", "type": "sink", "actions": {}, "polluted": [1], "signatures": ["<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)>","<java.lang.ClassLoader: java.lang.Class defineClass(byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,java.nio.ByteBuffer,java.security.ProtectionDomain)>"]}
+    {"function": "defineClass", "type": "sink", "actions": {"return": "param-1"}, "polluted": [1], "signatures": ["<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)>","<java.lang.ClassLoader: java.lang.Class defineClass(byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,java.nio.ByteBuffer,java.security.ProtectionDomain)>"]},
+    {"function":  "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
+    {"function": "loadClass", "type": "sink", "actions": {"return": "param-0"}, "polluted": [-1,0], "signatures": []}
   ]},
   {"name":"javax.naming.Context", "rules": [
     {"function": "lookup", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<javax.naming.Context: java.lang.Object lookup(java.lang.String)>","<javax.naming.Context: java.lang.Object lookup(javax.naming.Name)>"]}
@@ -102,6 +101,9 @@
   ]},
   {"name": "java.util.Collections$CheckedMap$CheckedEntrySet", "rules": [
     {"function": "iterator", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.util.Collections$CheckedMap$CheckedEntrySet: java.util.Iterator iterator()>"]}
+  ]},
+  {"name": "java.util.Iterator", "rules": [
+    {"function": "next", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []}
   ]},
   {"name":"java.io.ByteArrayInputStream", "rules": [
     {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ByteArrayInputStream: void <init>(byte[],int,int)>","<java.io.ByteArrayInputStream: void <init>(byte[])>"]}

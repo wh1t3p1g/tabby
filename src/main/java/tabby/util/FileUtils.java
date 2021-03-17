@@ -190,4 +190,11 @@ public class FileUtils {
         });
     }
 
+    public static void createDirectory(String path){
+        File file = new File(path);
+        if(file.mkdirs()){
+            log.info("Create directory {} success!", path);
+        }
+    }
+
 }

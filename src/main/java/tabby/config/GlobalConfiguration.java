@@ -1,6 +1,7 @@
 package tabby.config;
 
 import com.google.gson.Gson;
+import tabby.util.FileUtils;
 
 import java.io.File;
 
@@ -26,4 +27,13 @@ public class GlobalConfiguration {
     public static Gson GSON = new Gson();
     public static boolean DEBUG = false;
 
+    static {
+        if(!FileUtils.fileExists(RULES_PATH)){
+            FileUtils.createDirectory(RULES_PATH);
+        }
+
+        if(!FileUtils.fileExists(CACHE_PATH)){
+            FileUtils.createDirectory(CACHE_PATH);
+        }
+    }
 }

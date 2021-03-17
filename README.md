@@ -1,4 +1,4 @@
-# tabby-release
+# tabby
 ![Platforms](https://img.shields.io/badge/Platforms-OSX-green.svg)
 ![Java version](https://img.shields.io/badge/Java-8%2b-blue.svg)
 ![License](https://img.shields.io/badge/License-apache%202-green.svg)
@@ -19,7 +19,7 @@ TABBY是一款针对Java语言的静态代码分析工具。
 使用Tabby需要有以下环境：
 - JDK8的环境
 - 可用的Neo4j图数据库 [Neo4j环境配置](https://github.com/wh1t3p1g/tabby/wiki/Neo4j%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
-- Neo4j Browser
+- Neo4j Browser 或者其他可以进行Neo4j可视化的工具
 
 具体的使用方法参见：[Tabby食用指北](https://github.com/wh1t3p1g/tabby/wiki/Tabby%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8C%97)
 
@@ -28,34 +28,74 @@ TABBY是一款针对Java语言的静态代码分析工具。
 都可以用Tabby生成的代码属性图（当前版本1.0）来完成以下的工作场景：
 
 - 挖掘目标jar包中潜藏的Java反序列化利用链
-- 搜索符合特定条件的函数、类等
+- 搜索符合特定条件的函数、类，譬如检索调用了危险函数的静态函数
 
-以前对Jar的分析方法，往往为先反编译成java文件，然后再通过人工搜索特定函数来进行分析。
+以前对Jar/War/Class的分析方法，往往为先反编译成java文件，然后再通过人工搜索特定函数来进行分析。
 
-而有了Tabby之后，我们可以先生成相应jar包的代码属性图，然后使用Neo4j的查询语法来进行特定函数的搜索，特定条件的利用路径检索等
+而有了Tabby之后，我们可以先生成相应的代码属性图，然后使用Neo4j的查询语法来进行特定函数的搜索，特定条件的利用路径检索等
 
 ## #3 成果
 
 - [现有利用链覆盖](https://github.com/wh1t3p1g/tabby/wiki/%E7%8E%B0%E6%9C%89%E5%88%A9%E7%94%A8%E9%93%BE%E8%A6%86%E7%9B%96)
-- CVE-xxx
+- CVE-2021-21346
+- CVE-2021-21351
 - 子项目： Java反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 
 ## #4 问题
 
-#### 1. 关于代码属性图的实现思路
-Tabby的实现是基于指针分析算法的数据流污点分析
+#### 1. 关于代码属性图的设计思路？
 
-由指针分析算法进行过程内分析，并以基于摘要的过程间分析算法分析函数间的调用关系。
+[1] Martin M, Livshits B, Lam M S. Finding application errors and security flaws using PQL: a program query language[J]. Acm Sigplan Notices, 2005, 40(10): 365-383.
+[2] Yamaguchi F, Golde N, Arp D, et al. Modeling and discovering vulnerabilities with code property graphs[C]//2014 IEEE Symposium on Security and Privacy. IEEE, 2014: 590-604.
+[3] Backes M, Rieck K, Skoruppa M, et al. Efficient and flexible discovery of php application vulnerabilities[C]//2017 IEEE european symposium on security and privacy (EuroS&P). IEEE, 2017: 334-349.
 
-当前业界并没有一个整体的规范来说明代码属性图需要包含哪些信息，tabby生成的代码属性图也算是一种对代码属性图的摸索方案。
+如上三篇论文在代码属性图的构建方案上做了相关尝试，但这些方案均不适用于Java语言这种面向对象语言。为什么？
 
-在这里Tabby生成的代码属性图主要包含**类信息**、**类间信息**、**函数调用信息**，你可以通过代码属性图来查找符合特定条件的函数、漏洞等
+首先，我们希望代码属性图最终能达成什么样的效果？对我来说，我希望我能利用代码属性图找到完整的路径，从而无需代码的实现去做可达路径的查找
 
-#### 2. Tabby生成的代码属性图可靠吗？
+所以，依据这个想法，我们需要解决的一点是Java语言的多态特性。在反序列化利用链中，可以发现的是很多利用链均是不等数量的gadget"拼接"起来，而这个"拼接"的操作就是多态特性所有具体实现函数的枚举
+
+但是在图上来看，其实不同的gadget之间其实是分裂的
+
+为了解决上面的问题，我提出了面向Java语言的代码属性图构建方案，包括类关系图、函数别名图、精确的函数调用图。
+
+这其中函数别名图将所有的函数实现关系进行了聚合，这样在图的层面来看，ALIAS依赖边连接了不同的gadget，从而解决了Java多态的问题。
+
+具体的细节可以看我的硕士毕业论文，或是直接看代码。
+
+#### 2. 设计的代码属性图存在哪些问题？
 
 Tabby的实现肯定会存在分析遗漏或错误的情况，但当前版本的tabby生成的代码属性图可以覆盖大多数现有的利用链，详见成果部分
 
-Tabby的实现效果仍然有提升的空间，一方面需要大家多使用来积累各种异常cases，另一方面我也会不定期更新优化tabby
+从程序分析的角度，tabby的实验必然会存在可控性分析遗漏的问题，有时候遗漏会造成精确函数调用图的不精确，这部分将持续进行更新优化。
+
+而从使用体验来看，函数别名图的使用会导致如下情况的误报
+```java
+class B {
+    public void func(){
+        
+    }
+}
+class A extends B{
+    public void func(){}
+    
+    public void func1(){
+        A a = this.func();
+    }
+}
+class C extends B{
+    public void func(){}
+}
+```
+假设A对象的func继承了B对象，并且重载了函数func。那么此时会出现什么问题？
+
+首先，func1函数中会存在函数调用`func1-[:CALL]>A.func`，并且func函数存在ALIAS依赖边关系`A.func-[:ALIAS]-B.func`
+
+那么，从图检索的角度来看，会存在这样一条通路`func1-[:CALL]>A.func-[:ALIAS]-B.func-[:ALIAS]-C.func`
+
+但是，我们看代码，这条通路肯定是不可能的，因为A.func1实际调用的是A.func，并不存在本身对象被替换为C对象的可能。
+
+所以此时也就造成了误报。那么怎么解决这个误报问题呢？这里就看第4个问题吧
 
 #### 3. 我该怎么利用Tabby生成的代码属性图
 
@@ -86,7 +126,9 @@ Tabby生成的代码属性图支持两种模式，一是人工判断，二是编
 
 #### 4. 关于自动化的利用，看起来很复杂，会不会出相关的案例
 
-当前准备编写Neo4j的UDF来完成自动化利用，这里暂时TODO
+对于检索出来的可联通路径，我们还需要进行进一步的判断。这里可以人工直接跟着代码去分析判断，也可以使用上面的自动化分析方案进行通路的分析（这部分也能直接解决前面函数别名图的误报问题，即提前判断下一个节点是否是允许具体实现枚举的）
+
+当前还没有想好怎么来实现这部分的代码，可能是编写Neo4j的UDF来完成自动化利用，也可能是直接tabby实现，这里暂时TODO
 
 ## #5 致谢
 
