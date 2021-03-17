@@ -46,7 +46,9 @@ TABBY是一款针对Java语言的静态代码分析工具。
 #### 1. 关于代码属性图的设计思路？
 
 [1] Martin M, Livshits B, Lam M S. Finding application errors and security flaws using PQL: a program query language[J]. Acm Sigplan Notices, 2005, 40(10): 365-383.
+
 [2] Yamaguchi F, Golde N, Arp D, et al. Modeling and discovering vulnerabilities with code property graphs[C]//2014 IEEE Symposium on Security and Privacy. IEEE, 2014: 590-604.
+
 [3] Backes M, Rieck K, Skoruppa M, et al. Efficient and flexible discovery of php application vulnerabilities[C]//2017 IEEE european symposium on security and privacy (EuroS&P). IEEE, 2017: 334-349.
 
 如上三篇论文在代码属性图的构建方案上做了相关尝试，但这些方案均不适用于Java语言这种面向对象语言。为什么？
