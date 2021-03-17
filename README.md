@@ -136,6 +136,8 @@ Tabby生成的代码属性图支持两种模式，一是人工判断，二是编
 
 如果Tabby给你的工作带来了便利，请不要吝啬你的🌟哦！
 
+如果你有能力一起建设，也可以一起交流，或直接PR，或直接Issue
+
 - 优秀的静态分析框架[soot](https://github.com/soot-oss/soot)
 - [gadgetinspector](https://github.com/JackOfMostTrades/gadgetinspector)
 - [ysoserial](https://github.com/frohoff/ysoserial) 和 [marshalsec](https://github.com/mbechler/marshalsec)
