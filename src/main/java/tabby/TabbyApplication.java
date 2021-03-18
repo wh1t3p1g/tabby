@@ -9,7 +9,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
-import org.springframework.retry.annotation.EnableRetry;
 import tabby.config.GlobalConfiguration;
 import tabby.config.SootConfiguration;
 import tabby.core.Analyser;
@@ -23,7 +22,6 @@ import java.util.Map;
 
 @Slf4j
 @SpringBootApplication
-@EnableRetry
 @EntityScan("tabby.db.bean")
 @EnableNeo4jRepositories("tabby.db.repository.neo4j")
 public class TabbyApplication {
