@@ -67,6 +67,9 @@
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},
+  {"name":"com.bluecast.xml.PiccoloLexer", "rules": [
+    {"function": "yylex", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
+  ]},
   {"name":"sun.util.resources.OpenListResourceBundle", "rules": [
     {"function": "getContents", "type": "ignore", "actions": {}, "polluted": [], "signatures": []}
   ]},

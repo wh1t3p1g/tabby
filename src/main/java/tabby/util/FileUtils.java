@@ -35,7 +35,9 @@ public class FileUtils {
             String filename = path.toFile().getName();
             if(filename.endsWith(".class")){
                 paths.put(filename, path.getParent().toString());
-            }else{
+            }else if(filename.endsWith(".war")){
+                paths.putAll(unpackWarFiles(path, filename));
+            }else if(filename.endsWith(".jar")){
                 paths.put(filename, path.toAbsolutePath().toString());
             }
         }else{
@@ -66,17 +68,22 @@ public class FileUtils {
         String libDir = "WEB-INF/lib";
         String classesDir = String.join(File.separator, tmpDir.toString(), "WEB-INF/classes");
         extract(path, tmpDir);
-        Files.walkFileTree(tmpDir.resolve(libDir), new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                String filename = file.getFileName().toString();
-                if(filename.endsWith(".jar")){
-                    paths.put(filename, file.toAbsolutePath().toString());
+        if(tmpDir.resolve(libDir).toFile().exists()){
+            Files.walkFileTree(tmpDir.resolve(libDir), new SimpleFileVisitor<Path>() {
+                @Override
+                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
+                    String filename = file.getFileName().toString();
+                    if(filename.endsWith(".jar")){
+                        paths.put(filename, file.toAbsolutePath().toString());
+                    }
+                    return FileVisitResult.CONTINUE;
                 }
-                return FileVisitResult.CONTINUE;
-            }
-        });
-        paths.put(filename, classesDir); // 单独添加classes目录
+            });
+        }
+        if(new File(classesDir).exists()){
+            paths.put(filename, classesDir); // 单独添加classes目录
+        }
+
         return paths;
     }
 

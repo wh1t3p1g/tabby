@@ -40,7 +40,7 @@ public class ClassInfoScanner {
 
     public void collect(List<String> classes){
         if(classes.isEmpty()) return;
-        log.info("Load necessary class refs.");
+        log.info("Load necessary class refs for tabby.");
         dataContainer.loadNecessaryClassRefs();
         log.info("Collect "+classes.size()+" classes information. Start!");
         classes.forEach(classname ->{

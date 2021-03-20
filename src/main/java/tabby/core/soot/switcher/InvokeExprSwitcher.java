@@ -38,7 +38,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
     private boolean isPolluted = false;
     private List<Integer> pollutedPosition;
     private Map<Value, TabbyVariable> globalMap = new HashMap<>();
-
+    private Map<Local, TabbyVariable> localMap = new HashMap<>();
 
     private DataContainer dataContainer;
     private RulesContainer rulesContainer;

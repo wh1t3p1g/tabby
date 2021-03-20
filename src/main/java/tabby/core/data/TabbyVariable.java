@@ -88,11 +88,13 @@ public class TabbyVariable {
         if(baseVar != null && baseVar.isPolluted(-1)){
             tabbyValue.setPolluted(true);
             String type = baseVar.getValue().getRelatedType();
+
             if(type != null && type.contains(sootField.getSignature())){
                 tabbyValue.setRelatedType(type);
             }else{
                 tabbyValue.setRelatedType(type + "|" + sootField.getSignature());
             }
+
         }
 
         return fieldVar;
@@ -105,6 +107,17 @@ public class TabbyVariable {
         tabbyVariable.setName("Temp Variable");
         tabbyVariable.setValue(tabbyValue);
         return tabbyVariable;
+    }
+
+    public void union(TabbyVariable that){
+        TabbyStatus thatStatus = that.getValue().getStatus();
+        // 状态集合不管是否是污染的状态 都保存下来
+        value.getStatus().getTypes().addAll(thatStatus.getTypes());
+        value.getStatus().getTypes().remove(null);
+
+        if(!value.isPolluted() && thatStatus.isPolluted()){
+            value.setPolluted(true);
+        }
     }
 
     /**
@@ -204,8 +217,7 @@ public class TabbyVariable {
     }
 
     public void clearVariableStatus(){
-        value.setPolluted(false);
-        value.setRelatedType(null);
+        value.setStatus(new TabbyStatus());
         fieldMap.clear();
         elements.clear();
     }

@@ -50,11 +50,14 @@ public class Analyser {
             List<String> realTargets = getTargets(targets);
             Main.v().autoSetOptions();
             // load all classes
+            log.info("Load necessary classes for soot. Maybe cost a while!");
             Scene.v().loadNecessaryClasses();
             // get all classes' info
+            log.info("Load all classes to analyse.");
             List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(realTargets);
 
             // 类信息抽取
+
             classInfoScanner.run(runtimeClasses);
             // 函数调用分析
             log.info("Run soot packs!");

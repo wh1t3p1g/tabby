@@ -16,7 +16,9 @@ import tabby.core.soot.switcher.value.SimpleLeftValueSwitcher;
 import tabby.core.soot.switcher.value.SimpleRightValueSwitcher;
 import tabby.db.bean.ref.MethodReference;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * May alias analysis
@@ -98,7 +100,6 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         stmtSwitcher.setDataContainer(dataContainer);
         d.apply(stmtSwitcher);
         out.putAll(context.getLocalMap());
-
     }
 
     @Override
@@ -106,31 +107,18 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         return new HashMap<>(emptyMap);
     }
 
-
     @Override
     protected void merge(Map<Local, TabbyVariable> in1, Map<Local, TabbyVariable> in2, Map<Local, TabbyVariable> out) {
-        // if else while 分支汇聚的时候 对结果集进行处理 交集
-        out.clear();
+        // if else while 分支汇聚的时候 对结果集进行处理 取并集
+        copy(in1, out);
 
-        in2.forEach((local, in2Var) -> {// 取交集
-            TabbyVariable in1Var = in1.get(local);
-            if(in1Var != null){
-                boolean in1VarPolluted = in1Var.containsPollutedVar(new ArrayList<>());
-                boolean in2VarPolluted = in2Var.containsPollutedVar(new ArrayList<>());
-                if(in1VarPolluted){
-                    // 1. in1可控 in2不可控
-                    // 2. in1可控 in2可控 优先选择in1
-                    out.put(local, in1Var.deepClone(new ArrayList<>()));
-                }else if(in2VarPolluted){
-                    // 3. in1不可控 in2可控
-                    out.put(local, in2Var.deepClone(new ArrayList<>()));
-                }else{
-                    // 4. in1 in2 不可控 优先选择in1
-                    out.put(local, in1Var.deepClone(new ArrayList<>()));
-                }
+        in2.forEach((local, in2Var) -> {// 取并集
+            TabbyVariable outVar = out.get(local);
+            if(outVar != null){
+                outVar.union(in2Var);
+            }else{
+                out.put(local, in2Var);
             }
-            // 存在什么问题？
-            // 对于两者皆可控的情况，我们舍弃其中一方都会导致后续路径污点的丢失
         });
     }
 

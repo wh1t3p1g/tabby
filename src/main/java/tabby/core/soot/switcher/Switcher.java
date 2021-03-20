@@ -40,7 +40,8 @@ public class Switcher {
     public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context,
                                                                 DataContainer dataContainer,
                                                                 SootMethod method,
-                                                                MethodReference methodRef, boolean force){
+                                                                MethodReference methodRef,
+                                                                boolean force){
         try{
             if(method.isAbstract() || Modifier.isNative(method.getModifiers())
                     || method.isPhantom()){
@@ -185,8 +186,9 @@ public class Switcher {
                 TabbyVariable tempVar = retVar.getElement(index);
                 if(created && tempVar == null){
                     tempVar = TabbyVariable.makeRandomInstance();
-                    tempVar.getValue().setPolluted(retVar.isPolluted(-1));
-                    if(retVar.isPolluted(-1)){
+                    boolean isPolluted = retVar.isPolluted(-1);
+                    tempVar.getValue().setPolluted(isPolluted);
+                    if(isPolluted){
                         tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+index);
                     }
                     retVar.addElement(index, tempVar);

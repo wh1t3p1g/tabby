@@ -128,6 +128,7 @@ public class Context {
         paramVar.setParamIndex(paramIndex);
         paramVar.getValue().setPolluted(true);
         paramVar.getValue().setRelatedType("param-"+paramIndex);
+
         paramVar.getFieldMap().forEach((fieldName, fieldVar) -> {
             if(fieldVar != null){
                 fieldVar.getValue().setPolluted(true);

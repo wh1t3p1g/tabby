@@ -77,6 +77,13 @@ public class CallGraphScanner {
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
 
+//            if("<com.bluecast.xml.Piccolo: void saveAttributeDefinition(java.lang.String,java.lang.String,java.lang.String,int,int,java.lang.String)>".equals(methodRef.getSignature())){
+//            if("<test.FieldSensitivity: void test(benchmark.objects.A)>".equals(methodRef.getSignature())){
+//                System.out.println(1);
+//            }else{
+//                return;
+//            }
+
             InvokeExprSwitcher invokeExprSwitcher = new InvokeExprSwitcher();
             invokeExprSwitcher.setSource(methodRef);
             invokeExprSwitcher.setDataContainer(dataContainer);
