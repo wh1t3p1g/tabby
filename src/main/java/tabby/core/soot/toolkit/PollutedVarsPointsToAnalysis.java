@@ -99,7 +99,12 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         stmtSwitcher.setContext(context);
         stmtSwitcher.setDataContainer(dataContainer);
         d.apply(stmtSwitcher);
-        out.putAll(context.getLocalMap());
+        out.putAll(clean(context.getLocalMap()));
+//        out.putAll(context.getLocalMap());
+        // TODO 去掉非污染的变量
+        //  影响 加快了分析速度
+        //  但是丢失了一部分的关系边（暂未找到这部分缺失的影响，还需要进行实验）
+        //  这里暂时为了效率舍弃了部分可控边
     }
 
     @Override
@@ -130,6 +135,17 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
             TabbyVariable variable = entry.getValue();
             dest.put(value, variable.deepClone(new ArrayList<>()));
         }
+    }
+
+    public Map<Local, TabbyVariable> clean(Map<Local, TabbyVariable> localMap){
+        // 是否需要剔除不是污染的变量
+        Map<Local, TabbyVariable> tmp = new HashMap<>();
+        localMap.forEach((local, var) -> {
+            if(var.isPolluted(-1)){
+                tmp.put(local, var);
+            }
+        });
+        return tmp;
     }
 
     public static PollutedVarsPointsToAnalysis makeDefault(MethodReference methodRef,
