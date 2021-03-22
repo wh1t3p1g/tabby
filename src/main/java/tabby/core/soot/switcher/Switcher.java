@@ -107,6 +107,21 @@ public class Switcher {
             Switcher.doMethodAnalysis(subContext, dataContainer, invokeExpr.getMethod(), methodRef, false);
         }
         TabbyVariable retVar = null;
+        if("<init>".equals(methodRef.getName())
+                && baseVar != null && !baseVar.isPolluted(-1)){
+            // 对于new语句 拆分成2个
+            // obj = new type
+            // obj.<init>(xxx)
+            // 为了不丢失污点，这里近似处理
+            // 将args的第一个污点状态传递给obj
+            for(TabbyVariable arg: args.values()){
+                if(arg.isPolluted(-1)){
+                    baseVar.getValue().setPolluted(true);
+                    baseVar.getValue().setRelatedType(arg.getValue().getRelatedType());
+                    break;
+                }
+            }
+        }
         // 参数修正，将从子函数的分析结果套用到当前的localMap
         // 修正 入参和baseVar
         for (Map.Entry<String, String> entry : methodRef.getActions().entrySet()) {
@@ -133,6 +148,8 @@ public class Switcher {
         if(methodRef.getActions().containsKey("return")){
             retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
         }
+
+
 
         return retVar;
     }

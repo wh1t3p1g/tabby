@@ -128,7 +128,8 @@ public class TabbyVariable {
      */
     public void assign(TabbyVariable var, boolean remain){
         // copy value
-        if(var != null && var.getValue() != null){
+        if(var != null && var.getValue() != null
+                && !"Temp Variable".equals(var.getName())){ // 遇到临时变量，不做处理，通常为new操作
             if(isPolluted(-1) && remain){
                 return;
             }

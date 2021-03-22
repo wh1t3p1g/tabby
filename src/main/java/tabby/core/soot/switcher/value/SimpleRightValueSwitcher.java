@@ -57,10 +57,10 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 //        defaultCase(v);
 //    }
 //
-//    @Override
-//    public void caseNewExpr(NewExpr v) {
-//        setResult(TabbyVariable.makeRandomInstance());
-//    }
+    @Override
+    public void caseNewExpr(NewExpr v) {
+        setResult(TabbyVariable.makeRandomInstance());
+    }
 
     @Override
     public void caseArrayRef(ArrayRef v) {

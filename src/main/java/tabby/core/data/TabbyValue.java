@@ -103,7 +103,7 @@ public class TabbyValue implements Serializable {
                 .append(isField, that.isField)
                 .append(isStatic, that.isStatic)
                 .append(type, that.type).append(typeName, that.typeName)
-//                .append(status, that.status).isEquals();
+//                .append(status.isPolluted, that.status.isPolluted).isEquals();
                 .isEquals();
     }
 
@@ -112,7 +112,10 @@ public class TabbyValue implements Serializable {
         return new HashCodeBuilder(17, 37)
                 .append(type).append(typeName).append(isArray)
                 .append(isField).append(isStatic)
-//                .append(status).toHashCode();
+//                .append(status.isPolluted).toHashCode();
                 .toHashCode();
+        // TODO 关于污点追踪这块的实现，其实是存在缺陷的
+        //  当前使用的relatedType并不是一个很好的方案
+        //  等当前事情过去，再想个合适的方法
     }
 }

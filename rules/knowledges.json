@@ -47,6 +47,9 @@
   {"name":"java.lang.ProcessImpl", "rules": [
     {"function": "start", "type": "sink", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessImpl: java.lang.Process start(java.lang.String[],java.util.Map,java.lang.String,java.lang.ProcessBuilder$Redirect[],boolean)>"]}
   ]},
+  {"name":"javax.xml.parsers.DocumentBuilder", "rules": [
+    {"function": "parse", "type": "sink", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
   {"name":"java.lang.ClassLoader", "rules": [
     {"function": "defineClass", "type": "sink", "actions": {"return": "param-1"}, "polluted": [1], "signatures": ["<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)>","<java.lang.ClassLoader: java.lang.Class defineClass(byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,java.nio.ByteBuffer,java.security.ProtectionDomain)>"]},
     {"function":  "newInstance", "type": "sink", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
@@ -110,6 +113,13 @@
   ]},
   {"name":"java.io.ByteArrayInputStream", "rules": [
     {"function": "<init>", "type": "know", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.ByteArrayInputStream: void <init>(byte[],int,int)>","<java.io.ByteArrayInputStream: void <init>(byte[])>"]}
+  ]},
+  {"name":"java.io.ObjectInput", "rules": [
+    {"function": "read", "type": "know", "actions": {"param-0": "this"}, "polluted": [], "signatures": []},
+    {"function": "readFully", "type": "know", "actions": {"param-0": "this"}, "polluted": [], "signatures": []},
+    {"function": "readLine", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "readObject", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "readUTF", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []}
   ]},
   {"name":"java.lang.StringBuilder", "rules": [
     {"function": "toString", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.StringBuilder: java.lang.String toString()>"]},
