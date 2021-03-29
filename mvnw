@@ -68,7 +68,7 @@ esac
 
 if [ -z "$JAVA_HOME" ] ; then
   if [ -r /etc/gentoo-release ] ; then
-    JAVA_HOME=`java-config --jre-home`
+    JAVA_HOME=`java-tabby.config --jre-home`
   fi
 fi
 
@@ -201,7 +201,7 @@ fi
 
 ##########################################################################################
 # Extension to allow automatically downloading the maven-wrapper.jar from Maven-central
-# This allows using the maven wrapper in projects that prohibit checking in binary data.
+# This allows using the maven wrapper in projects that prohibit checking in binary tabby.core.data.
 ##########################################################################################
 if [ -r "$BASE_DIR/.mvn/wrapper/maven-wrapper.jar" ]; then
     if [ "$MVNW_VERBOSE" = true ]; then

@@ -110,16 +110,16 @@ MERGE(m:Method {_id:value._id} ) ON CREATE SET m = value
 
 
 //cc10
-match (m1:Method {SIGNATURE:"<java.util.HashSet: void readObject(java.io.ObjectInputStream)>"})-[:CALL]->(m2:Method {NAME:"put"})-[:CALL]->(m3:Method {NAME:"hash"})-[:CALL]->(m4:Method {NAME:"hashCode"})-[:ALIAS*]-(m5:Method {SIGNATURE:"<org.apache.commons.collections.keyvalue.TiedMapEntry: int hashCode()>"})-[:CALL]->(m6:Method {NAME:"getValue"})-[:CALL]->(m7:Method {NAME:"get"})-[:ALIAS*1..2]-(m8:Method {NAME:"get"})-[:CALL]->(m9:Method {NAME:"transform"})-[:ALIAS*]-(m10:Method)-[:CALL]->(m11:Method {IS_SINK:true}) return *
+match (m1:Method {SIGNATURE:"<java.tabby.util.HashSet: void readObject(java.io.ObjectInputStream)>"})-[:CALL]->(m2:Method {NAME:"put"})-[:CALL]->(m3:Method {NAME:"hash"})-[:CALL]->(m4:Method {NAME:"hashCode"})-[:ALIAS*]-(m5:Method {SIGNATURE:"<org.apache.commons.collections.keyvalue.TiedMapEntry: int hashCode()>"})-[:CALL]->(m6:Method {NAME:"getValue"})-[:CALL]->(m7:Method {NAME:"get"})-[:ALIAS*1..2]-(m8:Method {NAME:"get"})-[:CALL]->(m9:Method {NAME:"transform"})-[:ALIAS*]-(m10:Method)-[:CALL]->(m11:Method {IS_SINK:true}) return *
 
 
-match (source:Method {SIGNATURE:"<java.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
+match (source:Method {SIGNATURE:"<java.tabby.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
 match (sink:Method {IS_SINK:true, NAME:"invoke"})
 call apoc.algo.allSimplePaths(source, sink, "CALL>|ALIAS", 12) yield path
 return * limit 20
 
 //cc2
-match (m1:Method {SIGNATURE:"<java.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {IS_SINK:true}) return *
+match (m1:Method {SIGNATURE:"<java.tabby.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {IS_SINK:true}) return *
 
 match (source:Method {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})
 match (sink:Method {IS_SINK:true, NAME:"invoke"})
@@ -131,7 +131,7 @@ match (sink:Method {IS_SINK:true, NAME:"invoke"})
 call apoc.algo.allSimplePaths(sink, source, "<CALL|ALIAS", 3) yield path
 return * limit 20
 
-match (source:Method {SIGNATURE:"<java.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
+match (source:Method {SIGNATURE:"<java.tabby.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
 match (sink:Method {IS_SINK:true, NAME:"invoke"})
 call apoc.algo.allSimplePaths(sink, source, "<CALL|ALIAS", 3) yield path
 return * limit 20
@@ -142,25 +142,25 @@ call apoc.algo.allSimplePaths(m1, source, "<CALL|ALIAS", 12) yield path
 return * limit 20
 
 //cc10
-match (m1:Method {SIGNATURE:"<java.util.HashSet: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"put"})-[:CALL ]->(m3:Method {NAME:"hash"})-[:CALL ]->(m4:Method {NAME:"hashCode"})-[:ALIAS*]-(m5:Method {SIGNATURE:"<org.apache.commons.collections.keyvalue.TiedMapEntry: int hashCode()>"})-[:CALL ]->(m6:Method {NAME:"getValue"})-[:CALL]->(m7:Method {NAME:"get"})-[:ALIAS*1..2]-(m8:Method {NAME:"get"})-[:CALL]->(m9:Method {NAME:"transform"})-[:ALIAS*]-(m10:Method)-[:CALL]->(m11:Method {IS_SINK:true}) return *
+match (m1:Method {SIGNATURE:"<java.tabby.util.HashSet: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"put"})-[:CALL ]->(m3:Method {NAME:"hash"})-[:CALL ]->(m4:Method {NAME:"hashCode"})-[:ALIAS*]-(m5:Method {SIGNATURE:"<org.apache.commons.collections.keyvalue.TiedMapEntry: int hashCode()>"})-[:CALL ]->(m6:Method {NAME:"getValue"})-[:CALL]->(m7:Method {NAME:"get"})-[:ALIAS*1..2]-(m8:Method {NAME:"get"})-[:CALL]->(m9:Method {NAME:"transform"})-[:ALIAS*]-(m10:Method)-[:CALL]->(m11:Method {IS_SINK:true}) return *
 
 ((HashMap) out).values().toArray()[1].equals(((HashMap) d.outFlow).values().toArray()[1])
 
-match (source:Method {SIGNATURE:"<java.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
+match (source:Method {SIGNATURE:"<java.tabby.util.HashSet: void readObject(java.io.ObjectInputStream)>"})
 match (sink:Method {IS_SINK:true})
 call apoc.algo.allSimplePaths(sink, source, "<CALL|ALIAS", 12) yield path
 return * limit 20
 
-match (source:Method {SIGNATURE:"<java.util.Hashtable: void readObject(java.io.ObjectInputStream)>"})
+match (source:Method {SIGNATURE:"<java.tabby.util.Hashtable: void readObject(java.io.ObjectInputStream)>"})
 match (sink:Method {IS_SINK:true})<-[:CALL]-(m1:Method {NAME:"transform"})
 call apoc.algo.allSimplePaths(m1, source, "<CALL|ALIAS", 12) yield path
 return * limit 20
 
 
-match (m1:Method {SIGNATURE:"<java.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {IS_SINK:true}) return *
+match (m1:Method {SIGNATURE:"<java.tabby.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {IS_SINK:true}) return *
 
 //cc2
-match (m1:Method {SIGNATURE:"<java.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {isSink:true}) return *
+match (m1:Method {SIGNATURE:"<java.tabby.util.PriorityQueue: void readObject(java.io.ObjectInputStream)>"})-[:CALL ]->(m2:Method {NAME:"heapify"})-[:CALL ]->(m3)-[:CALL ]->(m4:Method {NAME:"siftDownUsingComparator"})-[:CALL ]->(m5)-[:ALIAS*]-(m6 {SIGNATURE:"<org.apache.commons.collections.comparators.TransformingComparator: int compare(java.lang.Object,java.lang.Object)>"})-[:CALL ]->(m7)-[:ALIAS*]-(m8:Method)-[:CALL]->(m9:Method {isSink:true}) return *
 
 
 
