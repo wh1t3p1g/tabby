@@ -2,9 +2,7 @@ package tabby.core.switcher.value;
 
 import lombok.Getter;
 import lombok.Setter;
-import soot.Local;
-import soot.PrimType;
-import soot.Value;
+import soot.*;
 import soot.jimple.ArrayRef;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.IntConstant;
@@ -82,7 +80,8 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
      * @param v
      */
     public void caseInstanceFieldRef(InstanceFieldRef v) {
-        if(v.getField().getType() instanceof PrimType) return; // 提出无用的类属性传递 是否需要剔除static类型？
+        SootFieldRef sfr = v.getFieldRef();
+        if(sfr.type() instanceof PrimType) return; // 提出无用的类属性传递 是否需要剔除static类型？
         TabbyVariable fieldVar = context.getOrAdd(v);
 
         if(unbind){

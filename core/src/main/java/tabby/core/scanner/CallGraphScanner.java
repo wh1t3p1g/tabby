@@ -77,7 +77,7 @@ public class CallGraphScanner {
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
 
-//            if("<test.FieldSensitivity: void test(benchmark.objects.A)>".equals(methodRef.getSignature())){
+//            if("<com.runqian.base4.tool.XmlEditor$11: java.awt.Component getTreeCellRendererComponent(javax.swing.JTree,java.lang.Object,boolean,boolean,boolean,int,boolean)>".equals(methodRef.getSignature())){
 ////            if("<test.FieldSensitivity: void test(benchmark.objects.A)>".equals(methodRef.getSignature())){
 //                System.out.println(1);
 //            }else{

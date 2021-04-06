@@ -61,6 +61,15 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
             }else if(value instanceof InstanceFieldRef){
                 InstanceFieldRef ifr = (InstanceFieldRef) value;
                 SootField sootField = ifr.getField();
+                SootFieldRef sfr = ifr.getFieldRef();
+
+                String signature = null;
+                if(sootField != null){
+                    signature = sootField.getSignature();
+                }else if(sfr != null){
+                    signature = sfr.getSignature();
+                }
+
                 Value base = ifr.getBase();
                 if(base instanceof Local){
                     TabbyVariable baseVar = initialMap.get(base);
@@ -68,11 +77,17 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
                         baseVar = TabbyVariable.makeLocalInstance((Local) base);
                         initialMap.put((Local) base, baseVar);
                     }
-                    TabbyVariable fieldVar = baseVar.getField(sootField.getSignature());
+                    TabbyVariable fieldVar = baseVar.getField(signature);
                     if(fieldVar == null){
-                        fieldVar = TabbyVariable.makeFieldInstance(baseVar, sootField);
-                        fieldVar.setOrigin(value);
-                        baseVar.addField(sootField.getSignature(), fieldVar);
+                        if(sootField != null){
+                            fieldVar = TabbyVariable.makeFieldInstance(baseVar, sootField);
+                        }else if(sfr != null){
+                            fieldVar = TabbyVariable.makeFieldInstance(baseVar, sfr);
+                        }
+                        if(fieldVar != null && signature != null){
+                            fieldVar.setOrigin(value);
+                            baseVar.addField(signature, fieldVar);
+                        }
                     }
                 }
             }else if(value instanceof ArrayRef){

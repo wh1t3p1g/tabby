@@ -3,6 +3,7 @@ package tabby.core.data;
 import lombok.Data;
 import soot.Local;
 import soot.SootField;
+import soot.SootFieldRef;
 import soot.Value;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
@@ -93,12 +94,27 @@ public class Context {
         }else if(sootValue instanceof InstanceFieldRef){
             InstanceFieldRef ifr = (InstanceFieldRef) sootValue;
             SootField sootField = ifr.getField();
+            SootFieldRef fieldRef = ifr.getFieldRef();
+
+            String signature = null;
+            if(sootField != null){
+                signature = sootField.getSignature();
+            }else if(fieldRef != null){
+                signature = fieldRef.getSignature();
+            }
+
             Value base = ifr.getBase();
             if(base instanceof Local){
                 TabbyVariable baseVar = getOrAdd(base);
-                var = baseVar.getField(sootField.getSignature());
+                var = baseVar.getField(signature);
                 if(var == null){
-                    var = baseVar.getOrAddField(baseVar, sootField);
+                    if(sootField != null){
+                        var = baseVar.getOrAddField(baseVar, sootField);
+                    }else if(fieldRef != null){
+                        var = baseVar.getOrAddField(baseVar, fieldRef);
+                    }
+                }
+                if(var != null){
                     var.setOrigin(ifr);
                 }
             }

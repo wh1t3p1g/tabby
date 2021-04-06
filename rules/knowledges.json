@@ -155,6 +155,11 @@
     {"function": "toArray", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.util.List: java.lang.Object[] toArray(java.lang.Object[])>","<java.util.List: java.lang.Object[] toArray()>"]},
     {"function": "size", "type": "know", "actions": {"return": "clear"}, "polluted": [], "signatures": ["<java.util.List: int size()>"]}
   ]},
+  {"name":"java.io.DataInput", "rules": [
+    {"function": "readFully", "type": "know", "actions": {"param-0": "this"}, "polluted": [], "signatures": []},
+    {"function": "readLine", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "readUTF", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []}
+  ]},
   {"name": "javax.swing.plaf.nimbus.NimbusLookAndFeel", "rules": [
     {"function": "getDefaults", "type": "ignore", "actions": {"return": "this|<javax.swing.plaf.nimbus.NimbusLookAndFeel: javax.swing.UIDefaults uiDefaults>"}, "polluted": [], "signatures": []}
   ]},

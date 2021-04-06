@@ -71,7 +71,13 @@ public class TabbyVariable {
 
     public static TabbyVariable makeStaticFieldInstance(StaticFieldRef staticFieldRef){
         SootField sootField = staticFieldRef.getField();
-        TabbyVariable field = makeFieldInstance(null, sootField);
+        TabbyVariable field = null;
+        if(sootField != null){
+            field = makeFieldInstance(null, sootField);
+        }else{
+            SootFieldRef sootFieldRef = staticFieldRef.getFieldRef();
+            field = makeFieldInstance(null, sootFieldRef);
+        }
         field.setOrigin(staticFieldRef);
         return field;
     }
@@ -96,6 +102,33 @@ public class TabbyVariable {
                 tabbyValue.setRelatedType(type);
             }else{
                 tabbyValue.setRelatedType(type + "|" + sootField.getSignature());
+            }
+
+        }
+
+        return fieldVar;
+    }
+
+    public static TabbyVariable makeFieldInstance(TabbyVariable baseVar, SootFieldRef sfr){
+        TabbyValue tabbyValue = new TabbyValue();
+        TabbyVariable fieldVar = new TabbyVariable();
+        tabbyValue.setType(sfr.type());
+        tabbyValue.setTypeName(sfr.type().toString());
+        tabbyValue.setField(true);
+        tabbyValue.setStatic(sfr.isStatic());
+        tabbyValue.setArray(TabbyValue.isArrayType(sfr.type()));
+        fieldVar.setName(sfr.name());
+        fieldVar.setOwner(baseVar);
+        fieldVar.setValue(tabbyValue);
+
+        if(baseVar != null && baseVar.isPolluted(-1)){
+            tabbyValue.setPolluted(true);
+            String type = baseVar.getValue().getRelatedType();
+
+            if(type != null && type.contains(sfr.getSignature())){
+                tabbyValue.setRelatedType(type);
+            }else{
+                tabbyValue.setRelatedType(type + "|" + sfr.getSignature());
             }
 
         }
@@ -292,6 +325,15 @@ public class TabbyVariable {
         if(fieldVar == null){
             fieldVar = makeFieldInstance(baseVar, sf);
             baseVar.assign(sf.getSignature(), fieldVar);
+        }
+        return fieldVar;
+    }
+
+    public TabbyVariable getOrAddField(TabbyVariable baseVar, SootFieldRef sfr){
+        TabbyVariable fieldVar = baseVar.getField(sfr.getSignature());
+        if(fieldVar == null){
+            fieldVar = makeFieldInstance(baseVar, sfr);
+            baseVar.assign(sfr.getSignature(), fieldVar);
         }
         return fieldVar;
     }
