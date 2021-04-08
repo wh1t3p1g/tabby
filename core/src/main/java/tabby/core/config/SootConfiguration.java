@@ -33,6 +33,7 @@ public class SootConfiguration {
 //        Options.v().set_ignore_classpath_errors(true); // Ignores invalid entries on the Soot classpath.
         Options.v().set_whole_program(true);// 开启 过程间分析
         Options.v().set_no_writeout_body_releasing(true); // 当输出内容后不释放获取的body数据
+        Options.v().set_no_bodies_for_excluded(true);
 //        Options.v().set_omit_excepting_unit_edges(true);
         // 设置自定义的package
 //        PhaseOptions.v().setPhaseOption("cg","on");

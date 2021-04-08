@@ -23,12 +23,14 @@ public class RulesContainer {
 
     private Map<String, TabbyRule> rules = new HashMap<>();
     private List<String> ignored; // 已经分析过的jar包
+    private List<String> excludedClasses; // 不进行分析的类
     private List<String> basicClasses; // 已经分析过的jar包
 
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
         loadBasicClasses();
+        loadExcludedClasses();
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -84,6 +86,13 @@ public class RulesContainer {
         basicClasses = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.BASIC_CLASSES_PATH, List.class);
         if(basicClasses == null){
             basicClasses = new ArrayList<>();
+        }
+    }
+
+    private void loadExcludedClasses(){
+        excludedClasses = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.EXCLUDED_CLASS_PATH, List.class);
+        if(excludedClasses == null){
+            excludedClasses = new ArrayList<>();
         }
     }
 

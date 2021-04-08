@@ -44,6 +44,7 @@ public class Analyser {
         try{
             long start = System.nanoTime();
             addBasicClasses();
+            addExcludedClasses();
             // set class paths
             Scene.v().setSootClassPath(String.join(File.pathSeparator, new HashSet<>(classpaths)));
             // get target filepaths
@@ -57,7 +58,6 @@ public class Analyser {
             List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(realTargets);
 
             // 类信息抽取
-
             classInfoScanner.run(runtimeClasses);
             // 函数调用分析
             log.info("Run soot packs!");
@@ -95,6 +95,13 @@ public class Analyser {
         List<String> basicClasses = rulesContainer.getBasicClasses();
         for(String cls:basicClasses){
             Scene.v().addBasicClass(cls ,HIERARCHY);
+        }
+    }
+
+    public void addExcludedClasses(){
+        List<String> excludedClasses = rulesContainer.getExcludedClasses();
+        if(!excludedClasses.isEmpty()){
+            Options.v().set_exclude(excludedClasses);
         }
     }
 
