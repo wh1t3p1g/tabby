@@ -44,7 +44,7 @@ public class Analyser {
         try{
             long start = System.nanoTime();
             addBasicClasses();
-            addExcludedClasses();
+//            addExcludedClasses();
             // set class paths
             Scene.v().setSootClassPath(String.join(File.pathSeparator, new HashSet<>(classpaths)));
             // get target filepaths
@@ -99,10 +99,10 @@ public class Analyser {
     }
 
     public void addExcludedClasses(){
-        List<String> excludedClasses = rulesContainer.getExcludedClasses();
-        if(!excludedClasses.isEmpty()){
-            Options.v().set_exclude(excludedClasses);
-        }
+//        List<String> excludedClasses = rulesContainer.getExcludedClasses();
+//        if(!excludedClasses.isEmpty()){
+//            Options.v().set_exclude(excludedClasses);
+//        }
     }
 
     public void save(){

@@ -30,7 +30,7 @@ public class RulesContainer {
         load();
         loadIgnore();
         loadBasicClasses();
-        loadExcludedClasses();
+//        loadExcludedClasses();
     }
 
     public TabbyRule.Rule getRule(String classname, String method){

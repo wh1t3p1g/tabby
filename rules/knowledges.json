@@ -191,5 +191,19 @@
   {"name": "java.lang.System", "rules": [
     {"function": "arraycopy", "type": "know", "actions": {"param-2": "param-0"}, "polluted": [], "signatures": []},
     {"function": "identityHashCode", "type": "know", "actions": {}, "polluted": [], "signatures": []}
+  ]},
+  {"name": "javax.servlet.http.HttpServletRequest", "rules": [
+    {"function": "getHeader", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "getHeaders", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "getCookies", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "getParameter", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "getParameterMap", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []}
+  ]},
+  {"name": "javax.servlet.ServletRequest", "rules": [
+    {"function": "getParameter", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []},
+    {"function": "getParameterMap", "type": "know", "actions": {"return": "this"}, "polluted": [], "signatures": []}
+  ]},
+  {"name": "com.seeyon.ctp.common.parser.BytesEncodingDetect", "rules":[
+    {"function": "initialize_frequencies", "type": "ignore", "actions":{}, "polluted":[], "signatures":[]}
   ]}
 ]

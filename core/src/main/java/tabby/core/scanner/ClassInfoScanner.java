@@ -42,14 +42,15 @@ public class ClassInfoScanner {
         if(classes.isEmpty()) return;
         log.info("Load necessary class refs for tabby.");
         dataContainer.loadNecessaryClassRefs();
-        log.info("Collect "+classes.size()+" classes information. Start!");
+        log.info("Start to collect classes information.");
         classes.forEach(classname ->{
             ClassInfoScanner.collect(classname, dataContainer, rulesContainer, false);
         });
+        int clsSize = dataContainer.getSavedClassRefs().size();
         dataContainer.getSavedClassRefs().forEach((name, ref) -> {
             makeAliasRelation(ref, dataContainer);
         });
-        log.info("Collect "+classes.size()+" classes information. DONE!");
+        log.info("Collect <"+clsSize+"> classes information.");
     }
 
     /**
@@ -216,13 +217,13 @@ public class ClassInfoScanner {
 
 
     public void save(){
-        log.info("Save remained data to graphdb. START!");
+        log.info("Start to save remained data to graphdb.");
         dataContainer.save("class");
         dataContainer.save("has");
         dataContainer.save("alias");
         dataContainer.save("extend");
         dataContainer.save("interfaces");
-        log.info("Save remained data to graphdb. DONE!");
+        log.info("Graphdb saved.");
     }
 
 

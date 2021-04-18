@@ -149,6 +149,26 @@ tabby实验的时候大概6gb的内存可以处理4w+类
 - soot getBody convert error，这个错误暂无解决方案，是soot的解析问题，只能将当前这个会报错的jar文件移除。譬如weblogic 12g的wlthint3client.jar文件会有这个问题，只能等soot更新。
 - 其他由tabby产生的bug，譬如空指针异常，可以直接提issue给我并附上产生错误的jar文件。
 
+#### 7. 使用小trick
+
+其实，在属性图生成的过程中，许多代码分析其实是无用的，但是由于程序没办法判断是否是无用的，所以该全量分析就得全量分析。
+
+但是，如果遇到及其消耗内存或cpu计算能力的情况（即卡在了函数处理进度处）
+
+可以使用以下方法对分析进行优化：
+
+1. 运行jar时加上debug，`-Dlogging.level.tabby=DEBUG`，然后看它最终在那个函数处消耗特别大或就卡在那里了
+2. 打开IDEA，加lib，找到具体的实现，如果这个函数经过人工分析后，是认为可以被忽略的，那么添加至knowledge库
+3. 在`knowledges.json`，添加ignore规则，比如致远的一个函数`<com.seeyon.ctp.common.parser.BytesEncodingDetect: void initialize_frequencies()>`，ignore规则如下
+
+```json
+{"name": "com.seeyon.ctp.common.parser.BytesEncodingDetect", "rules":[
+    {"function": "initialize_frequencies", "type": "ignore", "actions":{}, "polluted":[], "signatures":[]}
+  ]}
+```
+
+4. 添加完ignore规则后，再运行tabby就可以跳过该函数的分析
+
 ## #5 初衷&致谢
 
 当初，在进行利用链分析的过程中，深刻认识到这一过程是能被自动化所代替的（不管是Java还是PHP）。但是，国内很少有这方面工具的开源。GI工具实际的检测效果其实并不好，为此，依据我对程序分析的理解，开发了tabby工具。我对tabby工具期望不单单只是在利用链挖掘的应用，也希望后续能从漏洞分析的角度利用tabby的代码属性图进行分析。我希望tabby能给国内的Java安全研究人员带来新的工作模式。
