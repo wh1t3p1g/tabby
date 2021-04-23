@@ -41,6 +41,7 @@ public class MethodReference {
     private int modifiers;
     private String classname;
     private int parameterSize;
+    private String vul;
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = Set2JsonStringConverter.class)

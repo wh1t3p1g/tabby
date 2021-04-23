@@ -42,6 +42,7 @@ public class TabbyRule {
         private String function;
         private String type;
         private Map<String, String> actions;
+        private String vul;
         private List<Integer> polluted;
         private List<String> signatures;
 
@@ -82,6 +83,10 @@ public class TabbyRule {
 
         public List<String> getSignatures(){
             return signatures;
+        }
+
+        public String getVul(){
+            return vul;
         }
 
     }

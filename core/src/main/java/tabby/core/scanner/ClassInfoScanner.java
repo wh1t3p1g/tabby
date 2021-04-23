@@ -176,6 +176,9 @@ public class ClassInfoScanner {
         if (rule != null && !isSource) {
             Map<String, String> actions = rule.getActions();
             List<Integer> polluted = rule.getPolluted();
+            if(isSink){
+                methodRef.setVul(rule.getVul());
+            }
             methodRef.setActions(actions!=null?actions:new HashMap<>());
             methodRef.setPollutedPosition(polluted!=null?polluted:new ArrayList<>());
             methodRef.setInitialed(true);
