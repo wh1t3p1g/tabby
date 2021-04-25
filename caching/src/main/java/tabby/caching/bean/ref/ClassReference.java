@@ -1,5 +1,6 @@
 package tabby.caching.bean.ref;
 
+import com.google.common.hash.Hashing;
 import lombok.Data;
 import org.springframework.data.annotation.Transient;
 import tabby.caching.bean.edge.Extend;
@@ -9,6 +10,7 @@ import tabby.caching.converter.List2JsonStringConverter;
 import tabby.caching.converter.Set2JsonStringConverter;
 
 import javax.persistence.*;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -67,7 +69,10 @@ public class ClassReference {
 
     public static ClassReference newInstance(String name){
         ClassReference classRef = new ClassReference();
-        classRef.setId(UUID.randomUUID().toString());
+        String id = Hashing.sha256() // 相同class生成的id值也相同
+                .hashString(name, StandardCharsets.UTF_8)
+                .toString();
+        classRef.setId(id);
         classRef.setName(name);
         classRef.setInterfaces(new ArrayList<>());
         classRef.setFields(new HashSet<>());
