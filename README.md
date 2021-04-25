@@ -1,6 +1,6 @@
 # tabby
 ![Platforms](https://img.shields.io/badge/Platforms-OSX-green.svg)
-![Java version](https://img.shields.io/badge/Java-8%2b-blue.svg)
+![Java version](https://img.shields.io/badge/Java-8-blue.svg)
 ![License](https://img.shields.io/badge/License-apache%202-green.svg)
 
 A repository with tabby releases
