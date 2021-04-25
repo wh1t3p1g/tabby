@@ -24,11 +24,13 @@ TABBY是一款针对Java语言的静态代码分析工具。
 具体的使用方法参见：[Tabby食用指北](https://github.com/wh1t3p1g/tabby/wiki/Tabby%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8C%97)
 
 ## #2 Tabby的适用人群
-开发Tabby的初衷是想要提高代码审计的效率，不管你是Java开发，还是专职的安全工程师，
-都可以用Tabby生成的代码属性图（当前版本1.0）来完成以下的工作场景：
+开发Tabby的初衷是想要提高代码审计的效率，仅可能的减少人工检索的工作量
 
-- 挖掘目标jar包中潜藏的Java反序列化利用链
+使用tabby生成的代码属性图（当前版本1.1.0）可以完成以下的工作场景：
+
+- 挖掘目标代码文件中潜藏的Java反序列化利用链
 - 搜索符合特定条件的函数、类，譬如检索调用了危险函数的静态函数
+- 从某个端点到sink点的调用路径，用于检索可能的漏洞触发路径（如weblogic xmldecoder相关从processRequest到XMLDecoder.readObject的路径）
 
 以前对Jar/War/Class的分析方法，往往为先反编译成java文件，然后再通过人工搜索特定函数来进行分析。
 
