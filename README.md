@@ -12,6 +12,9 @@ TABBY是一款针对Java语言的静态代码分析工具。
 它使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为语义提取工具，将JAR/WAR/CLASS文件转化为代码属性图。
 并使用 [Neo4j](https://neo4j.com/) 图数据库来存储生成的代码属性图CPG。
 
+Note: 如果使用中存在什么问题，欢迎在[discussions](https://github.com/wh1t3p1g/tabby/discussions)提问！
+Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/tabby/discussions) about TABBY!
+
 ## #1 使用方法
 
 使用Tabby需要有以下环境：
@@ -82,7 +85,7 @@ class A extends B{
     public void func(){}
 
     public void func1(){
-        A a = this.func();
+        this.func();
     }
 }
 class C extends B{
