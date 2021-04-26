@@ -13,6 +13,7 @@ TABBY是一款针对Java语言的静态代码分析工具。
 并使用 [Neo4j](https://neo4j.com/) 图数据库来存储生成的代码属性图CPG。
 
 Note: 如果使用中存在什么问题，欢迎在[discussions](https://github.com/wh1t3p1g/tabby/discussions)提问！
+
 Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/tabby/discussions) about TABBY!
 
 ## #1 使用方法
