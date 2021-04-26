@@ -67,9 +67,12 @@ public class App {
         }
         if(arguments.getNonOptionArgs().size() == 1){
             target = arguments.getNonOptionArgs().get(0);
-            String path = String.join(File.separator, System.getProperty("user.dir"), target);
-            if(!FileUtils.fileExists(path)){
-                throw new IllegalArgumentException("target not exists!");
+            // 支持绝对路径 issue 7
+            if(!FileUtils.fileExists(target)){
+                target = String.join(File.separator, System.getProperty("user.dir"), target);
+                if(!FileUtils.fileExists(target)){
+                    throw new IllegalArgumentException("target not exists!");
+                }
             }
         }
         // check options

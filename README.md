@@ -173,7 +173,7 @@ tabby实验的时候大概6gb的内存可以处理4w+类
 
 ```json
 {"name": "com.seeyon.ctp.common.parser.BytesEncodingDetect", "rules":[
-    {"function": "initialize_frequencies", "type": "ignore", "actions":{}, "polluted":[], "signatures":[]}
+    {"function": "initialize_frequencies", "type": "ignore", "vul": "","actions":{}, "polluted":[], "signatures":[]}
   ]}
 ```
 

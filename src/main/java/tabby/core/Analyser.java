@@ -55,8 +55,7 @@ public class Analyser {
             if(isJDKOnly){
                 targets.putAll(dependencies);
             }else{
-                String path = String.join(File.separator, System.getProperty("user.dir"), target);
-                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(path, checkFatJar);
+                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(target, checkFatJar);
                 classpaths.putAll(files);
                 targets.putAll(files);
                 if(isJDKProcess){
