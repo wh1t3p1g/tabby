@@ -37,7 +37,7 @@ TABBY是一款针对Java语言的静态代码分析工具。
 ## #3 成果
 
 - [现有利用链覆盖](https://github.com/wh1t3p1g/tabby/wiki/%E7%8E%B0%E6%9C%89%E5%88%A9%E7%94%A8%E9%93%BE%E8%A6%86%E7%9B%96)
-- CVE-2021-21346
+- CVE-2021-21346 [如何高效的挖掘Java反序列化利用链？](https://blog.0kami.cn/2021/03/14/java-how-to-find-gadget-chains/)
 - CVE-2021-21351
 - 子项目： Java反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 

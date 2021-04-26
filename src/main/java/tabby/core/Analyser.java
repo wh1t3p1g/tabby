@@ -44,7 +44,7 @@ public class Analyser {
 
     public void run(String target, boolean isJDKProcess,
                     boolean withAllJDK, boolean isSaveOnly,
-                    boolean excludeJDK, boolean isJDKOnly) throws IOException {
+                    boolean excludeJDK, boolean isJDKOnly, boolean checkFatJar) throws IOException {
         if(isSaveOnly){
             save();
         }else{
@@ -56,7 +56,7 @@ public class Analyser {
                 targets.putAll(dependencies);
             }else{
                 String path = String.join(File.separator, System.getProperty("user.dir"), target);
-                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(path);
+                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(path, checkFatJar);
                 classpaths.putAll(files);
                 targets.putAll(files);
                 if(isJDKProcess){

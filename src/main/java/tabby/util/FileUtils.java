@@ -24,7 +24,7 @@ public class FileUtils {
      * @return
      * @throws IOException
      */
-    public static Map<String, String> getTargetDirectoryJarFiles(String target) throws IOException {
+    public static Map<String, String> getTargetDirectoryJarFiles(String target, boolean checkFatJar) throws IOException {
         Map<String, String> paths = new HashMap<>();
         Path path = Paths.get(target).toAbsolutePath();
         if (!Files.exists(path)) {
@@ -36,9 +36,13 @@ public class FileUtils {
             if(filename.endsWith(".class")){
                 paths.put(filename, path.getParent().toString());
             }else if(filename.endsWith(".war")){
-                paths.putAll(unpackWarFiles(path, filename));
+                paths.putAll(unpackWarOrJarFiles(path, filename, false));
             }else if(filename.endsWith(".jar")){
-                paths.put(filename, path.toAbsolutePath().toString());
+                if(checkFatJar){
+                    paths.putAll(unpackWarOrJarFiles(path, filename, true));
+                }else{
+                    paths.put(filename, path.toAbsolutePath().toString());
+                }
             }
         }else{
             Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
@@ -46,13 +50,17 @@ public class FileUtils {
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
                     String filename = path.getFileName().toString();
                     if(filename.endsWith(".jar")){
-                        paths.put(filename, path.toAbsolutePath().toString());
+                        if(checkFatJar){
+                            paths.putAll(unpackWarOrJarFiles(path, filename, true));
+                        }else{
+                            paths.put(filename, path.toAbsolutePath().toString());
+                        }
                     }else if(filename.endsWith(".class")){
                         paths.put(filename, target);
                         // 对于.class文件，直接添加原目录，soot会爬取当前目录下的class文件
                         // 这里会有一些冗余，不过后面用了set 也无所谓
                     } else if(filename.endsWith(".war")){
-                        paths.putAll(unpackWarFiles(path, filename));
+                        paths.putAll(unpackWarOrJarFiles(path, filename, false));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -62,11 +70,11 @@ public class FileUtils {
         return paths;
     }
 
-    public static Map<String, String> unpackWarFiles(Path path, String filename) throws IOException {
+    public static Map<String, String> unpackWarOrJarFiles(Path path, String filename, boolean isFatJar) throws IOException {
         Map<String, String> paths = new HashMap<>();
         Path tmpDir = registerTempDirectory(filename);
-        String libDir = "WEB-INF/lib";
-        String classesDir = String.join(File.separator, tmpDir.toString(), "WEB-INF/classes");
+        String libDir = isFatJar?"BOOT-INF/lib":"WEB-INF/lib";
+        String classesDir = String.join(File.separator, tmpDir.toString(), isFatJar?"BOOT-INF/classes":"WEB-INF/classes");
         extract(path, tmpDir);
         if(tmpDir.resolve(libDir).toFile().exists()){
             Files.walkFileTree(tmpDir.resolve(libDir), new SimpleFileVisitor<Path>() {

@@ -31,6 +31,7 @@ public class App {
     private boolean isSaveOnly = false;
     private boolean excludeJDK = false;
     private boolean isJDKOnly = false;
+    private boolean checkFatJar = false;
 
     @Autowired
     private Analyser analyser;
@@ -61,6 +62,9 @@ public class App {
         if (arguments.containsOption("isJDKOnly")) {
             isJDKOnly = true;
         }
+        if (arguments.containsOption("checkFatJar")){
+            checkFatJar = true;
+        }
         if(arguments.getNonOptionArgs().size() == 1){
             target = arguments.getNonOptionArgs().get(0);
             String path = String.join(File.separator, System.getProperty("user.dir"), target);
@@ -87,7 +91,7 @@ public class App {
                     throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
                 }
                 applyOptions();
-                analyser.run(target, isJDKProcess, withAllJDK, isSaveOnly, excludeJDK, isJDKOnly);
+                analyser.run(target, isJDKProcess, withAllJDK, isSaveOnly, excludeJDK, isJDKOnly, checkFatJar);
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() +
                         "\nPlease use java -jar tabby target_directory [--isJDKOnly｜--isJDKProcess|--isSaveOnly|--excludeJDK] !" +
