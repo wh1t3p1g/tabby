@@ -212,4 +212,11 @@ public class FileUtils {
         }
     }
 
+    public static String getWinPath(String path){
+        if(JavaVersion.isWin()){
+            path = "/"+path.replace("\\", "/");
+        }
+        return path;
+    }
+
 }
