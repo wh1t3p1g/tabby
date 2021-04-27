@@ -43,4 +43,10 @@ public class JavaVersion {
         JavaVersion v = JavaVersion.getLocalVersion();
         return v != null && (v.major == 8);
     }
+
+    public static boolean isWin(){
+        String os = System.getProperty("os.name");
+        return os.toLowerCase().startsWith("win");
+    }
+
 }

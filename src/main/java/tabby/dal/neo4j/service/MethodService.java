@@ -21,7 +21,7 @@ public class MethodService {
     public void importMethodRef(){
         if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
             methodRefRepository.loadMethodRefFromCSV(
-                    GlobalConfiguration.METHODS_CACHE_PATH.replace("\\","/"));
+                    FileUtils.getWinPath(GlobalConfiguration.METHODS_CACHE_PATH));
         }
     }
 
