@@ -100,7 +100,9 @@ public class FileUtils {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 Path fullPath = tmpDir.resolve(jarEntry.getName());
-                if (!jarEntry.isDirectory()) {
+                if (!jarEntry.isDirectory()
+                        && (jarEntry.getName().endsWith(".class")
+                        || jarEntry.getName().endsWith(".jar"))) {
                     Path dirName = fullPath.getParent();
                     if (dirName == null) {
                         throw new IllegalStateException("Parent of item is outside temp directory.");
