@@ -91,8 +91,6 @@ public class Analyser {
             // 类信息抽取
             classInfoScanner.run(runtimeClasses);
             // 函数调用分析
-            log.info("Run soot packs!");
-            PackManager.v().runPacks();
             callGraphScanner.run();
             rulesContainer.saveStatus();
             log.info("Cost {} seconds"
