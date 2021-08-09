@@ -88,7 +88,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     @Override
     public void caseStaticFieldRef(StaticFieldRef v) {
-        TabbyVariable var = context.getGlobalMap().get(v); // 如果globalMap中找不到实例，说明此时的变量是不可控的，直接制空
+        TabbyVariable var = context.getGlobalMap().get(v);
         setResult(var);
     }
 

@@ -66,8 +66,8 @@ public class TabbyValue implements Serializable {
     public static boolean isArrayType(Type type){
         if(type instanceof ArrayType){
             return true;
-        }else if("java.tabby.util.List".equals(type.toString())
-                && "java.tabby.util.Collection".equals(type.toString())
+        }else if("java.util.List".equals(type.toString())
+                && "java.util.Collection".equals(type.toString())
         ){
             return true;
         }

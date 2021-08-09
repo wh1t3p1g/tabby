@@ -49,6 +49,7 @@ public class Analyser {
             save();
         }else{
             Map<String, String> dependencies = getJdkDependencies(withAllJDK);
+            log.info("Get {} JDK dependencies", dependencies.size());
             Map<String, String> classpaths = excludeJDK?
                     new HashMap<>():new HashMap<>(dependencies);
             Map<String, String> targets = new HashMap<>();
