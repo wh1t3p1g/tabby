@@ -5,7 +5,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.CompilationDeathException;
 import soot.Main;
-import soot.PackManager;
 import soot.Scene;
 import soot.options.Options;
 import tabby.config.GlobalConfiguration;
@@ -53,6 +52,7 @@ public class Analyser {
             Map<String, String> classpaths = excludeJDK?
                     new HashMap<>():new HashMap<>(dependencies);
             Map<String, String> targets = new HashMap<>();
+            SootConfiguration.initSootOption();
             if(isJDKOnly){
                 targets.putAll(dependencies);
             }else{
@@ -63,7 +63,6 @@ public class Analyser {
                     targets.putAll(dependencies);
                 }
             }
-            SootConfiguration.initSootOption();
             runSootAnalysis(targets, new ArrayList<>(classpaths.values()) );
         }
     }
