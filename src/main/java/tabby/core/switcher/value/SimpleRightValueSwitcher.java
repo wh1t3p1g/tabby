@@ -36,6 +36,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
 
     @Override
     public void caseDynamicInvokeExpr(DynamicInvokeExpr v) {
+        // TODO lambda 语句处理
         defaultCase(v);
     }
 

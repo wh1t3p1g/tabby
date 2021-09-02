@@ -3,6 +3,9 @@ package tabby.dal.caching.bean.ref;
 import com.google.common.hash.Hashing;
 import lombok.Data;
 import org.springframework.data.annotation.Transient;
+import soot.SootClass;
+import soot.SootField;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.caching.bean.edge.Extend;
 import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.edge.Interfaces;
@@ -28,6 +31,7 @@ public class ClassReference {
     private String name;
     private String superClass;
 
+    private boolean isPhantom = false;
     private boolean isInterface = false;
     private boolean hasSuperClass = false;
     private boolean hasInterfaces = false;
@@ -76,6 +80,36 @@ public class ClassReference {
         classRef.setName(name);
         classRef.setInterfaces(new ArrayList<>());
         classRef.setFields(new HashSet<>());
+        return classRef;
+    }
+
+    public static ClassReference newInstance(SootClass cls){
+        ClassReference classRef = newInstance(cls.getName());
+        classRef.setInterface(cls.isInterface());
+
+        // 提取类属性信息
+        if(cls.getFieldCount() > 0){
+            for (SootField field : cls.getFields()) {
+                List<String> fieldInfo = new ArrayList<>();
+                fieldInfo.add(field.getName());
+                fieldInfo.add(field.getModifiers() + "");
+                fieldInfo.add(field.getType().toString());
+                classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
+            }
+        }
+        // 提取父类信息
+        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
+            // 剔除Object类的继承关系，节省继承边数量
+            classRef.setHasSuperClass(cls.hasSuperclass());
+            classRef.setSuperClass(cls.getSuperclass().getName());
+        }
+        // 提取接口信息
+        if(cls.getInterfaceCount() > 0){
+            classRef.setHasInterfaces(true);
+            for (SootClass intface : cls.getInterfaces()) {
+                classRef.getInterfaces().add(intface.getName());
+            }
+        }
         return classRef;
     }
 

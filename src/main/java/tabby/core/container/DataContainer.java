@@ -9,6 +9,7 @@ import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
 import soot.util.NumberedString;
+import tabby.core.scanner.ClassInfoScanner;
 import tabby.dal.caching.bean.edge.*;
 import tabby.dal.caching.bean.ref.ClassReference;
 import tabby.dal.caching.bean.ref.MethodReference;
@@ -119,6 +120,8 @@ public class DataContainer {
      * @param <T> node type
      */
     public <T> void store(T ref) {
+        if(ref == null) return;
+
         if(ref instanceof ClassReference){
             ClassReference classRef = (ClassReference) ref;
             savedClassRefs.put(classRef.getName(), classRef);
@@ -170,6 +173,39 @@ public class DataContainer {
         return ref;
     }
 
+    /**
+     * 对于找不到的methodref
+     * 1. 新建classRef 如果不存在的话
+     * 2. 从classRef找methodRef
+     * 3. 如果还是找不到则新建
+     * @param sootMethodRef
+     * @return
+     */
+    public MethodReference getOrAddMethodRef(SootMethodRef sootMethodRef, SootMethod method){
+        SootClass cls = sootMethodRef.getDeclaringClass();
+        MethodReference methodRef = getMethodRefBySignature(sootMethodRef);
+
+        if(methodRef == null){
+            // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
+            ClassReference classRef = getClassRefByName(cls.getName());
+            if(classRef == null){// 对于新建class的情况，再查一遍
+                classRef = ClassInfoScanner.collect0(cls.getName(), cls, this, 0);
+                methodRef = getMethodRefBySignature(sootMethodRef);
+            }
+
+            if(methodRef == null){// 新建methodref
+                methodRef = MethodReference.newInstance(classRef.getName(), method);
+                Has has = Has.newInstance(classRef, methodRef);
+                if(!classRef.getHasEdge().contains(has)){
+                    classRef.getHasEdge().add(has);
+                    store(has);
+                    ClassInfoScanner.makeAliasRelation(has, this);
+                }
+                store(methodRef);
+            }
+        }
+        return methodRef;
+    }
 
     /**
      * 当前函数解决soot调用函数不准确的问题

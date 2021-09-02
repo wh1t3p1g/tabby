@@ -9,10 +9,7 @@ import soot.*;
 import soot.jimple.FieldRef;
 import soot.jimple.StaticFieldRef;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -239,6 +236,13 @@ public class TabbyVariable {
             }
         }
         return false;
+    }
+
+    public String getFirstPollutedVarRelatedType(){
+        if(firstPollutedVarRelatedType == null){
+            containsPollutedVar(new ArrayList<>());
+        }
+        return firstPollutedVarRelatedType;
     }
 
     public boolean isPolluted(int index){

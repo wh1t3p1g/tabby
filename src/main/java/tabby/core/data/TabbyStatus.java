@@ -18,11 +18,15 @@ public class TabbyStatus {
 
     public void setType(String type){
         types.clear();
-        types.add(type);
+        if(type != null){
+            types.add(type);
+        }
     }
 
     public void addType(String type){
-        types.add(type);
+        if(type != null){
+            types.add(type);
+        }
     }
 
     public void concatType(String type){
@@ -40,7 +44,7 @@ public class TabbyStatus {
     public String getFirstPollutedType(){
         if(!isPolluted) return null;
         for(String type:types){
-            if(type.startsWith("this") || type.startsWith("param-")){
+            if(type != null && (type.startsWith("this") || type.startsWith("param-"))){
                 return type;
             }
         }

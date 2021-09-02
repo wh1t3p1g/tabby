@@ -5,18 +5,18 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.*;
+import tabby.core.collector.ClassInfoCollector;
+import tabby.core.container.DataContainer;
 import tabby.dal.caching.bean.edge.Alias;
 import tabby.dal.caching.bean.edge.Extend;
 import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.edge.Interfaces;
 import tabby.dal.caching.bean.ref.ClassReference;
 import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.config.GlobalConfiguration;
-import tabby.core.container.DataContainer;
-import tabby.core.container.RulesContainer;
-import tabby.core.data.TabbyRule;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 处理jdk相关类的信息抽取
@@ -31,24 +31,104 @@ public class ClassInfoScanner {
     @Autowired
     private DataContainer dataContainer;
 
-    public void run(List<String> classes){
-        collect(classes);
+    @Autowired
+    private ClassInfoCollector collector;
+
+    public void run(List<String> paths){
+        // 多线程提取基础信息
+        Map<String, CompletableFuture<ClassReference>> classes = loadAndExtract(paths);
+        transform(classes.values());
+        List<String> runtimeClasses = new ArrayList<>(classes.keySet());
+        classes.clear();
+        // 单线程提取关联信息
+        buildClassEdges(runtimeClasses);
         save();
     }
 
-    public void collect(List<String> classes){
-        if(classes.isEmpty()) return;
-        log.info("Load necessary class refs for tabby.");
-        dataContainer.loadNecessaryClassRefs();
-        log.info("Start to collect classes information.");
-        classes.forEach(classname ->{
-            ClassInfoScanner.collect(classname, dataContainer, false);
-        });
-        int clsSize = dataContainer.getSavedClassRefs().size();
-        dataContainer.getSavedClassRefs().forEach((name, ref) -> {
-            makeAliasRelation(ref, dataContainer);
-        });
-        log.info("Collect <"+clsSize+"> classes information.");
+    public Map<String, CompletableFuture<ClassReference>> loadAndExtract(List<String> targets){
+        Map<String, CompletableFuture<ClassReference>> results = new HashMap<>();
+        Scene.v().loadBasicClasses();
+
+        Scene.v().loadDynamicClasses();
+        int counter = 0;
+        log.info("Start to collect {} targets' class information.", targets.size());
+        for (final String path : targets) {
+            for (String cl : SourceLocator.v().getClassesUnder(path)) {
+                SootClass theClass = Scene.v().loadClassAndSupport(cl);
+                if (!theClass.isPhantom()) {
+                    // 这里存在类数量不一致的情况，是因为存在重复的对象
+                    results.put(cl, collector.collect(theClass));
+                    theClass.setApplicationClass();
+                    if(counter % 10000 == 0){
+                        log.info("Collected {} classes.", counter);
+                    }
+                    counter++;
+                }
+            }
+        }
+        log.info("Collected {} classes.", counter);
+        return results;
+    }
+
+    public void transform(Collection<CompletableFuture<ClassReference>> futures){
+        for(CompletableFuture<ClassReference> future:futures){
+            try {
+                ClassReference classRef = future.get();
+
+                dataContainer.store(classRef);
+            } catch (InterruptedException | ExecutionException e) {
+                e.printStackTrace();
+                // 异步获取出错
+            }
+        }
+    }
+
+    public void buildClassEdges(List<String> classes){
+        int counter = 0;
+        int total = classes.size();
+        log.info("Build {} classes' edges.", total);
+        for(String cls:classes){
+            if(counter%10000 == 0){
+                log.info("Build {}/{} classes.", counter, total);
+            }
+            counter++;
+            ClassReference clsRef = dataContainer.getClassRefByName(cls);
+            if(clsRef == null) continue;
+            extractRelationships(clsRef, dataContainer, 0);
+        }
+        log.info("Build {}/{} classes.", counter, total);
+    }
+
+    public static void extractRelationships(ClassReference clsRef, DataContainer dataContainer, int depth){
+        // 建立继承关系
+        if(clsRef.isHasSuperClass()){
+            ClassReference superClsRef = dataContainer.getClassRefByName(clsRef.getSuperClass());
+            if(superClsRef == null && depth < 10){ // 正常情况不会进入这个阶段
+                superClsRef = collect0(clsRef.getSuperClass(), null, dataContainer, depth+1);
+            }
+            if(superClsRef != null){
+                Extend extend =  Extend.newInstance(clsRef, superClsRef);
+                clsRef.setExtendEdge(extend);
+                dataContainer.store(extend);
+            }
+        }
+        // 建立接口关系
+        if(clsRef.isHasInterfaces()){
+            List<String> infaces = clsRef.getInterfaces();
+            for(String inface:infaces){
+                ClassReference infaceClsRef = dataContainer.getClassRefByName(inface);
+                if(infaceClsRef == null && depth < 10){// 正常情况不会进入这个阶段
+                    infaceClsRef = collect0(inface, null, dataContainer, depth+1);
+                }
+                if(infaceClsRef != null){
+                    Interfaces interfaces = Interfaces.newInstance(clsRef, infaceClsRef);
+                    clsRef.getInterfaceEdge().add(interfaces);
+                    dataContainer.store(interfaces);
+                }
+            }
+        }
+        // 建立函数别名关系
+        makeAliasRelations(clsRef, dataContainer);
     }
 
     /**
@@ -56,167 +136,63 @@ public class ClassInfoScanner {
      * @param classname 待收集的类名
      * @return 具体的类信息
      */
-    public static ClassReference collect(String classname, DataContainer dataContainer, boolean force){
+    public static ClassReference collect0(String classname, SootClass cls,
+                                          DataContainer dataContainer, int depth){
         ClassReference classRef = null;
         try{
-            SootClass cls = Scene.v().getSootClass(classname);
-
-            if(!cls.isPhantom() || force) {
-                classRef = ClassReference.newInstance(cls.getName());
-                classRef.setInterface(cls.isInterface());
-                Set<String> relatedClassnames = getAllFatherNodes(cls);
-                classRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
-                // 提取类属性信息
-                if(cls.getFieldCount() > 0){
-                    for (SootField field : cls.getFields()) {
-                        List<String> fieldInfo = new ArrayList<>();
-                        fieldInfo.add(field.getName());
-                        fieldInfo.add(field.getModifiers() + "");
-                        fieldInfo.add(field.getType().toString());
-                        classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
-                    }
-                }
-                // 提取父类信息
-                if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
-                    // 剔除Object类的继承关系，节省继承边数量
-                    classRef.setHasSuperClass(cls.hasSuperclass());
-                    classRef.setSuperClass(cls.getSuperclass().getName());
-                    extractSuperClassInfo(cls.getSuperclass().getName(), classRef, dataContainer);
-                }
-                // 提取接口信息
-                if(cls.getInterfaceCount() > 0){
-                    classRef.setHasInterfaces(true);
-                    for (SootClass intface : cls.getInterfaces()) {
-                        classRef.getInterfaces().add(intface.getName());
-                        extractInterfaceInfo(intface.getName(), classRef, dataContainer);
-                    }
-                }
-
-                // 提取类函数信息
-                if(cls.getMethodCount() > 0){
-                    for (SootMethod method : cls.getMethods()) {
-                        extractMethodInfo(method, classRef, relatedClassnames, dataContainer);
-                    }
-                }
-
-                dataContainer.store(classRef);
+            if(cls == null){
+                cls = Scene.v().getSootClass(classname);
             }
         }catch (Exception e){
             // class not found
         }
+
+        if(cls != null) {
+            if(cls.isPhantom()){
+                classRef = ClassReference.newInstance(cls);
+                classRef.setPhantom(true);
+            }else{
+                classRef = ClassInfoCollector.collect0(cls, dataContainer);
+
+                extractRelationships(classRef, dataContainer, depth);
+            }
+        }else if(!classname.isEmpty()){
+            classRef = ClassReference.newInstance(classname);
+            classRef.setPhantom(true);
+        }
+
+        dataContainer.store(classRef);
         return classRef;
     }
 
-    public static void makeAliasRelation(ClassReference ref, DataContainer dataContainer){
+    public static void makeAliasRelations(ClassReference ref, DataContainer dataContainer){
         if(ref == null)return;
         // build alias relationship
         if(ref.getHasEdge() == null) return;
 
-        ref.getHasEdge().forEach(has -> {
-            MethodReference sourceRef = has.getMethodRef();
-            SootMethod sootMethod = sourceRef.getMethod();
-            if(sootMethod == null)return;
-            SootMethodRef sootMethodRef = sootMethod.makeRef();
-            MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-            if(targetRef != null
-                    && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")
-                    && targetRef.getParameters().size() == sourceRef.getParameters().size()
-            ){ // 别名关系 参数类型可以不一样 但 参数数量一定要一样
-                Alias alias = Alias.newInstance(sourceRef, targetRef);
-                sourceRef.setAliasEdge(alias);
-                dataContainer.store(alias);
-            }
-        });
+        List<Has> hasEdges = ref.getHasEdge();
+        for(Has has:hasEdges){
+            makeAliasRelation(has, dataContainer);
+        }
+
         ref.setInitialed(true);
     }
 
-
-
-    public static void extractSuperClassInfo(String superclass, ClassReference ref, DataContainer dataContainer){
-        ClassReference superclassRef = dataContainer.getClassRefByName(superclass);
-        if(superclassRef == null){
-            superclassRef = collect(superclass, dataContainer, false);
-        }
-        if(superclassRef != null){
-            Extend extend =  Extend.newInstance(ref, superclassRef);
-            ref.setExtendEdge(extend);
-            dataContainer.store(extend);
-        }
-    }
-
-    public static void extractMethodInfo(SootMethod method, ClassReference ref,
-                                         Set<String> relatedClassnames,
-                                         DataContainer dataContainer){
-        String classname = ref.getName();
-        MethodReference methodRef = MethodReference.newInstance(classname, method);
-        RulesContainer rulesContainer = dataContainer.getRulesContainer();
-        TabbyRule.Rule rule = rulesContainer.getRule(classname, methodRef.getName());
-
-        if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
-            for (String relatedClassname : relatedClassnames) {
-                TabbyRule.Rule tmpRule = rulesContainer.getRule(relatedClassname, methodRef.getName());
-                if (tmpRule != null && tmpRule.isIgnore()) {
-                    rule = tmpRule;
-                    break;
-                }
-            }
-        }
-        boolean isSink = rule != null && rule.isSink();
-        boolean isIgnore = rule != null && rule.isIgnore();
-        boolean isSource = rule != null && rule.isSource();
-
-        methodRef.setSink(isSink);
-        methodRef.setPolluted(isSink);
-        methodRef.setIgnore(isIgnore);
-        methodRef.setSource(isSource);
-        methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
-        // 此处，对于sink、know、ignore类型的规则，直接选取先验知识
-        // 对于source类型 不赋予其actions和polluted
-        if (rule != null && !isSource) {
-            Map<String, String> actions = rule.getActions();
-            List<Integer> polluted = rule.getPolluted();
-            if(isSink){
-                methodRef.setVul(rule.getVul());
-            }
-            methodRef.setActions(actions!=null?actions:new HashMap<>());
-            methodRef.setPollutedPosition(polluted!=null?polluted:new ArrayList<>());
-            methodRef.setInitialed(true);
-            methodRef.setActionInitialed(true);
-        }
-
-        Has has = Has.newInstance(ref, methodRef);
-        ref.getHasEdge().add(has);
-        dataContainer.store(has);
-        dataContainer.store(methodRef);
-    }
-
-    public static void extractInterfaceInfo(String intface, ClassReference ref, DataContainer dataContainer){
-        ClassReference interfaceRef = dataContainer.getClassRefByName(intface);
-        if(interfaceRef == null){
-            interfaceRef = collect(intface, dataContainer, false);
-        }
-        if(interfaceRef != null){
-            Interfaces interfaces = Interfaces.newInstance(ref, interfaceRef);
-            ref.getInterfaceEdge().add(interfaces);
-            dataContainer.store(interfaces);
+    public static void makeAliasRelation(Has has, DataContainer dataContainer) {
+        MethodReference sourceRef = has.getMethodRef();
+        SootMethod sootMethod = sourceRef.getMethod();
+        if(sootMethod == null)return;
+        SootMethodRef sootMethodRef = sootMethod.makeRef();
+        MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
+        if(targetRef != null
+                && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")
+                && targetRef.getParameters().size() == sourceRef.getParameters().size()
+        ){ // 别名关系 参数类型可以不一样 但 参数数量一定要一样
+            Alias alias = Alias.newInstance(sourceRef, targetRef);
+            sourceRef.setAliasEdge(alias);
+            dataContainer.store(alias);
         }
     }
-
-    public static Set<String> getAllFatherNodes(SootClass cls){
-        Set<String> nodes = new HashSet<>();
-        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
-            nodes.add(cls.getSuperclass().getName());
-            nodes.addAll(getAllFatherNodes(cls.getSuperclass()));
-        }
-        if(cls.getInterfaceCount() > 0){
-            cls.getInterfaces().forEach(intface -> {
-                nodes.add(intface.getName());
-                nodes.addAll(getAllFatherNodes(intface));
-            });
-        }
-        return nodes;
-    }
-
 
     public void save(){
         log.info("Start to save remained data to graphdb.");

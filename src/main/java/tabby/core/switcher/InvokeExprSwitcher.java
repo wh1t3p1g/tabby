@@ -6,15 +6,12 @@ import lombok.extern.slf4j.Slf4j;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
-import tabby.dal.caching.bean.edge.Call;
-import tabby.dal.caching.bean.edge.Has;
-import tabby.dal.caching.bean.ref.ClassReference;
-import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.data.TabbyVariable;
-import tabby.core.scanner.ClassInfoScanner;
 import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
+import tabby.dal.caching.bean.edge.Call;
+import tabby.dal.caching.bean.ref.MethodReference;
 
 import java.util.*;
 
@@ -77,26 +74,8 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
     }
 
     public void buildCallRelationship(String classname, SootMethodRef sootMethodRef, String invokerType){
-        MethodReference target = dataContainer.getMethodRefBySignature(sootMethodRef);// 递归父类，接口 查找目标函数
+        MethodReference target = dataContainer.getOrAddMethodRef(sootMethodRef, sootMethodRef.resolve());// 递归父类，接口 查找目标函数
         MethodReference source = dataContainer.getMethodRefBySignature(this.source.getClassname(), this.source.getName(), this.source.getSignature());
-        if(target == null){
-            // 为了保证target函数的存在，重建methodRef
-            // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
-            ClassReference classRef = dataContainer.getClassRefByName(sootMethodRef.getDeclaringClass().getName());
-            if(classRef == null){// lambda 的情况
-                SootClass cls = sootMethodRef.getDeclaringClass();
-                classRef = ClassInfoScanner.collect(cls.getName(), dataContainer, true);
-                ClassInfoScanner.makeAliasRelation(classRef, dataContainer);
-            }
-            target = dataContainer.getMethodRefBySignature(sootMethodRef);
-            if(target == null){
-                target = MethodReference.newInstance(classRef.getName(), sootMethodRef.resolve());
-                Has has = Has.newInstance(classRef, target);
-                classRef.getHasEdge().add(has);
-                dataContainer.store(has);
-                dataContainer.store(target);
-            }
-        }
 
         if(target.isSink()){
             // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的

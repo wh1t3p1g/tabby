@@ -25,7 +25,7 @@ public class RulesContainer {
     private Map<String, TabbyRule> rules = new HashMap<>();
     private List<String> ignored; // 已经分析过的jar包
     private List<String> excludedClasses; // 不进行分析的类
-    private List<String> basicClasses; // 已经分析过的jar包
+    private List<String> basicClasses; // 消除soot找不到类的错误
 
     public RulesContainer() throws FileNotFoundException {
         load();

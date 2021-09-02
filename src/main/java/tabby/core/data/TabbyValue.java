@@ -44,6 +44,16 @@ public class TabbyValue implements Serializable {
         isArray = isArrayType(value.getType());
     }
 
+    public TabbyValue(Type type, String relatedType){
+        uuid = UUID.randomUUID();
+        this.type = type;
+        typeName = type.toString();
+
+        isArray = isArrayType(type);
+        status.setPolluted(true);
+        status.setType(relatedType);
+    }
+
     public static TabbyValue newInstance(Local value){
         return new TabbyValue(value);
     }

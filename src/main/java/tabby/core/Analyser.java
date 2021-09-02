@@ -13,7 +13,6 @@ import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.util.ClassLoaderUtils;
 import tabby.util.FileUtils;
 
 import java.io.File;
@@ -52,7 +51,6 @@ public class Analyser {
             Map<String, String> classpaths = excludeJDK?
                     new HashMap<>():new HashMap<>(dependencies);
             Map<String, String> targets = new HashMap<>();
-            SootConfiguration.initSootOption();
             if(isJDKOnly){
                 targets.putAll(dependencies);
             }else{
@@ -69,6 +67,7 @@ public class Analyser {
 
     public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
         try{
+            SootConfiguration.initSootOption();
             long start = System.nanoTime();
             addBasicClasses();
             // set class paths
@@ -80,15 +79,9 @@ public class Analyser {
                 return;
             }
             Main.v().autoSetOptions();
-            // load all classes
-            log.info("Load necessary classes for soot. Maybe cost a while!");
-            Scene.v().loadNecessaryClasses();
-            // get all classes' info
-            log.info("Load all classes to analyse.");
-            List<String> runtimeClasses = ClassLoaderUtils.getAllClasses(realTargets);
 
             // 类信息抽取
-            classInfoScanner.run(runtimeClasses);
+            classInfoScanner.run(realTargets);
             // 函数调用分析
             callGraphScanner.run();
             rulesContainer.saveStatus();

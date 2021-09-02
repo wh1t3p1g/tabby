@@ -7,15 +7,12 @@ import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import tabby.core.scanner.ClassInfoScanner;
-import tabby.dal.caching.bean.edge.Call;
-import tabby.dal.caching.bean.edge.Has;
-import tabby.dal.caching.bean.ref.ClassReference;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.core.data.Context;
 import tabby.core.container.DataContainer;
+import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
 import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
+import tabby.dal.caching.bean.edge.Call;
+import tabby.dal.caching.bean.ref.MethodReference;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -97,25 +94,11 @@ public class Switcher {
         // baseVar，入参均不可控，返回值必不可控，无需做分析
         // find target MethodRef
         SootClass cls = invokeExpr.getMethod().getDeclaringClass();
-        SootMethod method = invokeExpr.getMethod();
+        SootMethod invokedMethod = invokeExpr.getMethod();
 
         MethodReference methodRef = dataContainer
-                .getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
+                .getOrAddMethodRef(invokeExpr.getMethodRef(), invokedMethod);
 
-        if(methodRef == null){
-            // 为了保证target函数的存在，重建methodRef
-            // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
-            ClassReference classRef = dataContainer.getClassRefByName(cls.getName());
-            if(classRef == null){// lambda 的情况
-                classRef = ClassInfoScanner.collect(cls.getName(), dataContainer, true);
-                ClassInfoScanner.makeAliasRelation(classRef, dataContainer);
-            }
-            methodRef = MethodReference.newInstance(classRef.getName(), method);
-            Has has = Has.newInstance(classRef, methodRef);
-            classRef.getHasEdge().add(has);
-            dataContainer.store(has);
-            dataContainer.store(methodRef);
-        }
         // construct call edge
         String invokeType = "";
         if(invokeExpr instanceof StaticInvokeExpr){
@@ -138,7 +121,7 @@ public class Switcher {
             //   这里继续进行简化，对于无返回的函数调用，可以仍然保持原状，也就是舍弃了函数参数在函数体内可能发生的变化
             //   对于有返回的函数调用，则找到一个会影响返回值的具体实现
             Context subContext = context.createSubContext(methodRef.getSignature(), methodRef);
-            Switcher.doMethodAnalysis(subContext, dataContainer, invokeExpr.getMethod(), methodRef);
+            Switcher.doMethodAnalysis(subContext, dataContainer, invokedMethod, methodRef);
         }
         // 回溯
         TabbyVariable retVar = null;
@@ -150,7 +133,7 @@ public class Switcher {
             // 为了不丢失污点，这里近似处理
             // 将args的第一个污点状态传递给obj
             for(TabbyVariable arg: args.values()){
-                if(arg.isPolluted(-1)){
+                if(arg != null && arg.isPolluted(-1)){
                     baseVar.getValue().setPolluted(true);
                     baseVar.getValue().setRelatedType(arg.getValue().getRelatedType());
                     break;
