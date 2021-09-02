@@ -38,6 +38,12 @@
     {"function":  "newInstance", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
     {"function": "loadClass", "type": "sink", "vul": "CODE", "actions": {"return": "param-0"}, "polluted": [-1,0], "signatures": []}
   ]},
+  {"name":"sun.reflect.misc.MethodUtil", "rules": [
+    {"function": "invoke", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0,1], "signatures": []},
+    {"function": "defineClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [1], "signatures": []},
+    {"function": "findClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0], "signatures": []},
+    {"function": "loadClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0], "signatures": []}
+  ]},
 
 
   {"name":"java.sql.DriverManager", "rules": [
