@@ -43,6 +43,9 @@ Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/t
 - [现有利用链覆盖](https://github.com/wh1t3p1g/tabby/wiki/%E7%8E%B0%E6%9C%89%E5%88%A9%E7%94%A8%E9%93%BE%E8%A6%86%E7%9B%96)
 - CVE-2021-21346 [如何高效的挖掘Java反序列化利用链？](https://blog.0kami.cn/2021/03/14/java-how-to-find-gadget-chains/)
 - CVE-2021-21351
+- CVE-2021-39147 [如何高效地捡漏反序列化利用链？](https://www.anquanke.com/post/id/251814)
+- CVE-2021-39148
+- CVE-2021-39152 [m0d9](http://m0d9.me/2021/08/29/XStream%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Tabby%20CVE%E4%B9%8B%E6%97%85/)
 - 子项目： Java反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 
 ## #4 问题
