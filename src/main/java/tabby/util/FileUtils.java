@@ -1,6 +1,8 @@
 package tabby.util;
 
+import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.RandomStringUtils;
 import tabby.config.GlobalConfiguration;
 
 import java.io.*;
@@ -9,6 +11,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.jar.JarEntry;
+import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
 
 /**
@@ -33,15 +36,16 @@ public class FileUtils {
 
         if(path.toFile().isFile()){
             String filename = path.toFile().getName();
+            String fileMd5 = FileUtils.getFileMD5(filename);
             if(filename.endsWith(".class")){
-                paths.put(filename, path.getParent().toString());
+                paths.put(fileMd5, path.getParent().toString());
             }else if(filename.endsWith(".war")){
-                paths.putAll(unpackWarOrJarFiles(path, filename, false));
+                paths.putAll(unpackWarOrJarFiles(path, filename));
             }else if(filename.endsWith(".jar")){
-                if(checkFatJar){
-                    paths.putAll(unpackWarOrJarFiles(path, filename, true));
+                if(checkFatJar && isFatJar(path)){
+                    paths.putAll(unpackWarOrJarFiles(path, filename));
                 }else{
-                    paths.put(filename, path.toAbsolutePath().toString());
+                    paths.put(fileMd5, path.toAbsolutePath().toString());
                 }
             }
         }else{
@@ -49,18 +53,19 @@ public class FileUtils {
                 @Override
                 public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
                     String filename = path.getFileName().toString();
+                    String fileMd5 = FileUtils.getFileMD5(filename);
                     if(filename.endsWith(".jar")){
-                        if(checkFatJar){
-                            paths.putAll(unpackWarOrJarFiles(path, filename, true));
+                        if(checkFatJar && isFatJar(path)){
+                            paths.putAll(unpackWarOrJarFiles(path, filename));
                         }else{
-                            paths.put(filename, path.toAbsolutePath().toString());
+                            paths.put(fileMd5, path.toAbsolutePath().toString());
                         }
                     }else if(filename.endsWith(".class")){
-                        paths.put(filename, target);
+                        paths.put(fileMd5, target);
                         // 对于.class文件，直接添加原目录，soot会爬取当前目录下的class文件
                         // 这里会有一些冗余，不过后面用了set 也无所谓
                     } else if(filename.endsWith(".war")){
-                        paths.putAll(unpackWarOrJarFiles(path, filename, false));
+                        paths.putAll(unpackWarOrJarFiles(path, filename));
                     }
                     return FileVisitResult.CONTINUE;
                 }
@@ -70,28 +75,66 @@ public class FileUtils {
         return paths;
     }
 
-    public static Map<String, String> unpackWarOrJarFiles(Path path, String filename, boolean isFatJar) throws IOException {
+    /**
+     * 当前fatJar是一个泛指的概念，除了spring，其他有WEB-INF之类的也算做fatJar
+     * @param path
+     * @return
+     */
+    public static boolean isFatJar(Path path){
+        String file = path.toAbsolutePath().toString();
+        try {
+            JarFile jarFile = new JarFile(path.toFile());
+            if(jarFile.getEntry("WEB-INF") != null
+                    || jarFile.getEntry("BOOT-INF") != null){
+                return true;
+            }else{
+                return false;
+            }
+        }
+        catch (Exception e) {
+            log.error("Something error with func.dealFatJar <{}>, just add this jar", file);
+            return false;
+        }
+    }
+
+    public static Map<String, String> unpackWarOrJarFiles(Path path, String filename) throws IOException {
         Map<String, String> paths = new HashMap<>();
         Path tmpDir = registerTempDirectory(filename);
-        String libDir = isFatJar?"BOOT-INF/lib":"WEB-INF/lib";
-        String classesDir = String.join(File.separator, tmpDir.toString(), isFatJar?"BOOT-INF/classes":"WEB-INF/classes");
+        String bootInfClassesDir = String.join(File.separator, tmpDir.toString(), "BOOT-INF/classes");
+        String webInfClassesDir = String.join(File.separator, tmpDir.toString(), "WEB-INF/classes");
+
         extract(path, tmpDir);
-        if(tmpDir.resolve(libDir).toFile().exists()){
-            Files.walkFileTree(tmpDir.resolve(libDir), new SimpleFileVisitor<Path>() {
+        paths.putAll(findLibTargets(tmpDir, "BOOT-INF/lib"));
+        paths.putAll(findLibTargets(tmpDir, "WEB-INF/lib"));
+
+        // get all classes from classes
+        if(new File(bootInfClassesDir).exists()){
+            paths.put(filename+"_bootinf_classes_"+ RandomStringUtils.randomAlphanumeric(5),
+                    bootInfClassesDir);
+        }
+        if(new File(webInfClassesDir).exists()){
+            paths.put(filename+"_webinf_classes_"+ RandomStringUtils.randomAlphanumeric(5),
+                    webInfClassesDir);
+        }
+
+        return paths;
+    }
+
+    public static Map<String, String> findLibTargets(Path baseDir, String targetDir) throws IOException {
+        Map<String, String> paths = new HashMap<>();
+        if(baseDir.resolve(targetDir).toFile().exists()){
+            Files.walkFileTree(baseDir.resolve(targetDir), new SimpleFileVisitor<Path>() {
                 @Override
                 public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    String filename = file.getFileName().toString();
-                    if(filename.endsWith(".jar")){
-                        paths.put(filename, file.toAbsolutePath().toString());
+                    String filepath = file.toAbsolutePath().toString();
+                    String fileMd5 = FileUtils.getFileMD5(filepath);
+                    if(filepath.endsWith(".jar")){
+                        paths.put(fileMd5, filepath);
                     }
                     return FileVisitResult.CONTINUE;
                 }
             });
         }
-        if(new File(classesDir).exists()){
-            paths.put(filename, classesDir); // 单独添加classes目录
-        }
-
         return paths;
     }
 
@@ -219,6 +262,18 @@ public class FileUtils {
             path = "/"+path.replace("\\", "/");
         }
         return path;
+    }
+
+    public static String getFileMD5(String filepath){
+        return getFileMD5(new File(filepath));
+    }
+
+    public static String getFileMD5(File file){
+        try {
+            return com.google.common.io.Files.hash(file, Hashing.md5()).toString();
+        } catch (IOException e) {
+            return file.getAbsolutePath();
+        }
     }
 
 }

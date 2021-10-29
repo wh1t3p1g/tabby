@@ -45,6 +45,7 @@ public class Analyser {
                     boolean excludeJDK, boolean isJDKOnly, boolean checkFatJar) throws IOException {
         if(isSaveOnly){
             save();
+            System.exit(0);
         }else{
             Map<String, String> dependencies = getJdkDependencies(withAllJDK);
             log.info("Get {} JDK dependencies", dependencies.size());
@@ -139,7 +140,7 @@ public class Analyser {
         String javaHome = System.getProperty("java.home");
 
         String[] jre;
-        if(all){
+        if(all){// 19个
             jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
         }else{// 对于正常分析其他的jar文件，不需要全量jdk依赖的分析，暂时添加这几个
             jre = new String[]{"lib/rt.jar","lib/jce.jar","lib/ext/nashorn.jar"};
@@ -149,7 +150,7 @@ public class Analyser {
             String path = String.join(File.separator, javaHome, cp);
             File file = new File(path);
             if(file.exists()){
-                exists.put(file.getName(), path);
+                exists.put(FileUtils.getFileMD5(file), path);
             }
         }
         log.info("Load " +exists.size()+" jre jars.");
