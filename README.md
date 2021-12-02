@@ -194,6 +194,16 @@ tabby实验的时候大概6gb的内存可以处理4w+类
 
 如果你有能力一起建设，也可以一起交流，或直接PR，或直接issue
 
+2021.12.02 Updated: 
+
+目前看，tabby确实能发现一些现实环境中的安全问题。
+
+但算法实现存在漏洞（程序分析中很大的问题），目前回过头看，代码实现也过于ugly。
+
+目前决定不重改当前构架，新版思路已实现1/4，但开源时间无法预知XD
+
+临时添加了全量函数调用图，会增加误报，但不会出现漏报，可以添加--isFullCG参数来生成。
+
 - 优秀的静态分析框架[soot](https://github.com/soot-oss/soot)
 - [gadgetinspector](https://github.com/JackOfMostTrades/gadgetinspector)
 - [ysoserial](https://github.com/frohoff/ysoserial) 和 [marshalsec](https://github.com/mbechler/marshalsec)
