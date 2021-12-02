@@ -32,6 +32,7 @@ public class App {
     private boolean excludeJDK = false;
     private boolean isJDKOnly = false;
     private boolean checkFatJar = false;
+    private boolean isFullCG = false;
 
     @Autowired
     private Analyser analyser;
@@ -65,6 +66,10 @@ public class App {
         if (arguments.containsOption("checkFatJar")){
             checkFatJar = true;
         }
+
+        if (arguments.containsOption("isFullCG")){
+            isFullCG = true;
+        }
         if(arguments.getNonOptionArgs().size() == 1){
             target = arguments.getNonOptionArgs().get(0);
             // 支持绝对路径 issue 7
@@ -94,7 +99,7 @@ public class App {
                     throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
                 }
                 applyOptions();
-                analyser.run(target, isJDKProcess, withAllJDK, isSaveOnly, excludeJDK, isJDKOnly, checkFatJar);
+                analyser.run(target, isJDKProcess, withAllJDK, isSaveOnly, excludeJDK, isJDKOnly, checkFatJar, isFullCG);
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() +
                         "\nPlease use java -jar tabby target_directory [--isJDKOnly｜--isJDKProcess|--isSaveOnly|--excludeJDK] !" +

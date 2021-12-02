@@ -23,20 +23,20 @@ import java.util.Collection;
 public class CallGraphScanner {
 
     @Autowired
-    private MethodRefService methodRefService;
+    public MethodRefService methodRefService;
     @Autowired
-    private DataContainer dataContainer;
+    public DataContainer dataContainer;
 
     @Autowired
-    private CallGraphCollector collector;
+    public CallGraphCollector collector;
 
 //    @Resource
 //    @Qualifier("multiCallGraphCollector")
 //    private Executor executor;
 
-    private static int total;
-    private static int split;
-    private static int current;
+    public static int total;
+    public static int split;
+    public static int current;
 
     public void run() {
         collect();

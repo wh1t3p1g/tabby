@@ -13,6 +13,7 @@ import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
+import tabby.core.scanner.FullCallGraphScanner;
 import tabby.util.FileUtils;
 
 import java.io.File;
@@ -38,11 +39,17 @@ public class Analyser {
     @Autowired
     private CallGraphScanner callGraphScanner;
     @Autowired
+    private FullCallGraphScanner fullCallGraphScanner;
+    @Autowired
     private RulesContainer rulesContainer;
+
+    private boolean isFullCG = false;
 
     public void run(String target, boolean isJDKProcess,
                     boolean withAllJDK, boolean isSaveOnly,
-                    boolean excludeJDK, boolean isJDKOnly, boolean checkFatJar) throws IOException {
+                    boolean excludeJDK, boolean isJDKOnly,
+                    boolean checkFatJar, boolean isFullCG) throws IOException {
+        this.isFullCG = isFullCG;
         if(isSaveOnly){
             save();
             System.exit(0);
@@ -84,7 +91,11 @@ public class Analyser {
             // 类信息抽取
             classInfoScanner.run(realTargets);
             // 函数调用分析
-            callGraphScanner.run();
+            if(isFullCG){
+                fullCallGraphScanner.run();
+            }else{
+                callGraphScanner.run();
+            }
             rulesContainer.saveStatus();
             log.info("Cost {} seconds"
                     , TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
