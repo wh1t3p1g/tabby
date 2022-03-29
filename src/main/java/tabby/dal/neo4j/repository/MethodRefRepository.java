@@ -33,7 +33,7 @@ public interface MethodRefRepository extends Neo4jRepository<MethodEntity, Strin
             "MODIFIERS:{type:'int'}, PARAMETER_SIZE:{type:'int'}}}) YIELD map AS row RETURN row\", \"MERGE(m:Method {ID:row.ID} ) ON CREATE SET m = row\", {batchSize:5000, iterateList:true, parallel:true}) yield total")
     int loadMethodRefFromCSV(String path);
 
-    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true, mapping: {PROPAGATED: {type:'boolean'} }}) YIELD map AS row RETURN row\",\"MATCH ( m1:Method {ID:row.SOURCE} ) MATCH ( m2:Method {ID:row.TARGET }) MERGE (m1)-[e:CALL {ID:row.ID, LINE_NUM:row.LINE_NUM, INVOKER_TYPE:row.INVOKER_TYPE, POLLUTED_POSITION:row.POLLUTED_POSITION, REAL_CALL_TYPE:row.REAL_CALL_TYPE, PROPAGATED:row.PROPAGATED }]->(m2)\", {batchSize:5000, iterateList:true, parallel:false}) yield total")
+    @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH ( m1:Method {ID:row.SOURCE} ) MATCH ( m2:Method {ID:row.TARGET }) MERGE (m1)-[e:CALL {ID:row.ID, LINE_NUM:row.LINE_NUM, INVOKER_TYPE:row.INVOKER_TYPE, POLLUTED_POSITION:row.POLLUTED_POSITION, REAL_CALL_TYPE:row.REAL_CALL_TYPE }]->(m2)\", {batchSize:5000, iterateList:true, parallel:false}) yield total")
     int loadCallEdgeFromCSV(String path);
 
     @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', {header:true}) YIELD map AS row RETURN row\",\"MATCH ( m1:Method {ID:row.SOURCE} ) MATCH ( m2:Method {ID:row.TARGET }) MERGE (m1)-[e:ALIAS {ID:row.ID}]-(m2)\", {batchSize:1000, iterateList:true, parallel:false}) yield total")
