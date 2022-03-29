@@ -5,10 +5,10 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
-import soot.util.NumberedString;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.dal.caching.bean.edge.*;
 import tabby.dal.caching.bean.ref.ClassReference;
@@ -16,9 +16,9 @@ import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.dal.caching.service.ClassRefService;
 import tabby.dal.caching.service.MethodRefService;
 import tabby.dal.caching.service.RelationshipsService;
-import tabby.core.data.TabbyRule;
 import tabby.dal.neo4j.service.ClassService;
 import tabby.dal.neo4j.service.MethodService;
+import tabby.util.SemanticHelper;
 
 import java.util.*;
 
@@ -49,9 +49,9 @@ public class DataContainer {
     @Autowired
     private RelationshipsService relationshipsService;
 
-//    private Map<String, ClassReference> savedClassRefs = new HashMap<>();
+    //    private Map<String, ClassReference> savedClassRefs = new HashMap<>();
     private Map<String, ClassReference> savedClassRefs = Collections.synchronizedMap(new HashMap<>());
-//    private Map<String, MethodReference> savedMethodRefs = new HashMap<>();
+    //    private Map<String, MethodReference> savedMethodRefs = new HashMap<>();
     private Map<String, MethodReference> savedMethodRefs = Collections.synchronizedMap(new HashMap<>());
 
     private Set<Has> savedHasNodes = Collections.synchronizedSet(new HashSet<>());
@@ -62,6 +62,7 @@ public class DataContainer {
 
     /**
      * check size and save nodes
+     * 保存节点到h2 database
      */
     public void save(String type){
         switch (type){
@@ -114,6 +115,7 @@ public class DataContainer {
 
     /**
      * store nodes
+     * 保存节点到内存
      * insert if node not exist
      * replace if node exist
      * @param ref node
@@ -141,6 +143,12 @@ public class DataContainer {
         }
     }
 
+    /**
+     * 获取通过类名查找class节点
+     * 优先在内存找，没有的话往数据库找
+     * @param name
+     * @return
+     */
     public ClassReference getClassRefByName(String name){
         ClassReference ref = savedClassRefs.getOrDefault(name, null);
         if(ref != null) return ref;
@@ -149,28 +157,86 @@ public class DataContainer {
         return ref;
     }
 
-    public MethodReference getMethodRefBySignature(String classname, String function, String signature){
+    /**
+     * 通过函数子签名和所属类 获取指定method节点
+     * 优先在内存找，没有的话往数据库找
+     * @param classname
+     * @param subSignature
+     * @return
+     */
+    public MethodReference getMethodRefBySubSignature(String classname, String subSignature){
+        String signature = String.format("<%s: %s>", clean(classname), clean(subSignature));
         MethodReference ref = savedMethodRefs.getOrDefault(signature, null);
         if(ref != null) return ref;
         // find from h2
         ref = methodRefService.getMethodRefBySignature(signature);
-        // new from rules
-        if(ref == null){
-            TabbyRule.Rule rule = rulesContainer.getRule(classname, function);
-            if(rule != null && rule.getSignatures().contains(signature)){
-                ref = MethodReference.newInstance(function, signature);
-                ref.setSink(rule.isSink());
-                ref.setPolluted(rule.isSink());
-                ref.setIgnore(rule.isIgnore());
-                ref.setSource(rule.isSource());
-                ref.setActions(rule.getActions());
-                ref.setPollutedPosition(rule.getPolluted());
-                ref.setInitialed(true);
-                ref.setActionInitialed(true);
-                store(ref);
-            }
-        }
         return ref;
+    }
+
+    private String clean(String data){
+        return data.replace("'", "");
+    }
+
+    /**
+     * 通过函数全签名找指定的method节点
+     * 优先从内存找，没有的话往数据库找
+     * 不递归从父节点找
+     * @param signature
+     * @return
+     */
+    public MethodReference getMethodRefBySignature(String signature){
+        MethodReference ref = savedMethodRefs.getOrDefault(signature, null);
+        if(ref != null) return ref;
+        // find from h2
+        ref = methodRefService.getMethodRefBySignature(signature);
+        return ref;
+    }
+
+    /**
+     * 当前函数解决soot调用函数不准确的问题
+     * soot的invoke表达式会将父类、接口等函数都归宿到当前类函数上，导致无法找到相应的methodRef（这是因为父类未重载函数，内容将再父类上）
+     * 解决这个问题，通过往父类、接口找相应的内容
+     * 这里找到的是第一个找到的函数
+     * @param sootMethodRef
+     * @return
+     */
+    public MethodReference getMethodRefBySignature(SootMethodRef sootMethodRef){
+        SootClass cls = sootMethodRef.getDeclaringClass();
+        String subSignature = sootMethodRef.getSubSignature().toString();
+        MethodReference target
+                = getMethodRefBySubSignature(cls.getName(), subSignature);
+        if(target != null){// 当前对象就能找到
+            return target;
+        }
+        // 如果找不到，可能因为soot的问题，所以向父类继续查找
+        return getFirstMethodRefFromFatherNodes(cls, subSignature, false);
+    }
+
+    /**
+     * 跟tabby.core.container.DataContainer#getMethodRefBySignature(java.lang.String)一样
+     * 但是会递归找父节点
+     * @param classname
+     * @param subSignature
+     * @return
+     */
+    public MethodReference getMethodRefBySignature(String classname, String subSignature){
+        try{
+            SootClass cls = Scene.v().getSootClass(classname);
+            try{
+                SootMethod method = cls.getMethod(subSignature);
+                if(method != null){
+                    return getMethodRefBySignature(method.makeRef());
+                }
+            }catch (Exception e){
+                // soot 不会有父类函数的继承，所以这里需要往父类去查找
+                // 也意味着当前对象没有重载父类函数，所以会报错找不到
+                return getFirstMethodRefFromFatherNodes(cls, subSignature, false);
+            }
+        }catch (Exception e){
+            // 获取SootClass报错
+            // 忽略
+        }
+        return null;
     }
 
     /**
@@ -182,18 +248,19 @@ public class DataContainer {
      * @return
      */
     public MethodReference getOrAddMethodRef(SootMethodRef sootMethodRef, SootMethod method){
-        SootClass cls = sootMethodRef.getDeclaringClass();
+        // 递归查找父节点
         MethodReference methodRef = getMethodRefBySignature(sootMethodRef);
 
         if(methodRef == null){
             // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
+            SootClass cls = sootMethodRef.getDeclaringClass();
             ClassReference classRef = getClassRefByName(cls.getName());
-            if(classRef == null){// 对于新建class的情况，再查一遍
+            if(classRef == null){// 对于新建的情况，再查一遍
                 classRef = ClassInfoScanner.collect0(cls.getName(), cls, this, 0);
                 methodRef = getMethodRefBySignature(sootMethodRef);
             }
 
-            if(methodRef == null){// 新建methodref
+            if(methodRef == null){
                 methodRef = MethodReference.newInstance(classRef.getName(), method);
                 Has has = Has.newInstance(classRef, methodRef);
                 if(!classRef.getHasEdge().contains(has)){
@@ -207,41 +274,32 @@ public class DataContainer {
         return methodRef;
     }
 
+    public MethodReference getFirstMethodRef(String classname, String subSignature){
+        MethodReference target = getMethodRefBySubSignature(classname, subSignature);
+        if(target != null) return target;
+
+        SootClass sc = SemanticHelper.getSootClass(clean(classname));
+        if(sc != null && sc.hasSuperclass()){
+            target = getFirstMethodRef(sc.getSuperclass().getName(), subSignature);
+        }
+        return target;
+    }
+
     /**
-     * 当前函数解决soot调用函数不准确的问题
-     * soot的invoke表达式会将父类、接口等函数都归宿到当前类函数上，导致无法找到相应的methodRef
-     * 解决这个问题，通过往父类、接口找相应的内容
-     * 这里找到的是第一个找到的函数
-     * @param sootMethodRef
+     * 根据Java语法，遇到第一个父类函数存在对应subSignature的函数是真实函数
+     * 所以默认以广度优先进行查找，但也可指定深度优先
+     * @param cls
+     * @param subSignature
      * @return
      */
-    public MethodReference getMethodRefBySignature(SootMethodRef sootMethodRef){
-        SootClass cls = sootMethodRef.getDeclaringClass();
-        MethodReference target = findMethodRef(cls, sootMethodRef);
-        if(target != null){
-            return target;
-        }
-
-        return getMethodRefFromFatherNodes(sootMethodRef);
-    }
-
-    public MethodReference getMethodRefFromFatherNodes(SootMethodRef sootMethodRef){
-        SootClass cls = sootMethodRef.getDeclaringClass();
-        return findMethodRefFromFatherNodes(cls, sootMethodRef);
-    }
-
-    private MethodReference findMethodRefFromFatherNodes(SootClass cls, SootMethodRef sootMethodRef){
+    public MethodReference getFirstMethodRefFromFatherNodes(SootClass cls, String subSignature, boolean deepFirst){
         // 父节点包括父类 和 接口
         MethodReference target = null;
         // 从父类找
         if(cls.hasSuperclass()){
             SootClass superCls = cls.getSuperclass();
-            // 先往父类找 深度查找
-            target = findMethodRefFromFatherNodes(superCls, sootMethodRef);
-            // 如果父类没找到，则查找当前的类
-            if(target == null){
-                target = findMethodRef(superCls, sootMethodRef);
-            }
+            target = getTargetMethodRef(superCls, subSignature, deepFirst);
+
             if(target != null){
                 return target;
             }
@@ -249,12 +307,8 @@ public class DataContainer {
         // 从接口找
         if(cls.getInterfaceCount() > 0){
             for(SootClass intface:cls.getInterfaces()){
-                // 先往父类找 深度查找
-                target = findMethodRefFromFatherNodes(intface, sootMethodRef);
-                // 如果父类没找到，则查找当前的类
-                if(target == null){
-                    target = findMethodRef(intface, sootMethodRef);
-                }
+                target = getTargetMethodRef(intface, subSignature, deepFirst);
+
                 if(target != null){
                     return target;
                 }
@@ -263,32 +317,21 @@ public class DataContainer {
         return null;
     }
 
-    private MethodReference findMethodRef(SootClass cls, SootMethodRef sootMethodRef){
-        NumberedString subSignature = sootMethodRef.getSubSignature();
-        try{
-            SootMethod targetMethod = cls.getMethod(subSignature);
-            return getMethodRefBySignature(cls.getName(), targetMethod.getName(), targetMethod.getSignature());
-        }catch (RuntimeException e){
-            // 仅处理override的情况 不处理overload的情况
-//            // 通过函数名去找对应的函数
-//            try{
-//                SootMethod method = cls.getMethodByName(sootMethodRef.getName());
-//                return getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
-//            }catch (RuntimeException ee){
-//                // 找到了多个名字为methodName的函数
-//                try{
-//                    SootMethod target = sootMethodRef.resolve();
-//                    for(SootMethod method:cls.getMethods()){// 对找到的第一个符合条件的函数进行返回
-//                        if(sootMethodRef.getName().equals(method.getName()) && target.getParameterCount() == method.getParameterCount()){
-//                            return getMethodRefBySignature(cls.getName(), method.getName(), method.getSignature());
-//                        }
-//                    }
-//                }catch (Exception ignored){
-//
-//                }
-//            }
+    private MethodReference getTargetMethodRef(SootClass cls, String subSignature, boolean deepFirst){
+        MethodReference target = null;
+        if(deepFirst){
+            target = getFirstMethodRefFromFatherNodes(cls, subSignature, deepFirst);
+            if(target == null){
+                target = getMethodRefBySubSignature(cls.getName(), subSignature);
+            }
+        }else{
+            target = getMethodRefBySubSignature(cls.getName(), subSignature);
+            if(target == null){
+                target = getFirstMethodRefFromFatherNodes(cls, subSignature, deepFirst);
+            }
         }
-        return null;
+
+        return target;
     }
 
     public void loadNecessaryMethodRefs(){
@@ -309,7 +352,7 @@ public class DataContainer {
         int nodes = classRefService.countAll() + methodRefService.countAll();
         int relations = relationshipsService.countAll();
         log.info("Total nodes: {}, relations: {}", nodes, relations);
-        log.info("Clean old data in Neo4j.");
+        log.info("Clean old tabby.core.data in Neo4j.");
         classService.clear();
         log.info("Save methods to Neo4j.");
         methodService.importMethodRef();

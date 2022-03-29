@@ -75,7 +75,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     public void buildCallRelationship(String classname, SootMethodRef sootMethodRef, String invokerType){
         MethodReference target = dataContainer.getOrAddMethodRef(sootMethodRef, sootMethodRef.resolve());// 递归父类，接口 查找目标函数
-        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getClassname(), this.source.getName(), this.source.getSignature());
+        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getClassname(), this.source.getSignature());
 
         if(target.isSink()){
             // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的

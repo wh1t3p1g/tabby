@@ -308,8 +308,8 @@ public class TabbyVariable {
             try{
                 return cls.getFieldByName(fieldname);
             }catch (Exception e){
-                e.printStackTrace();
-                log.warn(sfr+" field not found!");
+//                e.printStackTrace();
+//                log.warn(sfr+" field not found!");
             }
         }
 

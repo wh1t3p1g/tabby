@@ -2,7 +2,6 @@ package tabby;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -12,11 +11,15 @@ import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import tabby.config.GlobalConfiguration;
 import tabby.core.Analyser;
 import tabby.exception.JDKVersionErrorException;
+import tabby.util.ArgumentEnum;
 import tabby.util.FileUtils;
 import tabby.util.JavaVersion;
 
-import javax.annotation.Resource;
 import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Properties;
 
 @Slf4j
 @SpringBootApplication
@@ -24,70 +27,52 @@ import java.io.File;
 @EnableNeo4jRepositories("tabby.dal.neo4j.repository")
 public class App {
 
-    private String target = null;
-
-    private boolean isJDKProcess = false;
-    private boolean withAllJDK = false;
-    private boolean isSaveOnly = false;
-    private boolean excludeJDK = false;
-    private boolean isJDKOnly = false;
-    private boolean checkFatJar = false;
-    private boolean isFullCG = false;
-
     @Autowired
     private Analyser analyser;
 
-    @Resource
-    private ApplicationArguments arguments;
+    private Properties props = new Properties();
 
     public static void main(String[] args) {
         SpringApplication.run(App.class, args).close();
     }
 
     private void applyOptions() {
-        if (arguments.containsOption("isJDKProcess")) {
-            isJDKProcess = true;
-        }
-        if (arguments.containsOption("withAllJDK") || arguments.containsOption("isJDKOnly")) {
-            withAllJDK = true;
-        }
-        if (arguments.containsOption("vv")) {
-            GlobalConfiguration.DEBUG = true;
-        }
-        if (arguments.containsOption("isSaveOnly")) {
-            isSaveOnly = true;
-        }
-        if (arguments.containsOption("excludeJDK")) {
-            excludeJDK = true;
-        }
-        if (arguments.containsOption("isJDKOnly")) {
-            isJDKOnly = true;
-        }
-        if (arguments.containsOption("checkFatJar")){
-            checkFatJar = true;
+
+        if("true".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))){
+            props.setProperty(ArgumentEnum.WITH_ALL_JDK.toString(), "true");
         }
 
-        if (arguments.containsOption("isFullCG")){
-            isFullCG = true;
-        }
-        if(arguments.getNonOptionArgs().size() == 1){
-            target = arguments.getNonOptionArgs().get(0);
-            // 支持绝对路径 issue 7
+        GlobalConfiguration.DEBUG = "true".equals(props.getProperty(ArgumentEnum.SET_DEBUG_ENABLE.toString(), "false"));
+        GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT = "true".equals(props.getProperty(ArgumentEnum.IS_FULL_CALL_GRAPH_CREATE.toString(), "false"));
+
+        String target = props.getProperty(ArgumentEnum.TARGET.toString());
+
+        // 支持绝对路径 issue 7
+        if(target != null && !FileUtils.fileExists(target)){
+            target = String.join(File.separator, System.getProperty("user.dir"), target);
             if(!FileUtils.fileExists(target)){
-                target = String.join(File.separator, System.getProperty("user.dir"), target);
-                if(!FileUtils.fileExists(target)){
-                    throw new IllegalArgumentException("target not exists!");
+                throw new IllegalArgumentException("target not exists!");
+            }
+        }
+
+        String libraries = props.getProperty(ArgumentEnum.LIBRARIES.toString());
+        if(libraries != null){
+            if(FileUtils.fileExists(libraries)){
+                GlobalConfiguration.LIBS_PATH = libraries;
+            }else{
+                libraries = String.join(File.separator, System.getProperty("user.dir"), libraries);
+                if(FileUtils.fileExists(libraries)){
+                    GlobalConfiguration.LIBS_PATH = libraries;
                 }
             }
         }
-        // check options
-        if(isJDKOnly || isSaveOnly){
-            // only process JDK dependencies
-            // only save caches
-        }else if(target != null){
-            // process target JAR/WAR/CLASS
-        }else{
-            throw new IllegalArgumentException("Options Illegal!");
+    }
+
+    private void loadProperties(String filepath){
+        try(Reader reader = new FileReader(filepath)){
+            props.load(reader);
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Settings.properties file not found!");
         }
     }
 
@@ -98,8 +83,11 @@ public class App {
                 if(!JavaVersion.isJDK8()){
                     throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
                 }
+                loadProperties("config/settings.properties");
                 applyOptions();
-                analyser.run(target, isJDKProcess, withAllJDK, isSaveOnly, excludeJDK, isJDKOnly, checkFatJar, isFullCG);
+                analyser.run(props);
+                log.info("Done. Bye!");
+                System.exit(0);
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() +
                         "\nPlease use java -jar tabby target_directory [--isJDKOnly｜--isJDKProcess|--isSaveOnly|--excludeJDK] !" +

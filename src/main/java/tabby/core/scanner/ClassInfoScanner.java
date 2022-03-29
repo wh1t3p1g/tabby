@@ -37,7 +37,7 @@ public class ClassInfoScanner {
     public void run(List<String> paths){
         // 多线程提取基础信息
         Map<String, CompletableFuture<ClassReference>> classes = loadAndExtract(paths);
-        transform(classes.values());
+        transform(classes.values()); // 等待收集结束，并保存classRef
         List<String> runtimeClasses = new ArrayList<>(classes.keySet());
         classes.clear();
         // 单线程提取关联信息
@@ -54,15 +54,20 @@ public class ClassInfoScanner {
         log.info("Start to collect {} targets' class information.", targets.size());
         for (final String path : targets) {
             for (String cl : SourceLocator.v().getClassesUnder(path)) {
-                SootClass theClass = Scene.v().loadClassAndSupport(cl);
-                if (!theClass.isPhantom()) {
-                    // 这里存在类数量不一致的情况，是因为存在重复的对象
-                    results.put(cl, collector.collect(theClass));
-                    theClass.setApplicationClass();
-                    if(counter % 10000 == 0){
-                        log.info("Collected {} classes.", counter);
+                try{
+                    SootClass theClass = Scene.v().loadClassAndSupport(cl);
+                    if (!theClass.isPhantom()) {
+                        // 这里存在类数量不一致的情况，是因为存在重复的对象
+                        results.put(cl, collector.collect(theClass));
+                        theClass.setApplicationClass();
+                        if(counter % 10000 == 0){
+                            log.info("Collected {} classes.", counter);
+                        }
+                        counter++;
                     }
-                    counter++;
+                }catch (Exception e){
+                    log.error("Load Error: " + e.getMessage());
+//                    e.printStackTrace();
                 }
             }
         }
@@ -112,6 +117,7 @@ public class ClassInfoScanner {
                 dataContainer.store(extend);
             }
         }
+
         // 建立接口关系
         if(clsRef.isHasInterfaces()){
             List<String> infaces = clsRef.getInterfaces();
@@ -165,6 +171,8 @@ public class ClassInfoScanner {
         return classRef;
     }
 
+
+
     public static void makeAliasRelations(ClassReference ref, DataContainer dataContainer){
         if(ref == null)return;
         // build alias relationship
@@ -178,18 +186,19 @@ public class ClassInfoScanner {
         ref.setInitialed(true);
     }
 
-    public static void makeAliasRelation(Has has, DataContainer dataContainer) {
-        MethodReference sourceRef = has.getMethodRef();
-        SootMethod sootMethod = sourceRef.getMethod();
-        if(sootMethod == null)return;
-        SootMethodRef sootMethodRef = sootMethod.makeRef();
-        MethodReference targetRef = dataContainer.getMethodRefFromFatherNodes(sootMethodRef);
-        if(targetRef != null
-                && !targetRef.getSignature().equals("<java.lang.Object: void <init>()>")
-                && targetRef.getParameters().size() == sourceRef.getParameters().size()
-        ){ // 别名关系 参数类型可以不一样 但 参数数量一定要一样
-            Alias alias = Alias.newInstance(sourceRef, targetRef);
-            sourceRef.setAliasEdge(alias);
+    public static void makeAliasRelation(Has has, DataContainer dataContainer){
+        MethodReference currentMethodRef = has.getMethodRef();
+        SootMethod currentSootMethod = currentMethodRef.getMethod();
+        if(currentSootMethod == null) return;
+        SootClass cls = currentSootMethod.getDeclaringClass();
+        MethodReference fatherNodeMethodRef
+                = dataContainer.getFirstMethodRefFromFatherNodes(cls, currentSootMethod.getSubSignature(), false);
+        if(fatherNodeMethodRef != null
+                && !fatherNodeMethodRef.getSignature().equals("<java.lang.Object: void <init>()>")
+        ){
+            Alias alias = Alias.newInstance(fatherNodeMethodRef, currentMethodRef);
+            fatherNodeMethodRef.getChildAliasEdges().add(alias);
+//            currentMethodRef.setAliasEdge(alias);
             dataContainer.store(alias);
         }
     }
@@ -203,6 +212,5 @@ public class ClassInfoScanner {
         dataContainer.save("interfaces");
         log.info("Graphdb saved.");
     }
-
 
 }

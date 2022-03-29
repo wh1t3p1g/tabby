@@ -26,8 +26,8 @@ public class FullCallGraphScanner extends CallGraphScanner{
     public void collect() {
         Collection<MethodReference> targets =
                 new ArrayList<>(dataContainer.getSavedMethodRefs().values());
-        log.info("Load necessary method refs.");
-        dataContainer.loadNecessaryMethodRefs();
+//        log.info("Load necessary method refs.");
+//        dataContainer.loadNecessaryMethodRefs();
         log.info("Build call graph. START!");
         total = targets.size();
         split = total / 10;
@@ -58,7 +58,6 @@ public class FullCallGraphScanner extends CallGraphScanner{
             if(method.isStatic() && method.getParameterCount() == 0){
                 // 静态函数 且 函数入参数量为0 此类函数不影响分析
                 methodRef.setInitialed(true);
-                methodRef.setPolluted(methodRef.isSink());
                 return;
             }
 

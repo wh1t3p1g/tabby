@@ -2,9 +2,7 @@ package tabby.core.data;
 
 import lombok.Data;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -38,7 +36,7 @@ public class TabbyRule {
         return ruleMap.get(key);
     }
 
-    public class Rule {
+    public static class Rule {
         private String function;
         private String type;
         private Map<String, String> actions;
@@ -47,6 +45,9 @@ public class TabbyRule {
         private List<String> signatures;
 
         public Rule() {
+            signatures = new ArrayList<>();
+            polluted = new ArrayList<>();
+            actions = new HashMap<>();
         }
 
         public boolean isSink(){
@@ -89,5 +90,12 @@ public class TabbyRule {
             return vul;
         }
 
+        public boolean isEmptySignaturesList(){
+            return signatures == null || signatures.isEmpty();
+        }
+
+        public boolean isContainsSignature(String sig){
+            return signatures != null && signatures.contains(sig);
+        }
     }
 }

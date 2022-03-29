@@ -64,7 +64,6 @@ public class Switcher {
             methodRef.setActionInitialed(true);
             return pta;
         }catch (RuntimeException e){
-            // TODO 无法分析body
             e.printStackTrace();
         }
         return null;
@@ -82,12 +81,20 @@ public class Switcher {
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参、baseVar是否可控
         List<Integer> pollutedPosition = pollutedPositionAnalysis(baseVar, args, context);
+        TabbyVariable firstPollutedVar = null;
         boolean flag = false;
+        int index = 0;
         for(Integer pos:pollutedPosition){
             if(pos != -2){
+                if(index == 0){
+                    firstPollutedVar = baseVar;
+                }else{
+                    firstPollutedVar = args.get(index-1);
+                }
                 flag=true;
                 break;
             }
+            index++;
         }
 
         if(!flag) return null;
@@ -110,13 +117,11 @@ public class Switcher {
         }else if(invokeExpr instanceof InterfaceInvokeExpr){
             invokeType = "InterfaceInvoke";
         }
-        buildCallRelationship(cls.getName(), context,
-                methodRef, dataContainer, unit, invokeType,
-                pollutedPosition);
+
         // try to analysis this method
         if((!methodRef.isInitialed() || !methodRef.isActionInitialed()) // never analysis with pta
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
-            //  TODO 分析interfaceInvoke时，
+            //  分析interfaceInvoke时，
             //   由于获取到的method是没有函数内容的，所以需要找到对应的具体实现来进行分析
             //   这里继续进行简化，对于无返回的函数调用，可以仍然保持原状，也就是舍弃了函数参数在函数体内可能发生的变化
             //   对于有返回的函数调用，则找到一个会影响返回值的具体实现
@@ -166,6 +171,26 @@ public class Switcher {
         if(methodRef.getActions().containsKey("return")){
             retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
         }
+        boolean optimize = false;
+        // TODO 接口类型 传递优化
+//        if(retVar == null
+//                && "InterfaceInvoke".equals(invokeType)
+//                && invokedMethod.isAbstract()
+//                && firstPollutedVar != null){
+//            optimize = true;
+//            String relatedType = firstPollutedVar.getValue().getRelatedType();
+//            if(relatedType == null){
+//                relatedType = firstPollutedVar.getFirstPollutedVarRelatedType();
+//            }
+//            TabbyValue retValue = new TabbyValue(invokedMethod.getReturnType(), relatedType);
+//            retVar = TabbyVariable.makeRandomInstance();
+//            retVar.setName("temp");
+//            retVar.setValue(retValue);
+//        }
+
+        buildCallRelationship(cls.getName(), context, optimize,
+                methodRef, dataContainer, unit, invokeType,
+                pollutedPosition);
 
         return retVar;
     }
@@ -205,7 +230,7 @@ public class Switcher {
         return -2;
     }
 
-    public static void buildCallRelationship(String classname, Context context,
+    public static void buildCallRelationship(String classname, Context context, boolean isOptimize,
                                       MethodReference targetMethodRef, DataContainer dataContainer,
                                       Unit unit, String invokeType, List<Integer> pollutedPosition){
         MethodReference sourceMethodRef = context.getMethodReference();
@@ -242,6 +267,7 @@ public class Switcher {
             call.setPollutedPosition(new ArrayList<>(pollutedPosition));
             call.setUnit(unit);
             call.setLineNum(unit.getJavaSourceStartLineNumber());
+            call.setOptimize(isOptimize);
             if(!sourceMethodRef.getCallEdge().contains(call)){
                 sourceMethodRef.getCallEdge().add(call);
                 dataContainer.store(call);
@@ -270,9 +296,7 @@ public class Switcher {
         Map<Integer, TabbyVariable> args = new HashMap<>();
         for(int i=0; i<invokeExpr.getArgCount(); i++){
             TabbyVariable var = context.getOrAdd(invokeExpr.getArg(i));
-            if(var != null){ // 不提取常量
-                args.put(i, var);
-            }
+            args.put(i, var);
         }
         return args;
     }

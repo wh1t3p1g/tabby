@@ -4,6 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.CompilationDeathException;
+import soot.G;
 import soot.Main;
 import soot.Scene;
 import soot.options.Options;
@@ -14,6 +15,7 @@ import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.core.scanner.FullCallGraphScanner;
+import tabby.util.ArgumentEnum;
 import tabby.util.FileUtils;
 
 import java.io.File;
@@ -45,31 +47,45 @@ public class Analyser {
 
     private boolean isFullCG = false;
 
-    public void run(String target, boolean isJDKProcess,
-                    boolean withAllJDK, boolean isSaveOnly,
-                    boolean excludeJDK, boolean isJDKOnly,
-                    boolean checkFatJar, boolean isFullCG) throws IOException {
-        this.isFullCG = isFullCG;
-        if(isSaveOnly){
-            save();
-            System.exit(0);
-        }else{
-            Map<String, String> dependencies = getJdkDependencies(withAllJDK);
+    public void run(Properties props) throws IOException {
+
+        if("true".equals(props.getProperty(ArgumentEnum.BUILD_ENABLE.toString(), "false"))){
+            Map<String, String> dependencies = getJdkDependencies(
+                    props.getProperty(ArgumentEnum.WITH_ALL_JDK.toString(), "false"));
             log.info("Get {} JDK dependencies", dependencies.size());
-            Map<String, String> classpaths = excludeJDK?
+
+            Map<String, String> cps = "true".equals(props.getProperty(ArgumentEnum.EXCLUDE_JDK.toString(), "false"))?
                     new HashMap<>():new HashMap<>(dependencies);
             Map<String, String> targets = new HashMap<>();
-            if(isJDKOnly){
-                targets.putAll(dependencies);
-            }else{
+            // 收集目标
+            if("false".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))){
+                String target = props.getProperty(ArgumentEnum.TARGET.toString());
+                boolean checkFatJar = "true".equals(props.getProperty(ArgumentEnum.CHECK_FAT_JAR.toString(), "false"));
                 Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(target, checkFatJar);
-                classpaths.putAll(files);
+                cps.putAll(files);
                 targets.putAll(files);
-                if(isJDKProcess){
-                    targets.putAll(dependencies);
+            }
+
+            if("true".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))
+                    || "true".equals(props.getProperty(ArgumentEnum.IS_JDK_PROCESS.toString(), "false"))){
+                targets.putAll(dependencies);
+            }
+
+            // 添加必要的依赖，防止信息缺失，比如servlet依赖
+            if(FileUtils.fileExists(GlobalConfiguration.LIBS_PATH)){
+                Map<String, String> files = FileUtils
+                        .getTargetDirectoryJarFiles(GlobalConfiguration.LIBS_PATH, false);
+                for(Map.Entry<String, String> entry:files.entrySet()){
+                    cps.putIfAbsent(entry.getKey(), entry.getValue());
                 }
             }
-            runSootAnalysis(targets, new ArrayList<>(classpaths.values()) );
+
+            runSootAnalysis(targets, new ArrayList<>(cps.values()));
+        }
+
+        if("true".equals(props.getProperty(ArgumentEnum.LOAD_ENABLE.toString(), "false"))){
+            G.reset();
+            save();
         }
     }
 
@@ -87,11 +103,12 @@ public class Analyser {
                 return;
             }
             Main.v().autoSetOptions();
+            log.info("Target {}, Dependencies {}", realTargets.size(), classpaths.size());
 
             // 类信息抽取
             classInfoScanner.run(realTargets);
             // 函数调用分析
-            if(isFullCG){
+            if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
                 fullCallGraphScanner.run();
             }else{
                 callGraphScanner.run();
@@ -147,12 +164,17 @@ public class Analyser {
      * 仅测试于MacOS
      * @return jre
      */
-    public Map<String, String> getJdkDependencies(boolean all){
+    public Map<String, String> getJdkDependencies(String all){
         String javaHome = System.getProperty("java.home");
 
         String[] jre;
-        if(all){// 19个
-            jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar","../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar","lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar","lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar","lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar","lib/ext/zipfs.jar","lib/management-agent.jar"};
+        if("true".equals(all)){
+            jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar",
+                    "../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar",
+                    "lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar",
+                    "lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar",
+                    "lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar",
+                    "lib/ext/zipfs.jar","lib/management-agent.jar"};
         }else{// 对于正常分析其他的jar文件，不需要全量jdk依赖的分析，暂时添加这几个
             jre = new String[]{"lib/rt.jar","lib/jce.jar","lib/ext/nashorn.jar"};
         }

@@ -11,6 +11,7 @@ import java.io.File;
  */
 public class GlobalConfiguration {
 
+    public static String LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "libs");
     public static String RULES_PATH = String.join(File.separator, System.getProperty("user.dir"), "rules");
     public static String KNOWLEDGE_PATH = String.join(File.separator, RULES_PATH, "knowledges.json");
     public static String IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignores.json");
@@ -27,6 +28,7 @@ public class GlobalConfiguration {
 
     public static Gson GSON = new Gson();
     public static boolean DEBUG = false;
+    public static boolean IS_FULL_CALL_GRAPH_CONSTRUCT = false;
 
     static {
         if(!FileUtils.fileExists(RULES_PATH)){

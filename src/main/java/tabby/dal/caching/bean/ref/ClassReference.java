@@ -4,17 +4,18 @@ import com.google.common.hash.Hashing;
 import lombok.Data;
 import org.springframework.data.annotation.Transient;
 import soot.SootClass;
-import soot.SootField;
-import tabby.config.GlobalConfiguration;
 import tabby.dal.caching.bean.edge.Extend;
 import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.edge.Interfaces;
 import tabby.dal.caching.converter.List2JsonStringConverter;
-import tabby.dal.caching.converter.Set2JsonStringConverter;
+import tabby.util.SemanticHelper;
 
 import javax.persistence.*;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**
  * @author wh1t3P1g
@@ -27,7 +28,7 @@ public class ClassReference {
 
     @Id
     private String id;
-//    @Column(unique = true)
+    //    @Column(unique = true)
     private String name;
     private String superClass;
 
@@ -35,14 +36,19 @@ public class ClassReference {
     private boolean isInterface = false;
     private boolean hasSuperClass = false;
     private boolean hasInterfaces = false;
+    private boolean hasDefaultConstructor = false;
     private boolean isInitialed = false;
     private boolean isSerializable = false;
+    private boolean isStrutsAction = false; // for struts2
     /**
      * [[name, modifiers, type],...]
+     * 没有用上，删除
+     * 超长的字段会导致csv导入neo4j失败
+     * 所以直接剔除
      */
-    @Column(columnDefinition = "TEXT")
-    @Convert(converter = Set2JsonStringConverter.class)
-    private Set<String> fields = new HashSet<>();
+//    @Column(columnDefinition = "TEXT")
+//    @Convert(converter = Set2JsonStringConverter.class)
+//    private Set<String> fields = new HashSet<>();
 
     @Column(columnDefinition = "TEXT")
     @Convert(converter = List2JsonStringConverter.class)
@@ -73,30 +79,31 @@ public class ClassReference {
 
     public static ClassReference newInstance(String name){
         ClassReference classRef = new ClassReference();
-        String id = Hashing.sha256() // 相同class生成的id值也相同
+        String id = Hashing.md5() // 相同class生成的id值也相同
                 .hashString(name, StandardCharsets.UTF_8)
                 .toString();
         classRef.setId(id);
         classRef.setName(name);
         classRef.setInterfaces(new ArrayList<>());
-        classRef.setFields(new HashSet<>());
+//        classRef.setFields(new HashSet<>());
         return classRef;
     }
 
     public static ClassReference newInstance(SootClass cls){
         ClassReference classRef = newInstance(cls.getName());
         classRef.setInterface(cls.isInterface());
+        classRef.setHasDefaultConstructor(SemanticHelper.hasDefaultConstructor(cls));
 
-        // 提取类属性信息
-        if(cls.getFieldCount() > 0){
-            for (SootField field : cls.getFields()) {
-                List<String> fieldInfo = new ArrayList<>();
-                fieldInfo.add(field.getName());
-                fieldInfo.add(field.getModifiers() + "");
-                fieldInfo.add(field.getType().toString());
-                classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
-            }
-        }
+        // 提取类属性信息 没用到 剔除
+//        if(cls.getFieldCount() > 0){
+//            for (SootField field : cls.getFields()) {
+//                List<String> fieldInfo = new ArrayList<>();
+//                fieldInfo.add(field.getName());
+//                fieldInfo.add(Modifier.toString(field.getModifiers()));
+//                fieldInfo.add(field.getType().toString());
+//                classRef.getFields().add(GlobalConfiguration.GSON.toJson(fieldInfo));
+//            }
+//        }
         // 提取父类信息
         if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
             // 剔除Object类的继承关系，节省继承边数量
@@ -111,6 +118,15 @@ public class ClassReference {
             }
         }
         return classRef;
+    }
+
+    public void setName(String name){
+        // fix name too long error
+        if(name.length() >= 255){
+            this.name = name.substring(0, 254);
+        }else{
+            this.name = name;
+        }
     }
 
 }

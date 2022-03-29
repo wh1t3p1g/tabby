@@ -30,7 +30,6 @@ public class CallGraphCollector {
                     || methodRef.isIgnore() || method.isAbstract()
                     || Modifier.isNative(method.getModifiers())){
                 methodRef.setInitialed(true);
-                methodRef.setPolluted(methodRef.isSink());
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
 
@@ -38,7 +37,6 @@ public class CallGraphCollector {
                 // 静态函数 且 函数入参数量为0 此类函数
                 // 对于反序列化来说 均不可控 不进行分析
                 methodRef.setInitialed(true);
-                methodRef.setPolluted(methodRef.isSink());
                 return;
             }
 
