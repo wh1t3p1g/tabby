@@ -37,8 +37,9 @@ public class App {
     }
 
     private void applyOptions() {
+        boolean isJDKOnly = "true".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"));
 
-        if("true".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))){
+        if(isJDKOnly){
             props.setProperty(ArgumentEnum.WITH_ALL_JDK.toString(), "true");
         }
 
@@ -48,7 +49,7 @@ public class App {
         String target = props.getProperty(ArgumentEnum.TARGET.toString());
 
         // 支持绝对路径 issue 7
-        if(target != null && !FileUtils.fileExists(target)){
+        if(!isJDKOnly && target != null && !FileUtils.fileExists(target)){
             target = String.join(File.separator, System.getProperty("user.dir"), target);
             if(!FileUtils.fileExists(target)){
                 throw new IllegalArgumentException("target not exists!");
