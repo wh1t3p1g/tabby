@@ -338,9 +338,13 @@ public class SemanticHelper {
         }
         if(fieldName == null || fieldName.isEmpty()) return null;
 
-        String firstChar = fieldName.substring(0,1).toLowerCase();
-        String appendChars = fieldName.substring(1);
-        return firstChar+appendChars;
+        char firstChar = fieldName.charAt(0);
+        if(Character.isLowerCase(firstChar)) return null; // check getS or gets
+
+        firstChar = Character.toLowerCase(firstChar);
+        String appendString = fieldName.substring(1);
+
+        return firstChar+appendString;
     }
 
     public static boolean hasDefaultConstructor(SootClass cls){
