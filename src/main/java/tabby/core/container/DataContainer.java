@@ -317,6 +317,31 @@ public class DataContainer {
         return null;
     }
 
+    public Set<MethodReference> getAliasMethodRefs(SootClass cls, String subSignature){
+        Set<MethodReference> refs = new HashSet<>();
+        Set<SootClass> classes = new HashSet<>();
+
+        if(cls.hasSuperclass()){
+            classes.add(cls.getSuperclass());
+        }
+
+        if(cls.getInterfaceCount() > 0){
+            classes.addAll(cls.getInterfaces());
+        }
+
+        MethodReference ref = null;
+
+        for(SootClass clazz:classes){
+            ref = getMethodRefBySubSignature(clazz.getName(), subSignature);
+            if(ref != null){
+                refs.add(ref);
+            }else{
+                refs.addAll(getAliasMethodRefs(clazz, subSignature));
+            }
+        }
+        return refs;
+    }
+
     private MethodReference getTargetMethodRef(SootClass cls, String subSignature, boolean deepFirst){
         MethodReference target = null;
         if(deepFirst){
