@@ -13,6 +13,7 @@ import tabby.core.data.TabbyVariable;
 import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.dal.caching.bean.edge.Call;
 import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.util.PositionHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -85,7 +86,7 @@ public class Switcher {
         boolean flag = false;
         int index = 0;
         for(Integer pos:pollutedPosition){
-            if(pos != -2){
+            if(pos != PositionHelper.NOT_POLLUTED_POSITION){
                 if(index == 0){
                     firstPollutedVar = baseVar;
                 }else{
@@ -219,15 +220,10 @@ public class Switcher {
                 related = var.getFirstPollutedVarRelatedType();
             }
             if(related != null){
-                if(related.startsWith("this")){
-                    return -1;
-                }else if(related.startsWith("param-")){
-                    String[] pos = related.split("\\|");
-                    return Integer.valueOf(pos[0].split("-")[1]);
-                }
+                return PositionHelper.getPosition(related);
             }
         }
-        return -2;
+        return PositionHelper.NOT_POLLUTED_POSITION;
     }
 
     public static void buildCallRelationship(String classname, Context context, boolean isOptimize,
@@ -242,7 +238,7 @@ public class Switcher {
         if(targetMethodRef.isSink()){
             // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的
             for(int i:targetMethodRef.getPollutedPosition()){
-                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == -2){
+                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == PositionHelper.NOT_POLLUTED_POSITION){
                     isPolluted = false;
                     break;
                 }

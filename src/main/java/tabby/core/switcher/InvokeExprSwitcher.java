@@ -12,6 +12,7 @@ import tabby.core.data.TabbyVariable;
 import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.dal.caching.bean.edge.Call;
 import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.util.PositionHelper;
 
 import java.util.*;
 
@@ -80,7 +81,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         if(target.isSink()){
             // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的
             for(int i:target.getPollutedPosition()){
-                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == -2){
+                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == PositionHelper.NOT_POLLUTED_POSITION){
                     isPolluted = false;
                     break;
                 }
@@ -158,7 +159,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         }
 
         for(Integer i:pollutedPosition){
-            if (i != -2) {
+            if (i != PositionHelper.NOT_POLLUTED_POSITION) {
                 isPolluted = true;
                 break;
             }
@@ -167,7 +168,7 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     public int check(Value value, Map<Local, TabbyVariable> localMap){
         if(value == null){
-            return -2;
+            return PositionHelper.NOT_POLLUTED_POSITION;
         }
         TabbyVariable var = null;
         if(value instanceof Local){
@@ -196,20 +197,15 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         }
         if(var != null){
             String related = null;
-            if(var.isPolluted(-1)){ // var本身是pollted的情况
+            if(var.isPolluted(PositionHelper.THIS)){ // var本身是pollted的情况
                 related = var.getValue().getRelatedType();
             }else if(var.containsPollutedVar(new ArrayList<>())){ // 当前var的类属性，element元素是polluted的情况
                 related = var.getFirstPollutedVarRelatedType();
             }
             if(related != null){
-                if(related.startsWith("this")){
-                    return -1;
-                }else if(related.startsWith("param-")){
-                    String[] pos = related.split("\\|");
-                    return Integer.valueOf(pos[0].split("-")[1]);
-                }
+                return PositionHelper.getPosition(related);
             }
         }
-        return -2;
+        return PositionHelper.NOT_POLLUTED_POSITION;
     }
 }
