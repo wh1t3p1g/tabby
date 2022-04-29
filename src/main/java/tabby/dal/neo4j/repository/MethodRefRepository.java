@@ -21,6 +21,7 @@ public interface MethodRefRepository extends Neo4jRepository<MethodEntity, Strin
             "IS_ENDPOINT: {type:'boolean'}, " +
             "HAS_PARAMETERS:{type:'boolean'}, " +
             "IS_INITIALED: { type: 'boolean'}, " +
+            "IS_FROM_ABSTRACT_CLASS: { type: 'boolean'}, " +
             "IS_GETTER:{type:'boolean'}, " +
             "IS_SETTER:{type:'boolean'}, " +
             "IS_PUBLIC:{type:'boolean'}, " +

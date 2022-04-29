@@ -65,6 +65,7 @@ public class MethodReference {
     private boolean isActionContainsSwap = false;
     private boolean isGetter = false;
     private boolean isSetter = false;
+    private boolean isFromAbstractClass = false;
 
     /**
      * 指代当前是否初始化过调用边
@@ -188,7 +189,7 @@ public class MethodReference {
                 .append(isEndpoint, that.isEndpoint).append(isContainsOutOfMemOptions, that.isContainsOutOfMemOptions)
                 .append(isActionContainsSwap, that.isActionContainsSwap).append(id, that.id).append(name, that.name)
                 .append(signature, that.signature).append(subSignature, that.subSignature).append(returnType, that.returnType)
-                .append(classname, that.classname).append(vul, that.vul)
+                .append(classname, that.classname).append(vul, that.vul).append(isFromAbstractClass, that.isFromAbstractClass)
 //                .append(parameters, that.parameters)
                 .isEquals();
     }
@@ -202,6 +203,6 @@ public class MethodReference {
                 .append(isSink).append(isSource).append(isStatic)
                 .append(hasParameters).append(isInitialed).append(isIgnore).append(isSerializable)
                 .append(isAbstract).append(isContainsSource).append(isEndpoint).append(isContainsOutOfMemOptions)
-                .append(isActionContainsSwap).toHashCode();
+                .append(isActionContainsSwap).append(isFromAbstractClass).toHashCode();
     }
 }

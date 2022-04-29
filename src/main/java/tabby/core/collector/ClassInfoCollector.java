@@ -115,6 +115,7 @@ public class ClassInfoCollector {
         methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
         methodRef.setAbstract(method.isAbstract());
         methodRef.setHasDefaultConstructor(ref.isHasDefaultConstructor());
+        methodRef.setFromAbstractClass(ref.isAbstract());
 
         Has has = Has.newInstance(ref, methodRef);
         ref.getHasEdge().add(has);

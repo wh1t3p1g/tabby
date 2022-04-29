@@ -40,6 +40,8 @@ public class ClassReference {
     private boolean isInitialed = false;
     private boolean isSerializable = false;
     private boolean isStrutsAction = false; // for struts2
+    private boolean isAbstract = false;
+
     /**
      * [[name, modifiers, type],...]
      * 没有用上，删除
@@ -93,7 +95,7 @@ public class ClassReference {
         ClassReference classRef = newInstance(cls.getName());
         classRef.setInterface(cls.isInterface());
         classRef.setHasDefaultConstructor(SemanticHelper.hasDefaultConstructor(cls));
-
+        classRef.setAbstract(cls.isAbstract());
         // 提取类属性信息 没用到 剔除
 //        if(cls.getFieldCount() > 0){
 //            for (SootField field : cls.getFields()) {

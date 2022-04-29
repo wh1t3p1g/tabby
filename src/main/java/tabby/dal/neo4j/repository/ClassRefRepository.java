@@ -18,6 +18,7 @@ public interface ClassRefRepository extends Neo4jRepository<ClassEntity, String>
             "IS_INTERFACE: {type:'boolean'}, " +
             "HAS_SUPER_CLASS: {type:'boolean'}, " +
             "HAS_INTERFACES: {type:'boolean'}, " +
+            "IS_ABSTRACT: {type:'boolean'}, " +
             "IS_INITIALED: {type:'boolean'}, " +
             "IS_STRUTS_ACTION: {type:'boolean'}, " +
             "HAS_DEFAULT_CONSTRUCTOR: {type:'boolean'}, " +
