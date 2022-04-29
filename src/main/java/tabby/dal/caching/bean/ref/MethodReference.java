@@ -33,6 +33,7 @@ public class MethodReference {
     private String id;
 
     private String name;
+    private String name0;
     //    @Column(unique = true)
     @Column(columnDefinition = "TEXT")
     private String signature;
@@ -129,6 +130,7 @@ public class MethodReference {
     public static MethodReference newInstance(String classname, SootMethod method){
         MethodReference methodRef = newInstance(method.getName(), method.getSignature());
         methodRef.setClassname(classname);
+        methodRef.setName0(String.format("%s.%s", classname, method.getName()));
         methodRef.setModifiers(method.getModifiers());
         methodRef.setPublic(method.isPublic());
         methodRef.setSubSignature(method.getSubSignature());
