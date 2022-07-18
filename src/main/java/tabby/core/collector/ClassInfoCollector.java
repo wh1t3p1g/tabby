@@ -110,6 +110,7 @@ public class ClassInfoCollector {
         methodRef.setIgnore(isIgnore);
         methodRef.setSource(isSource);
         methodRef.setEndpoint(ref.isStrutsAction() || isEndpoint(method, relatedClassnames));
+        methodRef.setNettyEndpoint(isNettyEndpoint(method, relatedClassnames));
         methodRef.setGetter(isGetter(method));
         methodRef.setSetter(isSetter(method));
         methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
@@ -163,6 +164,31 @@ public class ClassInfoCollector {
                 || relatedClassnames.contains("javax.servlet.http.HttpServlet") // 防止依赖缺失情况下的识别
                 || relatedClassnames.contains("javax.servlet.GenericServlet"))
                 && requestTypes.contains(method.getName())){
+            return true;
+        }
+        // not an endpoint
+        return false;
+    }
+
+    public static boolean isNettyEndpoint(SootMethod method, Set<String> relatedClassnames){
+        String classname = method.getDeclaringClass().getName();
+        if("io.netty.channel.ChannelInboundHandler".equals(classname)
+                || "io.netty.handler.codec.ByteToMessageDecoder".equals(classname)
+        ){
+            return false;
+        }
+
+        String methodName = method.getName();
+        // check from ChannelInboundHandler
+        List<String> nettyReadMethods = Arrays.asList("channelRead", "channelRead0", "messageReceived");
+        if(relatedClassnames.contains("io.netty.channel.ChannelInboundHandler")
+                && nettyReadMethods.contains(methodName)){
+            return true;
+        }
+
+        // check from io.netty.handler.codec.ByteToMessageDecoder
+        if(relatedClassnames.contains("io.netty.handler.codec.ByteToMessageDecoder")
+                && "decode".equals(methodName)){
             return true;
         }
         // not an endpoint

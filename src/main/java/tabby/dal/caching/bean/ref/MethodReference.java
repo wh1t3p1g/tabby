@@ -62,11 +62,13 @@ public class MethodReference {
     private boolean isAbstract = false;
     private boolean isContainsSource = false;
     private boolean isEndpoint = false;
+    private boolean isNettyEndpoint = false;
     private boolean isContainsOutOfMemOptions = false;
     private boolean isActionContainsSwap = false;
     private boolean isGetter = false;
     private boolean isSetter = false;
     private boolean isFromAbstractClass = false;
+    private boolean isBodyParseError = false;
 
     /**
      * 指代当前是否初始化过调用边

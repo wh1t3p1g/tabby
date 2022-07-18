@@ -14,12 +14,11 @@ import tabby.dal.neo4j.entity.ClassEntity;
 public interface ClassRefRepository extends Neo4jRepository<ClassEntity, String> {
 
     @Query("CALL apoc.periodic.iterate(\"CALL apoc.load.csv('file://\"+$path+\"', " +
-            "{header:true, mapping:{ " +
+            "{header:true, ignore: ['CHILD_CLASSNAMES','IS_PHANTOM','IS_INITIALED', 'FIELDS'], mapping:{ " +
             "IS_INTERFACE: {type:'boolean'}, " +
+            "IS_ABSTRACT: {type:'boolean'}, " +
             "HAS_SUPER_CLASS: {type:'boolean'}, " +
             "HAS_INTERFACES: {type:'boolean'}, " +
-            "IS_ABSTRACT: {type:'boolean'}, " +
-            "IS_INITIALED: {type:'boolean'}, " +
             "IS_STRUTS_ACTION: {type:'boolean'}, " +
             "HAS_DEFAULT_CONSTRUCTOR: {type:'boolean'}, " +
             "IS_SERIALIZABLE:{type:'boolean'}}}) YIELD map AS row RETURN row\",\"MERGE (c:Class {NAME:row.NAME}) ON CREATE SET c = row\", {batchSize:5000, iterateList:true, parallel:true}) yield total")

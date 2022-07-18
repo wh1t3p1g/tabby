@@ -263,7 +263,6 @@ public class Switcher {
             call.setPollutedPosition(new ArrayList<>(pollutedPosition));
             call.setUnit(unit);
             call.setLineNum(unit.getJavaSourceStartLineNumber());
-            call.setOptimize(isOptimize);
             if(!sourceMethodRef.getCallEdge().contains(call)){
                 sourceMethodRef.getCallEdge().add(call);
                 dataContainer.store(call);

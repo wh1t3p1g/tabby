@@ -56,6 +56,9 @@ public class ClassReference {
     @Convert(converter = List2JsonStringConverter.class)
     private List<String> interfaces = new ArrayList<>();
 
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = List2JsonStringConverter.class)
+    private List<String> childClassnames = new ArrayList<>();
     // neo4j relationships
     /**
      * 继承边
