@@ -33,6 +33,7 @@ public class MethodReference {
     private String id;
 
     private String name;
+    @Column(columnDefinition = "TEXT")
     private String name0;
     //    @Column(unique = true)
     @Column(columnDefinition = "TEXT")

@@ -14,7 +14,6 @@ import tabby.core.data.TabbyRule;
 import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.ref.ClassReference;
 import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.util.SemanticHelper;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -197,12 +196,16 @@ public class ClassInfoCollector {
 
     public static boolean isGetter(SootMethod method){
         String methodName = method.getName();
-        if(method.getParameterCount() == 0 && method.isPublic()){
-            if(methodName.startsWith("get") || methodName.startsWith("is")){
-                SootClass cls = method.getDeclaringClass();
-                String fieldName = SemanticHelper.getFieldNameByMethodName(methodName);
-                return SemanticHelper.hasField(cls, fieldName);
-            }
+        String returnType = method.getReturnType().toString();
+        boolean noParameter = method.getParameterCount() == 0;
+        boolean isPublic = method.isPublic();
+
+        if(!noParameter || !isPublic) return false;
+
+        if(methodName.startsWith("get") && methodName.length() > 3){
+            return !"void".equals(returnType);
+        }else if(methodName.startsWith("is") && methodName.length() > 2){
+            return "boolean".equals(returnType);
         }
 
         return false;
@@ -210,11 +213,16 @@ public class ClassInfoCollector {
 
     public static boolean isSetter(SootMethod method){
         String methodName = method.getName();
-        if(methodName.startsWith("set") && method.getParameterCount() == 1 && method.isPublic()){
-            SootClass cls = method.getDeclaringClass();
-            String fieldName = SemanticHelper.getFieldNameByMethodName(methodName);
-            return SemanticHelper.hasField(cls, fieldName);
+        String returnType = method.getReturnType().toString();
+        boolean singleParameter = method.getParameterCount() == 1;
+        boolean isPublic = method.isPublic();
+
+        if(!isPublic || !singleParameter) return false;
+
+        if(methodName.startsWith("set") && methodName.length() > 3){
+            return "void".equals(returnType);
         }
+
         return false;
     }
 
