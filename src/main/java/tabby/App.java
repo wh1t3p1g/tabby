@@ -90,14 +90,7 @@ public class App {
                 log.info("Done. Bye!");
                 System.exit(0);
             }catch (IllegalArgumentException e){
-                log.error(e.getMessage() +
-                        "\nPlease use java -jar tabby target_directory [--isJDKOnly｜--isJDKProcess|--isSaveOnly|--excludeJDK] !" +
-                        "\ntarget_directory 为相对路径" +
-                        "\n--isJDKOnly出现时，仅处理JDK的内容" +
-                        "\n--excludeJDK出现时，不添加当前运行jre环境" +
-                        "\n--isJDKProcess出现时，将处理当前运行jre环境的分析" +
-                        "\nExample: java -jar tabby cases/jars --isJDKProcess" +
-                        "\nOthers: https://github.com/wh1t3p1g/tabby/wiki/Tabby%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8C%97");
+                log.error(e.getMessage() + ", Please check your settings.properties file.");
             }catch (JDKVersionErrorException e){
                 log.error(e.getMessage());
             }
