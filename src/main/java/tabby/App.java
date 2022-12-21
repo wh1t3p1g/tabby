@@ -46,6 +46,11 @@ public class App {
         GlobalConfiguration.DEBUG = "true".equals(props.getProperty(ArgumentEnum.SET_DEBUG_ENABLE.toString(), "false"));
         GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT = "true".equals(props.getProperty(ArgumentEnum.IS_FULL_CALL_GRAPH_CREATE.toString(), "false"));
 
+        try{
+            GlobalConfiguration.TIMEOUT = Integer.parseInt(props.getProperty("tabby.build.thread.timeout", "2").trim());
+        }catch (Exception ignore){
+        }
+
         String target = props.getProperty(ArgumentEnum.TARGET.toString());
 
         // 支持绝对路径 issue 7

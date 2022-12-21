@@ -29,6 +29,7 @@ public class GlobalConfiguration {
     public static Gson GSON = new Gson();
     public static boolean DEBUG = false;
     public static boolean IS_FULL_CALL_GRAPH_CONSTRUCT = false;
+    public static int TIMEOUT = 2;
 
     static {
         if(!FileUtils.fileExists(RULES_PATH)){
