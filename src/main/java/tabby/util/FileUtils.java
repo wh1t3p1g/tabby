@@ -8,8 +8,7 @@ import tabby.config.GlobalConfiguration;
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.jar.JarInputStream;
@@ -21,131 +20,106 @@ import java.util.jar.JarInputStream;
 @Slf4j
 public class FileUtils {
 
-    /**
-     * 对于目录下的class文件，一定要保持好目录结构，即目标目录下就是后续的具体目录（target/org/xxx/xxx）
-     * @param target
-     * @return
-     * @throws IOException
-     */
-    public static Map<String, String> getTargetDirectoryJarFiles(String target, boolean checkFatJar) throws IOException {
+    public static Map<String, String> findAllJdkDependencies(String target, boolean isNeedRecursion) throws IOException {
         Map<String, String> paths = new HashMap<>();
-        Path path = Paths.get(target).toAbsolutePath();
+        Path path = Paths.get(target).toRealPath();
+        String realPath = path.toString();
         if (!Files.exists(path)) {
             throw new IllegalArgumentException("Invalid jar path: " + path);
         }
 
-        if(path.toFile().isFile()){
-            String filename = path.toFile().getName();
-            String fileMd5 = FileUtils.getFileMD5(filename);
-            if(filename.endsWith(".class")){
-                paths.put(fileMd5, path.getParent().toString());
-            }else if(filename.endsWith(".war")){
-                paths.putAll(unpackWarOrJarFiles(path, filename));
-            }else if(filename.endsWith(".jar")){
-                if(checkFatJar && isFatJar(path)){
-                    paths.putAll(unpackWarOrJarFiles(path, filename));
-                }else{
-                    paths.put(fileMd5, path.toAbsolutePath().toString());
-                }
-            }
-        }else{
-            Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
-                @Override
-                public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
-                    String filename = path.getFileName().toString();
-                    String fileMd5 = FileUtils.getFileMD5(filename);
-                    if(filename.endsWith(".jar")){
-                        if(checkFatJar && isFatJar(path)){
-                            paths.putAll(unpackWarOrJarFiles(path, filename));
-                        }else{
-                            paths.put(fileMd5, path.toAbsolutePath().toString());
-                        }
-                    }else if(filename.endsWith(".class")){
-                        paths.put(fileMd5, target);
-                        // 对于.class文件，直接添加原目录，soot会爬取当前目录下的class文件
-                        // 这里会有一些冗余，不过后面用了set 也无所谓
-                    } else if(filename.endsWith(".war")){
-                        paths.putAll(unpackWarOrJarFiles(path, filename));
-                    }
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                String file = path.toAbsolutePath().toString();
+
+                if(file.endsWith("local_policy.jar") || file.endsWith("US_export_policy.jar")){
                     return FileVisitResult.CONTINUE;
                 }
-            });
-        }
+
+                if(file.endsWith(".jar") || file.endsWith(".jmod")){
+                    String fileMd5 = FileUtils.getFileMD5(file);
+                    paths.put(fileMd5, file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                if(isNeedRecursion || realPath.equals(dir.toAbsolutePath().toString())){
+                    return super.preVisitDirectory(dir, attrs);
+                }else{
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+            }
+        });
 
         return paths;
+    }
+
+    public static boolean isFatJar(String filepath){
+        Path path = Paths.get(filepath);
+        if(Files.exists(path)){
+            try(JarFile jarFile = new JarFile(path.toFile())){
+                return jarFile.getEntry("WEB-INF") != null
+                        || jarFile.getEntry("BOOT-INF") != null
+                        || jarFile.getEntry("lib") != null;
+            }catch (Exception ignore){}
+        }
+        return false;
+    }
+
+    public static void findAllTargets(Path path, Map<String, Set<String>> map) throws IOException {
+        if(path == null) return;
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                String file = path.toAbsolutePath().toString();
+                if(file.endsWith(".jar")){
+                    map.get("jar").add(file);
+                } else if(file.endsWith(".class")){
+                    map.get("classes").add(file);
+                }else if(file.endsWith(".jmod")){
+                    map.get("jmods").add(file);
+                } else if(file.endsWith(".war")){
+                    map.get("war").add(file);
+                } else if(file.endsWith(".jsp") || file.endsWith(".jspx") || file.endsWith(".tld")){
+                    map.get("jsp").add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+        });
+    }
+
+    public static Path unpack(Path path, String filename) throws IOException {
+        if(Files.exists(path)){
+            Path output = registerTempDirectory(filename + RandomStringUtils.randomAlphanumeric(3));
+            extract(path, output);
+            return output;
+        }
+        return null;
     }
 
     /**
-     * 当前fatJar是一个泛指的概念，除了spring，其他有WEB-INF之类的也算做fatJar
-     * @param path
-     * @return
+     * 提取当前fatJar到临时目录
+     * @param jarPath
+     * @param tmpDir
+     * @throws IOException
      */
-    public static boolean isFatJar(Path path){
-        String file = path.toAbsolutePath().toString();
-        try {
-            JarFile jarFile = new JarFile(path.toFile());
-            if(jarFile.getEntry("WEB-INF") != null
-                    || jarFile.getEntry("BOOT-INF") != null){
-                return true;
-            }else{
-                return false;
-            }
-        }
-        catch (Exception e) {
-            log.error("Something error with func.dealFatJar <{}>, just add this jar", file);
-            return false;
-        }
-    }
-
-    public static Map<String, String> unpackWarOrJarFiles(Path path, String filename) throws IOException {
-        Map<String, String> paths = new HashMap<>();
-        Path tmpDir = registerTempDirectory(filename);
-        String bootInfClassesDir = String.join(File.separator, tmpDir.toString(), "BOOT-INF/classes");
-        String webInfClassesDir = String.join(File.separator, tmpDir.toString(), "WEB-INF/classes");
-
-        extract(path, tmpDir);
-        paths.putAll(findLibTargets(tmpDir, "BOOT-INF/lib"));
-        paths.putAll(findLibTargets(tmpDir, "WEB-INF/lib"));
-
-        // get all classes from classes
-        if(new File(bootInfClassesDir).exists()){
-            paths.put(filename+"_bootinf_classes_"+ RandomStringUtils.randomAlphanumeric(5),
-                    bootInfClassesDir);
-        }
-        if(new File(webInfClassesDir).exists()){
-            paths.put(filename+"_webinf_classes_"+ RandomStringUtils.randomAlphanumeric(5),
-                    webInfClassesDir);
-        }
-
-        return paths;
-    }
-
-    public static Map<String, String> findLibTargets(Path baseDir, String targetDir) throws IOException {
-        Map<String, String> paths = new HashMap<>();
-        if(baseDir.resolve(targetDir).toFile().exists()){
-            Files.walkFileTree(baseDir.resolve(targetDir), new SimpleFileVisitor<Path>() {
-                @Override
-                public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                    String filepath = file.toAbsolutePath().toString();
-                    String fileMd5 = FileUtils.getFileMD5(filepath);
-                    if(filepath.endsWith(".jar")){
-                        paths.put(fileMd5, filepath);
-                    }
-                    return FileVisitResult.CONTINUE;
-                }
-            });
-        }
-        return paths;
-    }
-
     public static void extract(Path jarPath, Path tmpDir) throws IOException {
         try (JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(jarPath))) {
             JarEntry jarEntry;
             while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
                 Path fullPath = tmpDir.resolve(jarEntry.getName());
                 if (!jarEntry.isDirectory()
-                        && (jarEntry.getName().endsWith(".class")
-                        || jarEntry.getName().endsWith(".jar"))) {
+                        && (
+                        jarEntry.getName().endsWith(".class")
+                                || jarEntry.getName().endsWith(".jar")
+                                || jarEntry.getName().endsWith(".jsp")
+                                || jarEntry.getName().endsWith(".jspx")
+                                || jarEntry.getName().endsWith(".tld")
+                                || jarEntry.getName().endsWith(".jmod")
+                )) {
                     Path dirName = fullPath.getParent();
                     if (dirName == null) {
                         throw new IllegalStateException("Parent of item is outside temp directory.");
@@ -153,28 +127,50 @@ public class FileUtils {
                     if (!Files.exists(dirName)) {
                         Files.createDirectories(dirName);
                     }
-                    try (OutputStream outputStream = Files.newOutputStream(fullPath)) {
-                        copy(jarInputStream, outputStream);
-                    }
+
+                    Files.copy(jarInputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         }
     }
 
-    /**
-     * Copy inputStream to outputStream. Neither stream is closed by this method.
-     */
-    public static void copy(InputStream inputStream, OutputStream outputStream) throws IOException {
-        final byte[] buffer = new byte[4096];
-        int n;
-        while ((n = inputStream.read(buffer)) > 0) {
-            outputStream.write(buffer, 0, n);
+    public static void copy(String source, Path target) throws IOException {
+        Path dirPath = target.getParent();
+        if(!Files.exists(dirPath)){
+            Files.createDirectories(dirPath);
+        }
+        Files.copy(Paths.get(source), target, StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public static void copyAll(Set<String> sources, Path target, String basePath) throws IOException {
+        if(Files.notExists(target)){
+            Files.createDirectories(target);
+        }
+        int len = basePath.length();
+        for(String source:sources){
+            if(source.startsWith(basePath)){
+                String sub = source.substring(len);
+                if(sub.startsWith("/")){
+                    sub = sub.substring(1);
+                }
+                Path path = target.resolve(sub);
+                copy(source, path);
+            }
         }
     }
 
     public static boolean fileExists(String path){
+        if(path == null) return false;
+
         File file = new File(path);
         return file.exists();
+    }
+
+    public static void delete(String filepath){
+        File file = new File(filepath);
+        if (file.exists()) {
+            file.delete();
+        }
     }
 
     /**
@@ -204,6 +200,17 @@ public class FileUtils {
             writer = new FileWriter(file);
             writer.write(GlobalConfiguration.GSON.toJson(data));
             writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public static void putRawContent(String path, Collection<String> data){
+        File file = new File(path);
+        try (FileWriter writer = new FileWriter(file)){
+            for(String d:data){
+                writer.write(d+"\n");
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -257,6 +264,13 @@ public class FileUtils {
         }
     }
 
+    public static void createDirectory(Path path){
+        File file = path.toFile();
+        if(!file.exists() && file.mkdirs()){
+            log.info("Create directory {} success!", path);
+        }
+    }
+
     public static String getWinPath(String path){
         if(JavaVersion.isWin()){
             path = "/"+path.replace("\\", "/");
@@ -275,5 +289,4 @@ public class FileUtils {
             return file.getAbsolutePath();
         }
     }
-
 }

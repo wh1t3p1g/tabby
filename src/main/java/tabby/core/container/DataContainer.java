@@ -4,6 +4,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import soot.Scene;
 import soot.SootClass;
@@ -21,6 +23,7 @@ import tabby.dal.neo4j.service.MethodService;
 import tabby.util.SemanticHelper;
 
 import java.util.*;
+import java.util.concurrent.Future;
 
 /**
  * global tabby.core.data container
@@ -393,6 +396,20 @@ public class DataContainer {
         methodRefService.save2Csv();
         relationshipsService.save2CSV();
         log.info("Save cache to CSV. DONE!");
+    }
+
+    @Async("tabby-collector")
+    public Future<Boolean> cleanAll(){
+        log.info("Clean old tabby.core.data in Neo4j.");
+        classService.clear();
+        log.info("Clean old tabby.core.data in Neo4j. DONE!");
+        return new AsyncResult<>(true);
+    }
+
+    public void count(){
+        int nodes = classRefService.countAll() + methodRefService.countAll();
+        log.info("Total {}, classes: {}, methods: {}", nodes, classRefService.countAll(), methodRefService.countAll());
+        relationshipsService.count();
     }
 
 }

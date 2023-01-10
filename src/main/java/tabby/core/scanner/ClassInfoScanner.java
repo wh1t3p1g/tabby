@@ -13,7 +13,11 @@ import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.edge.Interfaces;
 import tabby.dal.caching.bean.ref.ClassReference;
 import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.util.JavaVersion;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -47,32 +51,55 @@ public class ClassInfoScanner {
 
     public Map<String, CompletableFuture<ClassReference>> loadAndExtract(List<String> targets){
         Map<String, CompletableFuture<ClassReference>> results = new HashMap<>();
-        Scene.v().loadBasicClasses();
-
-        Scene.v().loadDynamicClasses();
         int counter = 0;
         log.info("Start to collect {} targets' class information.", targets.size());
+        Map<String, List<String>> moduleClasses = null;
+        if(JavaVersion.isAtLeast(9)){
+            moduleClasses = ModulePathSourceLocator.v().getClassUnderModulePath("jrt:/");
+        }
+        int size = targets.size();
+        int step = Math.max(size/10, size);
         for (final String path : targets) {
-            for (String cl : SourceLocator.v().getClassesUnder(path)) {
+            List<String> classes = getTargetClasses(path, moduleClasses);
+            if(classes == null) continue;
+
+            for (String cl : classes) {
                 try{
                     SootClass theClass = Scene.v().loadClassAndSupport(cl);
                     if (!theClass.isPhantom()) {
                         // 这里存在类数量不一致的情况，是因为存在重复的对象
                         results.put(cl, collector.collect(theClass));
                         theClass.setApplicationClass();
-                        if(counter % 10000 == 0){
-                            log.info("Collected {} classes.", counter);
-                        }
-                        counter++;
                     }
                 }catch (Exception e){
-                    log.error("Load Error: " + e.getMessage());
+                    log.error("Load Error: {}, Message: {}", cl, e.getMessage());
 //                    e.printStackTrace();
                 }
             }
+            if(++counter%step == 0){
+                log.info("Load {}% targets", String.format("%.1f",counter*0.1/size*1000));
+            }
         }
-        log.info("Collected {} classes.", counter);
+        log.info("Total {} classes.", results.size());
         return results;
+    }
+
+    public List<String> getTargetClasses(String filepath, Map<String, List<String>> moduleClasses){
+        List<String> classes = null;
+        Path path = Paths.get(filepath);
+        if(Files.notExists(path)) return null;
+
+        if(JavaVersion.isAtLeast(9) && moduleClasses != null){
+            String filename = path.getFileName().toString();
+            filename = filename.substring(0, filename.length() - 5);
+            classes = moduleClasses.get(filename);
+        }
+
+        if(classes == null){
+            classes = SourceLocator.v().getClassesUnder(filepath);
+        }
+
+        return classes;
     }
 
     public void transform(Collection<CompletableFuture<ClassReference>> futures){

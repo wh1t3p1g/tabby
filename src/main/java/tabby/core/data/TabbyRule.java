@@ -1,6 +1,8 @@
 package tabby.core.data;
 
 import lombok.Data;
+import org.apache.commons.lang3.builder.EqualsBuilder;
+import org.apache.commons.lang3.builder.HashCodeBuilder;
 
 import java.util.*;
 
@@ -11,7 +13,7 @@ import java.util.*;
 @Data
 public class TabbyRule {
     private String name;
-    private List<Rule> rules;
+    private Set<Rule> rules;
     private transient Map<String, Rule> ruleMap;
 
     public TabbyRule() {
@@ -24,6 +26,11 @@ public class TabbyRule {
                 ruleMap.put(rule.function, rule);
             });
         }
+    }
+
+    public void merge(TabbyRule other){
+        rules.addAll(other.getRules());
+        ruleMap.putAll(other.getRuleMap());
     }
 
     public boolean contains(String key){
@@ -96,6 +103,22 @@ public class TabbyRule {
 
         public boolean isContainsSignature(String sig){
             return signatures != null && signatures.contains(sig);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) return true;
+
+            if (o == null || getClass() != o.getClass()) return false;
+
+            Rule rule = (Rule) o;
+
+            return new EqualsBuilder().append(function, rule.function).append(type, rule.type).append(actions, rule.actions).append(vul, rule.vul).append(polluted, rule.polluted).append(signatures, rule.signatures).isEquals();
+        }
+
+        @Override
+        public int hashCode() {
+            return new HashCodeBuilder(17, 37).append(function).append(type).append(actions).append(vul).append(polluted).append(signatures).toHashCode();
         }
     }
 }

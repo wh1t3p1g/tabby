@@ -3,25 +3,23 @@ package tabby.core;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.CompilationDeathException;
-import soot.G;
-import soot.Main;
-import soot.Scene;
+import soot.*;
 import soot.options.Options;
 import tabby.config.GlobalConfiguration;
 import tabby.config.SootConfiguration;
+import tabby.core.collector.FileCollector;
 import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
 import tabby.core.scanner.FullCallGraphScanner;
-import tabby.util.ArgumentEnum;
 import tabby.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.*;
+import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static soot.SootClass.HIERARCHY;
@@ -40,49 +38,80 @@ public class Analyser {
     private ClassInfoScanner classInfoScanner;
     @Autowired
     private CallGraphScanner callGraphScanner;
+
     @Autowired
     private FullCallGraphScanner fullCallGraphScanner;
     @Autowired
     private RulesContainer rulesContainer;
+    @Autowired
+    private FileCollector fileCollector;
 
-    public void run(Properties props) throws IOException {
 
-        if("true".equals(props.getProperty(ArgumentEnum.BUILD_ENABLE.toString(), "false"))){
-            Map<String, String> dependencies = getJdkDependencies(
-                    props.getProperty(ArgumentEnum.WITH_ALL_JDK.toString(), "false"));
+    public void run() throws IOException {
+        boolean buildEnabled = GlobalConfiguration.IS_BUILD_ENABLE;
+        boolean loadEnabled = GlobalConfiguration.IS_LOAD_ENABLE;
+        Future<Boolean> future = null;
+        if(loadEnabled){ // 用线程先删除neo4j中老数据
+            future = dataContainer.cleanAll();
+            if(!buildEnabled){
+                while (!future.isDone()){
+                    // do nothing 等待结束
+                }
+            }
+        }
+
+        if(buildEnabled){
+            Map<String, String> dependencies = fileCollector.collectJdkDependencies();
+
             log.info("Get {} JDK dependencies", dependencies.size());
+            log.info("Try to collect all targets");
 
-            Map<String, String> cps = "true".equals(props.getProperty(ArgumentEnum.EXCLUDE_JDK.toString(), "false"))?
-                    new HashMap<>():new HashMap<>(dependencies);
+            Map<String, String> cps = GlobalConfiguration.IS_EXCLUDE_JDK ? new HashMap<>():new HashMap<>(dependencies);
             Map<String, String> targets = new HashMap<>();
             // 收集目标
-            if("false".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))){
-                String target = props.getProperty(ArgumentEnum.TARGET.toString());
-                boolean checkFatJar = "true".equals(props.getProperty(ArgumentEnum.CHECK_FAT_JAR.toString(), "false"));
-                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(target, checkFatJar);
+            GlobalConfiguration.rulesContainer = rulesContainer;
+            if(!GlobalConfiguration.IS_JDK_ONLY){
+//                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(GlobalConfiguration.TARGET);
+                long start = System.nanoTime();
+                Map<String, String> files = fileCollector.collect(GlobalConfiguration.TARGET);
+                long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+                log.info("cost {} min {} seconds."
+                        , time/60, time%60);
                 cps.putAll(files);
                 targets.putAll(files);
             }
 
-            if("true".equals(props.getProperty(ArgumentEnum.IS_JDK_ONLY.toString(), "false"))
-                    || "true".equals(props.getProperty(ArgumentEnum.IS_JDK_PROCESS.toString(), "false"))){
+            if(GlobalConfiguration.IS_JDK_ONLY
+                    || GlobalConfiguration.IS_JDK_PROCESS){
                 targets.putAll(dependencies);
             }
 
             // 添加必要的依赖，防止信息缺失，比如servlet依赖
             if(FileUtils.fileExists(GlobalConfiguration.LIBS_PATH)){
-                Map<String, String> files = FileUtils
-                        .getTargetDirectoryJarFiles(GlobalConfiguration.LIBS_PATH, false);
-                for(Map.Entry<String, String> entry:files.entrySet()){
-                    cps.putIfAbsent(entry.getKey(), entry.getValue());
-                }
+                Map<String, String> files = fileCollector.collect(GlobalConfiguration.LIBS_PATH);
+                GlobalConfiguration.libraries.putAll(files);
+            }
+
+            for(Map.Entry<String, String> entry:GlobalConfiguration.libraries.entrySet()){
+                cps.putIfAbsent(entry.getKey(), entry.getValue());
             }
 
             runSootAnalysis(targets, new ArrayList<>(cps.values()));
         }
 
-        if("true".equals(props.getProperty(ArgumentEnum.LOAD_ENABLE.toString(), "false"))){
+        if(GlobalConfiguration.IS_NEED_CACHE_COMPRESS){
+            compress();
+        }
+
+        dataContainer.count();
+
+        if(loadEnabled){
             G.reset();
+            if(future != null){
+                while (!future.isDone()){
+                    // do nothing 等待结束
+                }
+            }
             save();
         }
     }
@@ -90,9 +119,11 @@ public class Analyser {
     public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
         try{
             SootConfiguration.initSootOption();
-            long start = System.nanoTime();
             addBasicClasses();
-            // set class paths
+            log.info("Load basic classes");
+            Scene.v().loadBasicClasses();
+            log.info("Load dynamic classes");
+            Scene.v().loadDynamicClasses();
             Scene.v().setSootClassPath(String.join(File.pathSeparator, new HashSet<>(classpaths)));
             // get target filepath
             List<String> realTargets = getTargets(targets);
@@ -102,18 +133,19 @@ public class Analyser {
             }
             Main.v().autoSetOptions();
             log.info("Target {}, Dependencies {}", realTargets.size(), classpaths.size());
-
+            long start = System.nanoTime();
             // 类信息抽取
             classInfoScanner.run(realTargets);
-            // 函数调用分析
+            // 全量函数调用图构建
             if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
                 fullCallGraphScanner.run();
             }else{
                 callGraphScanner.run();
             }
             rulesContainer.saveStatus();
-            log.info("Cost {} seconds"
-                    , TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
+            long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+            log.info("Total cost {} min {} seconds."
+                    , time/60, time%60);
 //            if (!Options.v().oaat()) {
 //                PackManager.v().writeOutput();
 //            }
@@ -121,6 +153,8 @@ public class Analyser {
             if (e.getStatus() != CompilationDeathException.COMPILATION_SUCCEEDED) {
                 throw e;
             }
+        } catch (Exception e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -146,6 +180,15 @@ public class Analyser {
         }
     }
 
+    public void compress(){
+        log.info("Try to compress db cache {} times.", GlobalConfiguration.CACHE_COMPRESS_TIMES);
+        for(int i=0; i<GlobalConfiguration.CACHE_COMPRESS_TIMES; i++){
+            dataContainer.save2CSV();
+            clean();
+        }
+        log.info("Compress db cache done.");
+    }
+
     public void save(){
         log.info("Start to save cache.");
         long start = System.nanoTime();
@@ -153,39 +196,9 @@ public class Analyser {
         dataContainer.save2CSV();
         dataContainer.save2Neo4j();
         clean();
-        log.info("Cost {} seconds"
-                , TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start));
-    }
-
-    /**
-     * 这里提取的是jdk8版本下的jre信息
-     * 仅测试于MacOS
-     * @return jre
-     */
-    public Map<String, String> getJdkDependencies(String all){
-        String javaHome = System.getProperty("java.home");
-
-        String[] jre;
-        if("true".equals(all)){
-            jre = new String[]{"../lib/dt.jar","../lib/sa-jdi.jar","../lib/tools.jar",
-                    "../lib/jconsole.jar","lib/resources.jar","lib/rt.jar","lib/jsse.jar",
-                    "lib/jce.jar","lib/charsets.jar","lib/ext/cldrdata.jar","lib/ext/dnsns.jar",
-                    "lib/ext/jaccess.jar","lib/ext/localedata.jar","lib/ext/nashorn.jar",
-                    "lib/ext/sunec.jar","lib/ext/sunjce_provider.jar","lib/ext/sunpkcs11.jar",
-                    "lib/ext/zipfs.jar","lib/management-agent.jar"};
-        }else{// 对于正常分析其他的jar文件，不需要全量jdk依赖的分析，暂时添加这几个
-            jre = new String[]{"lib/rt.jar","lib/jce.jar","lib/ext/nashorn.jar"};
-        }
-        Map<String, String> exists = new HashMap<>();
-        for(String cp:jre){
-            String path = String.join(File.separator, javaHome, cp);
-            File file = new File(path);
-            if(file.exists()){
-                exists.put(FileUtils.getFileMD5(file), path);
-            }
-        }
-        log.info("Load " +exists.size()+" jre jars.");
-        return exists;
+        long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
+        log.info("Cost {} min {} seconds."
+                , time/60, time%60);
     }
 
     public void clean(){
@@ -199,6 +212,25 @@ public class Analyser {
                     }
                 }
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void cleanDevFiles(){
+        try {
+            File cacheDir = new File(GlobalConfiguration.CACHE_PATH);
+            File[] files = cacheDir.listFiles();
+            if(files != null){
+                for(File file: files){
+                    if(file.getName().startsWith("dev.")
+                            && file.getName().endsWith(".db")){
+                        Files.deleteIfExists(file.toPath());
+                    }
+                }
+            }
+            File ignoreRules = new File(GlobalConfiguration.IGNORE_PATH);
+            Files.deleteIfExists(ignoreRules.toPath());
         } catch (IOException e) {
             e.printStackTrace();
         }

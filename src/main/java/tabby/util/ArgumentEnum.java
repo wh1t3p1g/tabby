@@ -17,21 +17,24 @@ public enum ArgumentEnum {
     CHECK_FAT_JAR("tabby.build.checkFatJar"),
     SET_PTA_ENABLE("tabby.build.pta"),
     SET_DEBUG_ENABLE("tabby.debug.details"),
-    SET_METHOD_MAX_DEPTH("tabby.build.method.maxDepth"),
-    SET_METHOD_MAX_BODY_COUNT("tabby.build.method.maxBodyCount"),
-    SET_INNER_DEBUG_ENABLE("tabby.debug.inner.details"),
     SET_THREADS_TIMEOUT("tabby.build.thread.timeout"),
-    SET_INTER_PROCEDURAL("tabby.build.interProcedural"),
-    SET_ALIAS_METHOD_COUNT("tabby.build.alias.maxCount"),
-    SET_ARRAYS_MAX_LENGTH("tabby.build.array.maxLength"),
-    SET_OBJECT_MAX_TRIGGER_TIMES("tabby.build.object.maxTriggerTimes"),
-    IS_PRIM_TYPE_NEED_TO_CREATE("tabby.build.isPrimTypeNeedToCreate"),
-    IS_FULL_CALL_GRAPH_CREATE("tabby.build.isFullCallGraphCreate")
+    SET_BUILD_MODE("tabby.build.mode"),
+    SET_EXCLUDE_LIBRARIES("tabby.build.libraries.excludes"),
+    IS_FULL_CALL_GRAPH_CREATE("tabby.build.isFullCallGraphCreate"),
+    CACHE_COMPRESS_TIMES("tabby.cache.compress.times"),
+    CACHE_COMPRESS("tabby.cache.compress"),
+    CACHE_PATH("tabby.cache.path"),
+    CACHE_AUTO_REMOVE("tabby.cache.auto.remove"),
+    IS_NEET_TO_CREATE_IGNORE_LIST("tabby.build.isNeedToCreateIgnoreList"),
     ;
 
     private String name="";
     ArgumentEnum(String name){
         this.name = name;
+    }
+
+    public String getValue(){
+        return name;
     }
 
     @Override

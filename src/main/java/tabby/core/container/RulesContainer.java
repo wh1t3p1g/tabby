@@ -8,10 +8,7 @@ import tabby.core.data.TabbyRule;
 import tabby.util.FileUtils;
 
 import java.io.FileNotFoundException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -25,13 +22,14 @@ public class RulesContainer {
     private Map<String, TabbyRule> rules = new HashMap<>();
     private List<String> ignored; // 已经分析过的jar包
     private List<String> excludedClasses; // 不进行分析的类
-    private List<String> basicClasses; // 消除soot找不到类的错误
+    private List<String> basicClasses; // 已经分析过的jar包
+    private List<String> commonJars;
 
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
         loadBasicClasses();
-//        loadExcludedClasses();
+        loadCommonJars();
     }
 
     public TabbyRule.Rule getRule(String classname, String method){
@@ -65,13 +63,28 @@ public class RulesContainer {
 
     @SuppressWarnings({"unchecked"})
     private void load() throws FileNotFoundException {
-        TabbyRule[] tempRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.KNOWLEDGE_PATH, TabbyRule[].class);
-        if(tempRules == null){
-            throw new FileNotFoundException("Sink File Not Found");
+        List<TabbyRule> tabbyRules = new ArrayList<>();
+        TabbyRule[] sinkRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.SINK_RULE_PATH, TabbyRule[].class);
+        TabbyRule[] systemRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.SYSTEM_RULE_PATH, TabbyRule[].class);
+        if(sinkRules == null || systemRules == null){
+            // 适配老版本
+            sinkRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.KNOWLEDGE_PATH, TabbyRule[].class);
+            if(sinkRules == null){
+                throw new FileNotFoundException("File sinks.json or system.json Not Found");
+            }
         }
-        for(TabbyRule rule:tempRules){
+        Collections.addAll(tabbyRules, sinkRules);
+        if(systemRules != null){
+            Collections.addAll(tabbyRules, systemRules);
+        }
+        for(TabbyRule rule:tabbyRules){
             rule.init();
-            rules.put(rule.getName(), rule);
+            if(rules.containsKey(rule.getName())){
+                TabbyRule existRule = rules.get(rule.getName());
+                existRule.merge(rule);
+            }else{
+                rules.put(rule.getName(), rule);
+            }
         }
         log.info("load "+ rules.size() +" rules success!");
     }
@@ -91,14 +104,25 @@ public class RulesContainer {
     }
 
     @SuppressWarnings({"unchecked"})
-    private void loadExcludedClasses(){
-        excludedClasses = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.EXCLUDED_CLASS_PATH, List.class);
-        if(excludedClasses == null){
-            excludedClasses = new ArrayList<>();
+    private void loadCommonJars(){
+        commonJars = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.COMMON_JARS_PATH, List.class);
+        if(commonJars == null){
+            commonJars = new ArrayList<>();
         }
     }
 
     public void saveStatus(){
-        FileUtils.putJsonContent(GlobalConfiguration.IGNORE_PATH, ignored); // 存储当前以分析的jar包
+        if(GlobalConfiguration.IS_NEED_TO_CREATE_IGNORE_LIST){
+            FileUtils.putJsonContent(GlobalConfiguration.IGNORE_PATH, ignored); // 存储当前以分析的jar包
+        }
+    }
+
+    public boolean isInCommonJarList(String filename){
+        for(String common:commonJars){
+            if(filename.startsWith(common)){
+                return true;
+            }
+        }
+        return false;
     }
 }

@@ -30,10 +30,6 @@ public class CallGraphScanner {
     @Autowired
     public CallGraphCollector collector;
 
-//    @Resource
-//    @Qualifier("multiCallGraphCollector")
-//    private Executor executor;
-
     public static int total;
     public static int split;
     public static int current;

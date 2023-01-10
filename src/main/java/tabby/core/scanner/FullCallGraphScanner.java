@@ -29,8 +29,6 @@ public class FullCallGraphScanner extends CallGraphScanner{
     public void collect() {
         Collection<MethodReference> targets =
                 new ArrayList<>(dataContainer.getSavedMethodRefs().values());
-//        log.info("Load necessary method refs.");
-//        dataContainer.loadNecessaryMethodRefs();
         log.info("Build call graph. START!");
         total = targets.size();
         split = total / 10;

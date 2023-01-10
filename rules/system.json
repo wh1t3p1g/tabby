@@ -1,118 +1,19 @@
 [
-  {"name":"java.io.FileInputStream", "rules":[
-    {"function": "<init>", "type": "sink", "vul": "FILE", "actions": {"return": "param-0"}, "polluted": [0], "signatures": ["<java.io.FileInputStream: void <init>(java.lang.String)>", "<java.io.FileInputStream: void <init>(java.io.File)>","<java.io.FileInputStream: void <init>(java.io.FileDescriptor)>"]}
-  ]},
-  {"name":"java.io.FileOutputStream", "rules": [
-    {"function": "<init>", "type": "sink", "vul": "FILE", "actions": {"return": "param-0"}, "polluted": [0], "signatures": ["<java.io.FileOutputStream: void <init>(java.lang.String,boolean)>","<java.io.FileOutputStream: void <init>(java.lang.String)>","<java.io.FileOutputStream: void <init>(java.io.File,boolean)>","<java.io.FileOutputStream: void <init>(java.io.FileDescriptor)>","<java.io.FileOutputStream: void <init>(java.io.File)>"]}
-  ]},
-  {"name":"java.nio.file.Files", "rules": [
-    {"function": "newInputStream", "type": "sink", "vul": "FILE", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.InputStream newInputStream(java.nio.file.Path,java.nio.file.OpenOption[])>"]},
-    {"function": "newOutputStream", "type": "sink", "vul": "FILE", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.OutputStream newOutputStream(java.nio.file.Path,java.nio.file.OpenOption[])>"]},
-    {"function": "newBufferedReader","type": "sink", "vul": "FILE", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.BufferedReader newBufferedReader(java.nio.file.Path)>","<java.nio.file.Files: java.io.BufferedReader newBufferedReader(java.nio.file.Path,java.nio.charset.Charset)>"]},
-    {"function": "newBufferedWriter", "type": "sink", "vul": "FILE", "actions": {}, "polluted": [0], "signatures": ["<java.nio.file.Files: java.io.BufferedWriter newBufferedWriter(java.nio.file.Path,java.nio.charset.Charset,java.nio.file.OpenOption[])>","<java.nio.file.Files: java.io.BufferedWriter newBufferedWriter(java.nio.file.Path,java.nio.file.OpenOption[])>"]}
-  ]},
   {"name":"java.io.File", "rules": [
-    {"function": "<init>", "type": "know", "vul": "", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.File: void <init>(java.net.URI)>","<java.io.File: void <init>(java.lang.String,java.lang.String)>","<java.io.File: void <init>(java.lang.String,int)>","<java.io.File: void <init>(java.lang.String)>","<java.io.File: void <init>(java.lang.String,java.io.File)>","<java.io.File: void <init>(java.io.File,java.lang.String)>"]},
-    {"function": "delete", "type": "sink", "vul": "FILE", "actions": {}, "polluted": [-1], "signatures": ["<java.io.File: boolean delete()>"]}
+    {"function": "<init>", "type": "know", "vul": "", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.io.File: void <init>(java.net.URI)>","<java.io.File: void <init>(java.lang.String,java.lang.String)>","<java.io.File: void <init>(java.lang.String,int)>","<java.io.File: void <init>(java.lang.String)>","<java.io.File: void <init>(java.lang.String,java.io.File)>","<java.io.File: void <init>(java.io.File,java.lang.String)>"]}
   ]},
-
-
   {"name":"java.lang.Class", "rules": [
-    {"function": "forName", "type": "sink", "vul": "CODE", "actions": {"return": "param-0"}, "polluted": [0,2], "signatures": ["<java.lang.Class: java.lang.Class forName(java.lang.String,boolean,java.lang.ClassLoader)>"]},
-    {"function": "getMethod", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [0,1], "signatures": ["<java.lang.Class: java.lang.reflect.Method getMethod(java.lang.String,java.lang.Class[])>"]},
-    {"function": "getDeclaredMethod", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.Class: java.lang.reflect.Method getDeclaredMethod(java.lang.String,java.lang.Class[])>"]},
     {"function": "getConstructor", "type": "know", "vul": "CODE", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.Class: java.lang.reflect.Constructor getConstructor(java.lang.Class[])>"]}
   ]},
-  {"name":"java.lang.reflect.Method", "rules": [
-    {"function": "invoke", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.reflect.Method: java.lang.Object invoke(java.lang.Object,java.lang.Object[])>"]}
-  ]},
-  {"name":"java.lang.reflect.Constructor", "rules": [
-    {"function": "newInstance", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [-1,0], "signatures": ["<java.lang.reflect.Constructor: java.lang.Object newInstance(java.lang.Object[])>"]}
-  ]},
-  {"name":"java.net.URLClassLoader", "rules": [
-    {"function": "newInstance", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0], "signatures": ["<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[])>","<java.net.URLClassLoader: java.net.URLClassLoader newInstance(java.net.URL[],java.lang.ClassLoader)>"]},
-    {"function": "loadClass", "type": "sink", "vul": "CODE", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-  {"name":"java.lang.ClassLoader", "rules": [
-    {"function": "defineClass", "type": "sink", "vul": "CODE", "actions": {"return": "param-1"}, "polluted": [1], "signatures": ["<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,byte[],int,int,java.security.ProtectionDomain)>","<java.lang.ClassLoader: java.lang.Class defineClass(byte[],int,int)>","<java.lang.ClassLoader: java.lang.Class defineClass(java.lang.String,java.nio.ByteBuffer,java.security.ProtectionDomain)>"]},
-    {"function":  "newInstance", "type": "sink", "vul": "CODE", "actions": {"return": "this"}, "polluted": [-1], "signatures": []},
-    {"function": "loadClass", "type": "sink", "vul": "CODE", "actions": {"return": "param-0"}, "polluted": [-1,0], "signatures": []}
-  ]},
-  {"name":"sun.reflect.misc.MethodUtil", "rules": [
-    {"function": "invoke", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0,1], "signatures": []},
-    {"function": "defineClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [1], "signatures": []},
-    {"function": "findClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0], "signatures": []},
-    {"function": "loadClass", "type": "sink", "vul": "CODE", "actions": {}, "polluted": [0], "signatures": []}
-  ]},
-
-
-  {"name":"java.sql.DriverManager", "rules": [
-    {"function": "getConnection", "type": "sink", "vul": "JNDI", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-  {"name":"java.sql.Driver", "rules": [
-    {"function": "connect", "type": "sink", "vul": "JNDI", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-  {"name": "javax.naming.spi.DirectoryManager", "rules": [
-    {"function": "getObjectInstance", "type": "sink", "vul": "JNDI", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-
-
-  {"name":"java.lang.Runtime", "rules": [
-    {"function": "exec", "type": "sink", "vul": "EXEC", "actions": {}, "polluted": [0], "signatures": ["<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[])>","<java.lang.Runtime: java.lang.Process exec(java.lang.String,java.lang.String[],java.io.File)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String)>","<java.lang.Runtime: java.lang.Process exec(java.lang.String[],java.lang.String[])>"]}
-  ]},
-  {"name":"java.lang.ProcessBuilder", "rules": [
-    {"function": "<init>", "type": "sink", "vul": "EXEC", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessBuilder: void <init>(java.util.List)>","<java.lang.ProcessBuilder: void <init>(java.lang.String[])>"]}
-  ]},
-  {"name":"java.lang.ProcessImpl", "rules": [
-    {"function": "start", "type": "sink", "vul": "EXEC", "actions": {}, "polluted": [0], "signatures": ["<java.lang.ProcessImpl: java.lang.Process start(java.lang.String[],java.util.Map,java.lang.String,java.lang.ProcessBuilder$Redirect[],boolean)>"]}
-  ]},
-
-
-  {"name":"javax.xml.parsers.DocumentBuilder", "rules": [
-    {"function": "parse", "type": "sink", "vul": "XXE", "actions": {"return": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-  {"name":"javax.xml.transform.Transformer", "rules": [
-    {"function": "transform", "type": "sink", "vul": "XXE", "actions": {"param-1": "param-0"}, "polluted": [0], "signatures": []}
-  ]},
-
-
-
-  {"name":"javax.naming.Context", "rules": [
-    {"function": "lookup", "type": "sink", "vul": "JNDI", "actions": {}, "polluted": [0], "signatures": ["<javax.naming.Context: java.lang.Object lookup(java.lang.String)>","<javax.naming.Context: java.lang.Object lookup(javax.naming.Name)>"]}
-  ]},
-  {"name":"java.rmi.registry.Registry", "rules": [
-    {"function": "lookup", "type": "sink", "vul": "JNDI", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
-  ]},
-  {"name":"com.sun.jndi.ldap", "rules": [
-    {"function": "c_lookup", "type": "sink", "vul": "JNDI", "actions": {}, "polluted": [0], "signatures": ["<java.rmi.registry.Registry: java.rmi.Remote lookup(java.lang.String)>"]}
-  ]},
-  {"name":"org.springframework.jndi.JndiTemplate", "rules": [
-    {"function": "lookup", "type": "sink", "vul": "JNDI", "actions": {}, "polluted": [0], "signatures": []}
-  ]},
-
-
   {"name":"java.net.URL", "rules": [
-    {"function": "<init>", "type": "know", "vul": "", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.net.URL: void <init>(java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String,java.net.URLStreamHandler)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String,java.net.URLStreamHandler)>"]},
-    {"function": "openConnection", "type": "sink", "vul": "SSRF", "actions": {"return": "this"}, "polluted": [-1], "signatures": ["<java.net.URL: java.net.URLConnection openConnection()>","<java.net.URL: java.net.URLConnection openConnection(java.net.Proxy)>"]},
-    {"function": "openStream", "type": "sink", "vul": "SSRF", "actions": {"return": "this"}, "polluted": [-1], "signatures": []}
+    {"function": "<init>", "type": "know", "vul": "", "actions": {"return": "param-0"}, "polluted": [], "signatures": ["<java.net.URL: void <init>(java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String)>","<java.net.URL: void <init>(java.net.URL,java.lang.String,java.net.URLStreamHandler)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String)>","<java.net.URL: void <init>(java.lang.String,java.lang.String,int,java.lang.String,java.net.URLStreamHandler)>"]}
   ]},
-
-
-  {"name":"java.beans.XMLDecoder", "rules": [
-    {"function": "readObject", "type": "sink", "vul": "SERIALIZE", "actions": {}, "polluted": [], "signatures": []}
-  ]},
-  {"name":"com.alibaba.fastjson.JSON", "rules": [
-    {"function": "parse", "type": "sink", "vul": "SERIALIZE", "actions": {}, "polluted": [0], "signatures": []},
-    {"function": "parseObject", "type": "sink", "vul": "SERIALIZE", "actions": {}, "polluted": [0], "signatures": []}
-  ]},
-
-
   {"name":"java.lang.reflect.InvocationHandler", "rules": [
     {"function": "invoke", "type": "source", "vul": "", "actions": {}, "polluted": [], "signatures": []}
   ]},
   {"name":"java.lang.Object", "rules": [
-    {"function": "hashCode", "type": "source", "vul": "", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: int hashCode()>"]},
-    {"function": "toString", "type": "source", "vul": "", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.String toString()>"]},
+    {"function": "hashCode", "type": "know", "vul": "", "actions": {}, "polluted": [], "signatures": ["<java.lang.Object: int hashCode()>"]},
+    {"function": "toString", "type": "know", "vul": "", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.String toString()>"]},
     {"function": "getClass", "type": "know", "vul": "", "actions": {"return": "this"}, "polluted": [], "signatures": ["<java.lang.Object: java.lang.Class getClass()>"]}
   ]},
   {"name":"java.lang.Comparable", "rules": [

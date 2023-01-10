@@ -1,5 +1,6 @@
 package tabby.dal.caching.service;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import tabby.dal.caching.bean.edge.*;
@@ -10,6 +11,7 @@ import tabby.config.GlobalConfiguration;
  * @author wh1t3P1g
  * @since 2021/1/8
  */
+@Slf4j
 @Service
 public class RelationshipsService {
 
@@ -70,5 +72,16 @@ public class RelationshipsService {
         sum += callEdgeRepository.countAll();
         sum += interfacesEdgeRepository.countAll();
         return sum;
+    }
+
+    public void count(){
+        long has = hasEdgeRepository.count();
+        long call = callEdgeRepository.count();
+        long extend = extendEdgeRepository.count();
+        long alias = aliasEdgeRepository.count();
+        long interfaces = interfacesEdgeRepository.count();
+        long edges = has + call + extend + alias + interfaces;
+        log.info("Total {}, has count: {}, call count: {}, extend count: {}, alias count: {}, interfaces count: {}",
+                edges, has, call, extend, alias, interfaces);
     }
 }
