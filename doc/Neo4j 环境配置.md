@@ -1,6 +1,6 @@
 ## #0 前言
 
-当前文档适用于 Neo4j v4.x，如需配置 Neo4j v5.x，参考 [Neo4j 环境配置 V5]
+当前文档适用于 Neo4j v4.x，如需配置 Neo4j v5.x，参考 [Neo4j 环境配置 V5](https://github.com/wh1t3p1g/tabby/blob/master/doc/Neo4j%20%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%20%20V5.md)
 
 ## #1 下载最新版 Neo4j
 

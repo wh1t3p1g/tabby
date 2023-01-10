@@ -20,10 +20,10 @@ Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/t
 
 使用 Tabby 需要有以下环境：
 - JAVA 环境
-- 可用的 Neo4j 图数据库 [Neo4j 环境配置](https://github.com/wh1t3p1g/tabby/wiki/Neo4j%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE)
+- 可用的 Neo4j 图数据库
 - Neo4j Browser 或者其他 Neo4j 可视化的工具
 
-具体的使用方法参见： [Tabby 食用指北](https://github.com/wh1t3p1g/tabby/wiki/Tabby%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8C%97)
+具体的使用方法参见： [Tabby 食用指北](https://github.com/wh1t3p1g/tabby/blob/master/doc/Tabby%20%E9%A3%9F%E7%94%A8%E6%8C%87%E5%8C%97.md)
 
 ## #2 Tabby 的适用人群
 开发 Tabby 的初衷是想要提高代码审计的效率，尽可能的减少人工检索的工作量

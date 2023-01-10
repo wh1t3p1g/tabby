@@ -1,7 +1,8 @@
 ## #0 环境配置
 
-Neo4j v4.x 参考 xxx
-Neo4j v5.x 参考 xxx
+Neo4j v4.x 参考 [Neo4j 环境配置](https://github.com/wh1t3p1g/tabby/blob/master/doc/Neo4j%20%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE.md)
+
+Neo4j v5.x 参考 [Neo4j 环境配置 V5](https://github.com/wh1t3p1g/tabby/blob/master/doc/Neo4j%20%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%20%20V5.md)
 
 ## #1 前置基础
 
@@ -20,7 +21,7 @@ Tabby 实现了将 Jar/War/Class/Jsp 文件转化为代码属性图的功能（�
 - 其他，开动你的小脑瓜子，在源码层面探索未知问题！
 
 ## #3 基础使用方法
-配置 `conf/settings.properties` 文件，参考 xxx
+配置 `conf/settings.properties` 文件，参考 [Tabby 配置文件介绍](https://github.com/wh1t3p1g/tabby/blob/master/doc/Tabby%20%E9%85%8D%E7%BD%AE%E6%96%87%E4%BB%B6%E4%BB%8B%E7%BB%8D.md)
 
 运行方式
 ```bash
