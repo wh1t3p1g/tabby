@@ -52,14 +52,11 @@ public class ClassInfoScanner {
 
     public Map<String, CompletableFuture<ClassReference>> loadAndExtract(List<String> targets){
         Map<String, CompletableFuture<ClassReference>> results = new HashMap<>();
-        int counter = 0;
         log.info("Start to collect {} targets' class information.", targets.size());
         Map<String, List<String>> moduleClasses = null;
         if(JavaVersion.isAtLeast(9)){
             moduleClasses = ModulePathSourceLocator.v().getClassUnderModulePath("jrt:/");
         }
-        int size = targets.size();
-        int step = Math.min(size/10, size);
         for (final String path : targets) {
             List<String> classes = getTargetClasses(path, moduleClasses);
             if(classes == null) continue;
@@ -77,9 +74,6 @@ public class ClassInfoScanner {
                     log.error("Load Error: {}, Message: {}", cl, e.getMessage());
 //                    e.printStackTrace();
                 }
-            }
-            if(++counter%step == 0){
-                log.info("Load {}% targets", String.format("%.1f",counter*0.1/size*1000));
             }
         }
         log.info("Total {} classes.", results.size());
