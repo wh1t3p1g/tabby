@@ -57,6 +57,8 @@ public class Switcher {
             }
 
             JimpleBody body = (JimpleBody) retrieveBody(method, methodRef.getSignature());
+            if(body == null) return null;
+
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
                     PollutedVarsPointsToAnalysis
@@ -355,7 +357,7 @@ public class Switcher {
             // 这里两分钟改成配置文件timeout-1，最短1分钟
             body = future.get( Integer.max(GlobalConfiguration.TIMEOUT-1, 1) * 60L, TimeUnit.SECONDS);
         }catch (TimeoutException e){
-            throw new RuntimeException("Method Fetch Timeout "+signature);
+            log.error("Method Fetch Timeout "+signature);
         } catch (ExecutionException e) {
             throw new RuntimeException(e);
         } catch (InterruptedException e) {

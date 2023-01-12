@@ -72,6 +72,8 @@ public class FullCallGraphScanner extends CallGraphScanner{
             }
 
             JimpleBody body = (JimpleBody) Switcher.retrieveBody(method, method.getSignature());
+            if(body == null) return;
+
             DefaultInvokeModel model = new DefaultInvokeModel();
             for(Unit unit:body.getUnits()){
                 Stmt stmt = (Stmt) unit;

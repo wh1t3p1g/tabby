@@ -13,8 +13,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import tabby.config.GlobalConfiguration;
 import tabby.core.Analyser;
-import tabby.exception.JDKVersionErrorException;
-import tabby.util.JavaVersion;
 
 @Slf4j
 @SpringBootApplication
@@ -41,9 +39,9 @@ public class App {
     CommandLineRunner run(){
         return args -> {
             try{
-                if(!JavaVersion.isJDK8()){ // jdk11 运行环境还有一些问题，暂时关闭
-                    throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
-                }
+//                if(!JavaVersion.isJDK8()){
+//                    throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
+//                }
                 setLogDebugLevel();
                 analyser.run();
             }catch (IllegalArgumentException e){
