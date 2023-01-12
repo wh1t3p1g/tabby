@@ -5,7 +5,6 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.builder.EqualsBuilder;
 import org.apache.commons.lang3.builder.HashCodeBuilder;
-import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import tabby.dal.caching.bean.edge.Alias;
@@ -156,7 +155,7 @@ public class MethodReference {
 
     public SootMethod getMethod(){
         try{
-            SootClass sc = Scene.v().getSootClass(classname);
+            SootClass sc = SemanticHelper.getSootClass(classname);
             if(!sc.isPhantom()){
                 return SemanticHelper.getMethod(sc, subSignature);
             }

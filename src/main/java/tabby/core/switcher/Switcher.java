@@ -7,6 +7,7 @@ import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
+import tabby.config.GlobalConfiguration;
 import tabby.core.container.DataContainer;
 import tabby.core.data.Context;
 import tabby.core.data.TabbyVariable;
@@ -19,6 +20,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.*;
 
 /**
  * switcher的公共函数
@@ -54,7 +56,7 @@ public class Switcher {
                 return null;
             }
 
-            JimpleBody body = (JimpleBody) method.retrieveActiveBody();
+            JimpleBody body = (JimpleBody) retrieveBody(method, methodRef.getSignature());
             UnitGraph graph = new BriefUnitGraph(body);
             PollutedVarsPointsToAnalysis pta =
                     PollutedVarsPointsToAnalysis
@@ -340,5 +342,28 @@ public class Switcher {
             }
         }
         return retVar;
+    }
+
+    public static Body retrieveBody(SootMethod method, String signature){
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        Future<JimpleBody> future = executor.submit(() -> (JimpleBody) method.retrieveActiveBody());
+
+        JimpleBody body = null;
+        try{
+            // 为了解决soot获取body不停止的问题，添加线程且最多执行2分钟
+            // 超过2分钟可以获取到的body，也可以间接认为是非常大的body，暂不分析
+            // 这里两分钟改成配置文件timeout-1，最短1分钟
+            body = future.get( Integer.max(GlobalConfiguration.TIMEOUT-1, 1) * 60L, TimeUnit.SECONDS);
+        }catch (TimeoutException e){
+            throw new RuntimeException("Method Fetch Timeout "+signature);
+        } catch (ExecutionException e) {
+            throw new RuntimeException(e);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        } finally {
+            executor.shutdown();
+        }
+
+        return body;
     }
 }

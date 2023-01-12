@@ -176,7 +176,7 @@ public class Analyser {
     public void addBasicClasses(){
         List<String> basicClasses = rulesContainer.getBasicClasses();
         for(String cls:basicClasses){
-            Scene.v().addBasicClass(cls ,HIERARCHY);
+            Scene.v().addBasicClass(cls, HIERARCHY);
         }
     }
 

@@ -10,6 +10,7 @@ import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
 import tabby.core.model.DefaultInvokeModel;
+import tabby.core.switcher.Switcher;
 import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.config.GlobalConfiguration;
 
@@ -70,7 +71,7 @@ public class FullCallGraphScanner extends CallGraphScanner{
                 return;
             }
 
-            JimpleBody body = (JimpleBody) retrieveBody(method, method.getSignature());
+            JimpleBody body = (JimpleBody) Switcher.retrieveBody(method, method.getSignature());
             DefaultInvokeModel model = new DefaultInvokeModel();
             for(Unit unit:body.getUnits()){
                 Stmt stmt = (Stmt) unit;

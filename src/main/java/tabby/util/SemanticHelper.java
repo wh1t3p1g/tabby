@@ -292,7 +292,7 @@ public class SemanticHelper {
 
     public static SootField getField(String cls, String fieldName){
         try{
-            SootClass sc = Scene.v().getSootClass(cls);
+            SootClass sc = getSootClass(cls);
             return getField(sc, fieldName);
         }catch (Exception ignore){
 
@@ -314,10 +314,18 @@ public class SemanticHelper {
 
     public static SootClass getSootClass(String cls){
         try{
-            return Scene.v().getSootClass(cls);
+            return loadClass(cls);
         }catch (Exception ignore){
         }
         return null;
+    }
+
+    public static void setSootClassPath(){
+
+    }
+
+    public static void loadNecessaryClasses(){
+
     }
 
     public static String replaceFirst(String old, String identify, String replace){
@@ -355,6 +363,14 @@ public class SemanticHelper {
             return method != null;
         }catch (Exception e){
             return false;
+        }
+    }
+
+    public static SootClass loadClass(String cls){
+        if(JavaVersion.isAtLeast(9)){
+            return ModuleScene.v().loadClassAndSupport(cls);
+        }else{
+            return Scene.v().loadClassAndSupport(cls);
         }
     }
 }

@@ -7,7 +7,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
-import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
@@ -223,8 +222,8 @@ public class DataContainer {
      * @return
      */
     public MethodReference getMethodRefBySignature(String classname, String subSignature){
-        try{
-            SootClass cls = Scene.v().getSootClass(classname);
+        try{ // getSootClass
+            SootClass cls = SemanticHelper.loadClass(classname);
             try{
                 SootMethod method = cls.getMethod(subSignature);
                 if(method != null){

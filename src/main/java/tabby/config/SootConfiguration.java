@@ -27,7 +27,7 @@ public class SootConfiguration {
         Options.v().set_src_prec(Options.src_prec_class); // 优先处理class格式
 //        Options.v().set_output_dir(output); // 设置IR Jimple的输出目录
 //        Options.v().set_output_format(Options.output_format_jimple); // 输出Jimple格式
-        Options.v().set_on_the_fly(true);
+//        Options.v().set_on_the_fly(true);
 //        Options.v().set_no_output_source_file_attribute(true);
 //        Options.v().set_validate(true);
 //        Options.v().set_ignore_classpath_errors(true); // Ignores invalid entries on the Soot classpath.
@@ -39,6 +39,5 @@ public class SootConfiguration {
 //        Options.v().set_omit_excepting_unit_edges(true);
         // 设置自定义的package
 //        PhaseOptions.v().setPhaseOption("cg","on");
-
     }
 }

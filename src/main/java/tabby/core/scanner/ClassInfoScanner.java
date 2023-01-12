@@ -14,6 +14,7 @@ import tabby.dal.caching.bean.edge.Interfaces;
 import tabby.dal.caching.bean.ref.ClassReference;
 import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.util.JavaVersion;
+import tabby.util.SemanticHelper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -65,7 +66,7 @@ public class ClassInfoScanner {
 
             for (String cl : classes) {
                 try{
-                    SootClass theClass = Scene.v().loadClassAndSupport(cl);
+                    SootClass theClass = SemanticHelper.loadClass(cl);
                     if (!theClass.isPhantom()) {
                         // 这里存在类数量不一致的情况，是因为存在重复的对象
                         results.put(cl, collector.collect(theClass));
@@ -91,7 +92,9 @@ public class ClassInfoScanner {
 
         if(JavaVersion.isAtLeast(9) && moduleClasses != null){
             String filename = path.getFileName().toString();
-            filename = filename.substring(0, filename.length() - 5);
+            if(filename.endsWith(".jmod")){
+                filename = filename.substring(0, filename.length() - 5);
+            }
             classes = moduleClasses.get(filename);
         }
 
@@ -174,7 +177,7 @@ public class ClassInfoScanner {
         ClassReference classRef = null;
         try{
             if(cls == null){
-                cls = Scene.v().getSootClass(classname);
+                cls = SemanticHelper.getSootClass(classname);
             }
         }catch (Exception e){
             // class not found

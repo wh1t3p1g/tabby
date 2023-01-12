@@ -8,6 +8,7 @@ import org.apache.commons.lang3.builder.HashCodeBuilder;
 import soot.*;
 import soot.jimple.FieldRef;
 import soot.jimple.StaticFieldRef;
+import tabby.util.SemanticHelper;
 
 import java.util.*;
 import java.util.regex.Matcher;
@@ -304,7 +305,8 @@ public class TabbyVariable {
             String fieldname = m.group(3);
             classname = classname.replace("'", "");// 处理'
             fieldname = fieldname.replace("'",""); // 处理'
-            SootClass cls = Scene.v().getSootClass(classname);
+            SootClass cls = SemanticHelper.getSootClass(classname);
+            if(cls == null) return null;
             try{
                 return cls.getFieldByName(fieldname);
             }catch (Exception e){

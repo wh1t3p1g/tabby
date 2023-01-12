@@ -60,7 +60,7 @@ public class FileCollector {
                 String path = javaHome+"/jmods/java.base.jmod";
                 File file = new File(path);
                 if(file.exists()){
-                    allJdkDependencies.put(FileUtils.getFileMD5(file), "java.base");
+                    allJdkDependencies.put(FileUtils.getFileMD5(file), path);
                 }
             }
         }else{ // jdk <= 8
