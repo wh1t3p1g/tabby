@@ -12,7 +12,6 @@ import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.core.scanner.FullCallGraphScanner;
 import tabby.util.FileUtils;
 
 import java.io.File;
@@ -39,8 +38,6 @@ public class Analyser {
     @Autowired
     private CallGraphScanner callGraphScanner;
 
-    @Autowired
-    private FullCallGraphScanner fullCallGraphScanner;
     @Autowired
     private RulesContainer rulesContainer;
     @Autowired
@@ -71,12 +68,7 @@ public class Analyser {
             // 收集目标
             GlobalConfiguration.rulesContainer = rulesContainer;
             if(!GlobalConfiguration.IS_JDK_ONLY){
-//                Map<String, String> files = FileUtils.getTargetDirectoryJarFiles(GlobalConfiguration.TARGET);
-                long start = System.nanoTime();
                 Map<String, String> files = fileCollector.collect(GlobalConfiguration.TARGET);
-                long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-                log.info("cost {} min {} seconds."
-                        , time/60, time%60);
                 cps.putAll(files);
                 targets.putAll(files);
             }
@@ -137,11 +129,8 @@ public class Analyser {
             // 类信息抽取
             classInfoScanner.run(realTargets);
             // 全量函数调用图构建
-            if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
-                fullCallGraphScanner.run();
-            }else{
-                callGraphScanner.run();
-            }
+            callGraphScanner.run();
+
             rulesContainer.saveStatus();
             long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
             log.info("Total cost {} min {} seconds."

@@ -59,14 +59,15 @@ public class ClassInfoScanner {
             moduleClasses = ModulePathSourceLocator.v().getClassUnderModulePath("jrt:/");
         }
         int size = targets.size();
-        int step = Math.max(size/10, size);
+        int step = Math.min(size/10, size);
         for (final String path : targets) {
             List<String> classes = getTargetClasses(path, moduleClasses);
             if(classes == null) continue;
 
             for (String cl : classes) {
                 try{
-                    SootClass theClass = SemanticHelper.loadClass(cl);
+//                    SootClass theClass = SemanticHelper.loadClass(cl);
+                    SootClass theClass = Scene.v().loadClassAndSupport(cl);
                     if (!theClass.isPhantom()) {
                         // 这里存在类数量不一致的情况，是因为存在重复的对象
                         results.put(cl, collector.collect(theClass));

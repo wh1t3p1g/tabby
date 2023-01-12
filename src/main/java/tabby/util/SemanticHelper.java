@@ -1,6 +1,7 @@
 package tabby.util;
 
 import com.google.common.hash.Hashing;
+import lombok.extern.slf4j.Slf4j;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
@@ -15,6 +16,7 @@ import java.util.Set;
  * @author wh1t3p1g
  * @since 2022/1/7
  */
+@Slf4j
 public class SemanticHelper {
 
     private static List<String> ARRAY_TYPES
@@ -312,10 +314,20 @@ public class SemanticHelper {
         return null;
     }
 
-    public static SootClass getSootClass(String cls){
+//    public static SootClass getSootClass(String cls){
+//        try{
+//            return loadClass(cls);
+//        }catch (Exception ignore){
+//        }
+//        return null;
+//    }
+
+    public static SootClass getSootClass(String cls) {
+        if(cls == null) return null;
         try{
-            return loadClass(cls);
-        }catch (Exception ignore){
+            return Scene.v().getSootClass(cls);
+        }catch (Exception e){
+            log.warn("Load class {} error", cls);
         }
         return null;
     }

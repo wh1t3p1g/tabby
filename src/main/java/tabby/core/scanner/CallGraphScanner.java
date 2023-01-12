@@ -4,10 +4,13 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import tabby.config.GlobalConfiguration;
+import tabby.core.collector.CallEdgeCollector;
 import tabby.core.collector.CallGraphCollector;
 import tabby.core.container.DataContainer;
 import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.dal.caching.service.MethodRefService;
+import tabby.util.TickTock;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -26,13 +29,10 @@ public class CallGraphScanner {
     public MethodRefService methodRefService;
     @Autowired
     public DataContainer dataContainer;
-
     @Autowired
-    public CallGraphCollector collector;
-
-    public static int total;
-    public static int split;
-    public static int current;
+    public CallGraphCollector callGraphCollector;
+    @Autowired
+    private CallEdgeCollector callEdgeCollector;
 
     public void run() {
         collect();
@@ -42,21 +42,16 @@ public class CallGraphScanner {
     public void collect() {
         Collection<MethodReference> targets =
                 new ArrayList<>(dataContainer.getSavedMethodRefs().values());
-//        log.info("Load necessary method refs.");
-//        dataContainer.loadNecessaryMethodRefs();
         log.info("Build call graph. START!");
-        total = targets.size();
-        split = total / 10;
-        split = split==0?1:split;
-        int count = 0;
+        TickTock tickTock = new TickTock(targets.size(), true);
         for (MethodReference target : targets) {
-            if(count%split == 0){
-                log.info("Status: {}%, Remain: {}", String.format("%.1f",count*0.1/total*1000), (total-count));
+            if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
+                callEdgeCollector.collect(target, dataContainer, tickTock);
+            }else{
+                callGraphCollector.collect(target, dataContainer, tickTock);
             }
-            collector.collect(target, dataContainer);
-            count++;
         }
-        log.info("Status: 100%, Remain: 0");
+        tickTock.await();
         log.info("Build call graph. DONE!");
     }
 

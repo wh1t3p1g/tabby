@@ -224,7 +224,7 @@ public class FileUtils {
      */
     public static Path registerTempDirectory(String directory) throws IOException {
 
-        final Path tmpDir = Files.createTempDirectory(directory);
+        final Path tmpDir = Files.createTempDirectory("tabby_"+directory);
         // Delete the temp directory at shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {

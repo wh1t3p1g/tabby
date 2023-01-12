@@ -10,6 +10,7 @@ import tabby.core.data.Context;
 import tabby.core.switcher.Switcher;
 import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.util.TickTock;
 
 /**
  * @author wh1t3P1g
@@ -20,16 +21,20 @@ import tabby.dal.caching.bean.ref.MethodReference;
 @Setter
 public class CallGraphCollector {
 
-//    @Async("multiCallGraphCollector")
-    public void collect(MethodReference methodRef, DataContainer dataContainer){
+//    @Async("tabby-collector")
+    public void collect(MethodReference methodRef, DataContainer dataContainer, TickTock tickTock){
         try{
             SootMethod method = methodRef.getMethod();
-            if(method == null) return; // 提取不出内容，不分析
+            if(method == null) {
+                tickTock.countDown();
+                return; // 提取不出内容，不分析
+            }
 
             if(method.isPhantom() || methodRef.isSink()
                     || methodRef.isIgnore() || method.isAbstract()
                     || Modifier.isNative(method.getModifiers())){
                 methodRef.setInitialed(true);
+                tickTock.countDown();
                 return; // sink点为不动点，无需分析该函数内的调用情况  native/抽象函数没有具体的body
             }
 
@@ -37,6 +42,7 @@ public class CallGraphCollector {
                 // 静态函数 且 函数入参数量为0 此类函数
                 // 对于反序列化来说 均不可控 不进行分析
                 methodRef.setInitialed(true);
+                tickTock.countDown();
                 return;
             }
 
@@ -49,10 +55,17 @@ public class CallGraphCollector {
                             context, dataContainer,
                             method, methodRef);
             context.clear();
-
         }catch (RuntimeException e){
             e.printStackTrace();
+        }catch (Exception e){
+            if(e instanceof InterruptedException) {
+                log.error("Thread interrupted. " + methodRef.getSignature());
+            } else {
+                log.error("Something error on call graph. "+methodRef.getSignature());
+                e.printStackTrace();
+            }
         }
+        tickTock.countDown();
     }
 
 }

@@ -7,6 +7,7 @@ import soot.jimple.ArrayRef;
 import soot.jimple.InstanceFieldRef;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
+import tabby.config.GlobalConfiguration;
 import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.core.data.Context;
 import tabby.core.container.DataContainer;
@@ -107,6 +108,9 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected void flowThrough(Map<Local, TabbyVariable> in, Unit d, Map<Local, TabbyVariable> out) {
+        if(GlobalConfiguration.isNeedStop){
+            return;
+        }
         Map<Local, TabbyVariable> newIn = new HashMap<>();
         copy(in, newIn);
         context.setLocalMap(newIn);

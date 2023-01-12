@@ -110,6 +110,8 @@ public class MethodReference {
     @org.springframework.data.annotation.Transient
     private transient Set<Alias> childAliasEdges = new HashSet<>();
 
+    private transient SootMethod sootMethod = null;
+
     public static MethodReference newInstance(String name, String signature){
         MethodReference methodRef = new MethodReference();
         String id = null;
@@ -154,15 +156,21 @@ public class MethodReference {
     }
 
     public SootMethod getMethod(){
-        try{
-            SootClass sc = SemanticHelper.getSootClass(classname);
-            if(!sc.isPhantom()){
-                return SemanticHelper.getMethod(sc, subSignature);
-            }
-        }catch (Exception e){
-            System.out.println("getMethod error: "+classname+", signature: "+signature);
+        if(sootMethod != null) return sootMethod;
+
+        SootClass sc = SemanticHelper.getSootClass(classname);
+        if(!sc.isPhantom()){
+            sootMethod = SemanticHelper.getMethod(sc, subSignature);
+            return sootMethod;
         }
+
         return null;
+    }
+
+    public void setMethod(SootMethod method){
+        if(sootMethod == null){
+            sootMethod = method;
+        }
     }
 
     public void addAction(String key, String value){

@@ -67,6 +67,7 @@ public class GlobalConfiguration {
     public static boolean IS_NEED_TO_CREATE_IGNORE_LIST = true;
 
     public static boolean isInitialed = false;
+    public static boolean isNeedStop = false;
 
     static {
         if(!FileUtils.fileExists(RULES_PATH)){
