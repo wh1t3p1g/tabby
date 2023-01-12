@@ -47,7 +47,9 @@ Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/t
 - CVE-2021-43297
 - 子项目：Java 反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 - 子项目：具备数据流分析的 Neo4j 扩展 [tabby-path-finder](https://github.com/wh1t3p1g/tabby-path-finder)
-
+- 设计原理
+  - KCon 2022 [Tabby: Java Code Review Like A Pro](https://github.com/knownsec/KCon/blob/master/2022/tabby%20java%20code%20review%20like%20a%20pro%E3%80%90KCon2022%E3%80%91.pdf)
+  - [基于代码属性图的自动化漏洞挖掘实践](https://blog.0kami.cn/blog/2023/%E5%9F%BA%E4%BA%8E%E4%BB%A3%E7%A0%81%E5%B1%9E%E6%80%A7%E5%9B%BE%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E5%AE%9E%E8%B7%B5/)
 ## #4 问题
 
 #### 1. 关于代码属性图的设计思路？

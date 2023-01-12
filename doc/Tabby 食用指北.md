@@ -4,6 +4,8 @@ Neo4j v4.x 参考 [Neo4j 环境配置](https://github.com/wh1t3p1g/tabby/blob/ma
 
 Neo4j v5.x 参考 [Neo4j 环境配置 V5](https://github.com/wh1t3p1g/tabby/blob/master/doc/Neo4j%20%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%20%20V5.md)
 
+ps: tabby 对数据库稳定性要求不高，可尝试新版的 Neo4j 5.x
+
 ## #1 前置基础
 
 Tabby 减少了在代码层面的人工检索，但仍然需要你有以下基础：
