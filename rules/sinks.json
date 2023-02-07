@@ -14,6 +14,9 @@
   {"name":"java.io.File", "rules": [
     {"function": "delete", "type": "sink", "vul": "FILE", "actions": {}, "polluted": [-1], "signatures": ["<java.io.File: boolean delete()>"]}
   ]},
+  {"name":"java.io.BufferedOutputStream", "rules": [
+    {"function": "<init>", "type": "sink", "vul": "FILE_WRITE", "actions": {"this": "param-0"}, "polluted": [0], "signatures": []}
+  ]},
 
   {"name":"java.lang.Class", "rules": [
     {"function": "forName", "type": "sink", "vul": "CODE", "actions": {"return": "param-0"}, "polluted": [0,2], "signatures": ["<java.lang.Class: java.lang.Class forName(java.lang.String,boolean,java.lang.ClassLoader)>"]},

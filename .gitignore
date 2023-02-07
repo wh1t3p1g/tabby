@@ -52,3 +52,5 @@ runtime.json
 *.db
 ignores.json
 cql.txt
+env/data
+env/import
