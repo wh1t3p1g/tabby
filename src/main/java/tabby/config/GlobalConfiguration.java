@@ -29,21 +29,23 @@ public class GlobalConfiguration {
     public static String IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignores.json");
     public static String BASIC_CLASSES_PATH = String.join(File.separator, RULES_PATH, "basicClasses.json");
     public static String COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
-    public static String CACHE_PATH = String.join(File.separator, System.getProperty("user.dir"), "cache");
-    public static String CLASSES_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_CLASSES.csv");
-    public static String METHODS_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_METHODS.csv");
-    public static String CALL_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_CALL.csv");
-    public static String ALIAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_ALIAS.csv");
-    public static String EXTEND_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_EXTEND.csv");
-    public static String HAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_HAS.csv");
-    public static String INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_PATH, "GRAPHDB_PUBLIC_INTERFACES.csv");
+    public static boolean IS_DOCKER_IMPORT_PATH = false;
+    public static String CLASSES_CACHE_PATH;
+    public static String METHODS_CACHE_PATH;
+    public static String CALL_RELATIONSHIP_CACHE_PATH;
+    public static String ALIAS_RELATIONSHIP_CACHE_PATH;
+    public static String EXTEND_RELATIONSHIP_CACHE_PATH;
+    public static String HAS_RELATIONSHIP_CACHE_PATH;
+    public static String INTERFACE_RELATIONSHIP_CACHE_PATH;
 
     public static Gson GSON = new Gson();
     public static boolean DEBUG = false;
     public static int TIMEOUT = 2;
     public static String MODE = "gadget";
     public static String TARGET = null;
-    public static String REAL_CACHE_PATH = null;
+    public static String CACHE_PATH = "";
+    public static String CACHE_DIRECTORY = "";
+    public static String CACHE_DB_FILENAME = "";
     public static String NEO4J_USERNAME = null;
     public static String NEO4J_PASSWORD = null;
     public static String NEO4J_URL = null;
@@ -73,10 +75,6 @@ public class GlobalConfiguration {
         if(!FileUtils.fileExists(RULES_PATH)){
             FileUtils.createDirectory(RULES_PATH);
         }
-
-        if(!FileUtils.fileExists(CACHE_PATH)){
-            FileUtils.createDirectory(CACHE_PATH);
-        }
     }
 
     public static void initConfig(){
@@ -99,11 +97,24 @@ public class GlobalConfiguration {
 
         MODE = getProperty(ArgumentEnum.SET_BUILD_MODE.getValue(), "gadget", props);
         TARGET = getProperty(ArgumentEnum.TARGET.getValue(), "", props);
-        REAL_CACHE_PATH = getProperty(ArgumentEnum.CACHE_PATH.getValue(), "./cache/graph", props);
         NEO4J_USERNAME = getProperty("tabby.neo4j.username", "neo4j", props);
         NEO4J_PASSWORD = getProperty("tabby.neo4j.password", "neo4j", props);
         NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
 
+        CACHE_DIRECTORY = getProperty(ArgumentEnum.CACHE_DIRECTORY.getValue(), "./cache", props);
+        CACHE_DB_FILENAME = getProperty(ArgumentEnum.CACHE_DB_FILENAME.getValue(), "./cache", props);
+
+        if(!FileUtils.fileExists(CACHE_DIRECTORY)){
+            FileUtils.createDirectory(CACHE_DIRECTORY);
+        }
+
+        CLASSES_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_CLASSES.csv");
+        METHODS_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_METHODS.csv");
+        CALL_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_CALL.csv");
+        ALIAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_ALIAS.csv");
+        EXTEND_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_EXTEND.csv");
+        HAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_HAS.csv");
+        INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_INTERFACES.csv");
 
         DEBUG = getBooleanProperty(ArgumentEnum.SET_DEBUG_ENABLE.getValue(), "false", props);
 

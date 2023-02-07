@@ -23,8 +23,10 @@ public enum ArgumentEnum {
     IS_FULL_CALL_GRAPH_CREATE("tabby.build.isFullCallGraphCreate"),
     CACHE_COMPRESS_TIMES("tabby.cache.compress.times"),
     CACHE_COMPRESS("tabby.cache.compress"),
-    CACHE_PATH("tabby.cache.path"),
+    CACHE_DIRECTORY("tabby.cache.directory"),
+    CACHE_DB_FILENAME("tabby.cache.db.filename"),
     CACHE_AUTO_REMOVE("tabby.cache.auto.remove"),
+    IS_DOCKER_IMPORT_PATH("tabby.cache.isDockerImportPath"),
     IS_NEET_TO_CREATE_IGNORE_LIST("tabby.build.isNeedToCreateIgnoreList"),
     ;
 

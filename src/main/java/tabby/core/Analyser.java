@@ -192,7 +192,7 @@ public class Analyser {
 
     public void clean(){
         try {
-            File cacheDir = new File(GlobalConfiguration.CACHE_PATH);
+            File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
             File[] files = cacheDir.listFiles();
             if(files != null){
                 for(File file: files){
@@ -208,7 +208,7 @@ public class Analyser {
 
     public void cleanDevFiles(){
         try {
-            File cacheDir = new File(GlobalConfiguration.CACHE_PATH);
+            File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
             File[] files = cacheDir.listFiles();
             if(files != null){
                 for(File file: files){

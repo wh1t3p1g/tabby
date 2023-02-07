@@ -19,7 +19,9 @@ public class MethodService {
     private MethodRefRepository methodRefRepository;
 
     public void importMethodRef(){
-        if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
+        if(GlobalConfiguration.IS_DOCKER_IMPORT_PATH){
+            methodRefRepository.loadMethodRefFromCSV("/var/lib/neo4j/import/GRAPHDB_PUBLIC_METHODS.csv");
+        } else if(FileUtils.fileExists(GlobalConfiguration.METHODS_CACHE_PATH)){
             methodRefRepository.loadMethodRefFromCSV(
                     FileUtils.getWinPath(GlobalConfiguration.METHODS_CACHE_PATH));
         }
