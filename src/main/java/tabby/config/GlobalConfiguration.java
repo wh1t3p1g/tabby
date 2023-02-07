@@ -104,7 +104,7 @@ public class GlobalConfiguration {
 
         CACHE_DIRECTORY = getProperty(ArgumentEnum.CACHE_DIRECTORY.getValue(), "./cache", props);
         CACHE_DB_FILENAME = getProperty(ArgumentEnum.CACHE_DB_FILENAME.getValue(), "dev", props);
-        CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, CACHE_DB_FILENAME + ".mv.db");
+        CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, CACHE_DB_FILENAME);
 
         if(!FileUtils.fileExists(CACHE_DIRECTORY)){
             FileUtils.createDirectory(CACHE_DIRECTORY);

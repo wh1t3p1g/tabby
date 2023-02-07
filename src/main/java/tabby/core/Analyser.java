@@ -205,23 +205,4 @@ public class Analyser {
             e.printStackTrace();
         }
     }
-
-    public void cleanDevFiles(){
-        try {
-            File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
-            File[] files = cacheDir.listFiles();
-            if(files != null){
-                for(File file: files){
-                    if(file.getName().startsWith("dev.")
-                            && file.getName().endsWith(".db")){
-                        Files.deleteIfExists(file.toPath());
-                    }
-                }
-            }
-            File ignoreRules = new File(GlobalConfiguration.IGNORE_PATH);
-            Files.deleteIfExists(ignoreRules.toPath());
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }
