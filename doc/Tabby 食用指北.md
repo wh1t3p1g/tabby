@@ -4,6 +4,7 @@ Neo4j v4.x 参考 [Neo4j 环境配置](https://github.com/wh1t3p1g/tabby/blob/ma
 
 Neo4j v5.x 参考 [Neo4j 环境配置 V5](https://github.com/wh1t3p1g/tabby/blob/master/doc/Neo4j%20%E7%8E%AF%E5%A2%83%E9%85%8D%E7%BD%AE%20%20V5.md)
 
+也可以使用 docker 来配置，见 env 目录
 ps: tabby 对数据库稳定性要求不高，可尝试新版的 Neo4j 5.x
 
 ## #1 前置基础
