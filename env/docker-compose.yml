@@ -6,7 +6,7 @@ services:
       - '7474:7474'
       - '7687:7687'
     volumes:
-      - './data:/data'
+#      - './data:/data'
       - './import:/var/lib/neo4j/import'
     environment:
       - NEO4J_AUTH=neo4j/password

@@ -10,6 +10,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
+import java.nio.file.Files;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -102,12 +103,14 @@ public class GlobalConfiguration {
         NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
 
         CACHE_DIRECTORY = getProperty(ArgumentEnum.CACHE_DIRECTORY.getValue(), "./cache", props);
-        CACHE_DB_FILENAME = getProperty(ArgumentEnum.CACHE_DB_FILENAME.getValue(), "./cache", props);
+        CACHE_DB_FILENAME = getProperty(ArgumentEnum.CACHE_DB_FILENAME.getValue(), "dev", props);
+        CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, CACHE_DB_FILENAME + ".mv.db");
 
         if(!FileUtils.fileExists(CACHE_DIRECTORY)){
             FileUtils.createDirectory(CACHE_DIRECTORY);
         }
 
+        IS_DOCKER_IMPORT_PATH = getBooleanProperty(ArgumentEnum.IS_DOCKER_IMPORT_PATH.getValue(), "false", props);
         CLASSES_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_CLASSES.csv");
         METHODS_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_METHODS.csv");
         CALL_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_CALL.csv");
@@ -161,7 +164,26 @@ public class GlobalConfiguration {
             }
         }
 
+        clean(); // clean old cache data
+
         isInitialed = true;
+    }
+
+    public static void clean(){
+        try {
+            File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
+            File[] files = cacheDir.listFiles();
+            if(files != null){
+                for(File file: files){
+                    String name = file.getName();
+                    if(name.endsWith(".csv") || (IS_CACHE_AUTO_REMOVE && name.endsWith(".db"))){
+                        Files.deleteIfExists(file.toPath());
+                    }
+                }
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public static String getProperty(String key, String defaultValue, Properties props){
