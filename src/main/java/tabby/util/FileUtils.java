@@ -9,9 +9,9 @@ import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
-import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
-import java.util.jar.JarInputStream;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipFile;
 
 /**
  * @author wh1t3P1g
@@ -107,18 +107,19 @@ public class FileUtils {
      * @throws IOException
      */
     public static void extract(Path jarPath, Path tmpDir) throws IOException {
-        try (JarInputStream jarInputStream = new JarInputStream(Files.newInputStream(jarPath))) {
-            JarEntry jarEntry;
-            while ((jarEntry = jarInputStream.getNextJarEntry()) != null) {
-                Path fullPath = tmpDir.resolve(jarEntry.getName());
-                if (!jarEntry.isDirectory()
-                        && (
-                        jarEntry.getName().endsWith(".class")
-                                || jarEntry.getName().endsWith(".jar")
-                                || jarEntry.getName().endsWith(".jsp")
-                                || jarEntry.getName().endsWith(".jspx")
-                                || jarEntry.getName().endsWith(".tld")
-                                || jarEntry.getName().endsWith(".jmod")
+        try (ZipFile zipFile = new ZipFile(jarPath.toFile())) {
+            Enumeration<? extends ZipEntry> iterator = zipFile.entries();
+            ZipEntry zipEntry;
+            while (iterator.hasMoreElements()) {
+                zipEntry = iterator.nextElement();
+                Path fullPath = tmpDir.resolve(zipEntry.getName());
+                if (!zipEntry.isDirectory()
+                        && (zipEntry.getName().endsWith(".class")
+                        || zipEntry.getName().endsWith(".jar")
+                        || zipEntry.getName().endsWith(".jsp")
+                        || zipEntry.getName().endsWith(".jspx")
+                        || zipEntry.getName().endsWith(".tld")
+                        || zipEntry.getName().endsWith(".jmod")
                 )) {
                     Path dirName = fullPath.getParent();
                     if (dirName == null) {
@@ -128,7 +129,7 @@ public class FileUtils {
                         Files.createDirectories(dirName);
                     }
 
-                    Files.copy(jarInputStream, fullPath, StandardCopyOption.REPLACE_EXISTING);
+                    Files.copy(zipFile.getInputStream(zipEntry), fullPath, StandardCopyOption.REPLACE_EXISTING);
                 }
             }
         }
