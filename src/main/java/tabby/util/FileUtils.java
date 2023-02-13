@@ -290,4 +290,13 @@ public class FileUtils {
             return file.getAbsolutePath();
         }
     }
+
+    public static String getRealPath(String filepath) throws IllegalArgumentException{
+        try{
+            Path path = Paths.get(filepath);
+            return path.toRealPath().toString();
+        }catch (Exception ig){
+            throw new IllegalArgumentException("Cache Path error!");
+        }
+    }
 }

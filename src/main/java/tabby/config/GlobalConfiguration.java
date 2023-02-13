@@ -119,6 +119,16 @@ public class GlobalConfiguration {
         HAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_HAS.csv");
         INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_INTERFACES.csv");
 
+        if(!IS_DOCKER_IMPORT_PATH){
+            CLASSES_CACHE_PATH = FileUtils.getRealPath(CLASSES_CACHE_PATH);
+            METHODS_CACHE_PATH = FileUtils.getRealPath(METHODS_CACHE_PATH);
+            CALL_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(CALL_RELATIONSHIP_CACHE_PATH);
+            ALIAS_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(ALIAS_RELATIONSHIP_CACHE_PATH);
+            EXTEND_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(EXTEND_RELATIONSHIP_CACHE_PATH);
+            HAS_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(HAS_RELATIONSHIP_CACHE_PATH);
+            INTERFACE_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(INTERFACE_RELATIONSHIP_CACHE_PATH);
+        }
+
         DEBUG = getBooleanProperty(ArgumentEnum.SET_DEBUG_ENABLE.getValue(), "false", props);
 
         IS_WEB_MODE = "web".equals(MODE);
