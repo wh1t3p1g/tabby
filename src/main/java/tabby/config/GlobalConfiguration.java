@@ -110,6 +110,9 @@ public class GlobalConfiguration {
             FileUtils.createDirectory(CACHE_DIRECTORY);
         }
 
+        // resolve cache directory
+        CACHE_DIRECTORY = FileUtils.getRealPath(CACHE_DIRECTORY);
+
         IS_DOCKER_IMPORT_PATH = getBooleanProperty(ArgumentEnum.IS_DOCKER_IMPORT_PATH.getValue(), "false", props);
         CLASSES_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_CLASSES.csv");
         METHODS_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_METHODS.csv");
@@ -118,16 +121,6 @@ public class GlobalConfiguration {
         EXTEND_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_EXTEND.csv");
         HAS_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_HAS.csv");
         INTERFACE_RELATIONSHIP_CACHE_PATH = String.join(File.separator,CACHE_DIRECTORY, "GRAPHDB_PUBLIC_INTERFACES.csv");
-
-        if(!IS_DOCKER_IMPORT_PATH){
-            CLASSES_CACHE_PATH = FileUtils.getRealPath(CLASSES_CACHE_PATH);
-            METHODS_CACHE_PATH = FileUtils.getRealPath(METHODS_CACHE_PATH);
-            CALL_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(CALL_RELATIONSHIP_CACHE_PATH);
-            ALIAS_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(ALIAS_RELATIONSHIP_CACHE_PATH);
-            EXTEND_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(EXTEND_RELATIONSHIP_CACHE_PATH);
-            HAS_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(HAS_RELATIONSHIP_CACHE_PATH);
-            INTERFACE_RELATIONSHIP_CACHE_PATH = FileUtils.getRealPath(INTERFACE_RELATIONSHIP_CACHE_PATH);
-        }
 
         DEBUG = getBooleanProperty(ArgumentEnum.SET_DEBUG_ENABLE.getValue(), "false", props);
 
