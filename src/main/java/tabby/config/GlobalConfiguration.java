@@ -167,19 +167,19 @@ public class GlobalConfiguration {
             }
         }
 
-        clean(); // clean old cache data
+        clean(IS_CACHE_AUTO_REMOVE && IS_BUILD_ENABLE); // clean old cache data
 
         isInitialed = true;
     }
 
-    public static void clean(){
+    public static void clean(boolean deleteDbFile){
         try {
             File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
             File[] files = cacheDir.listFiles();
             if(files != null){
                 for(File file: files){
                     String name = file.getName();
-                    if(name.endsWith(".csv") || (IS_CACHE_AUTO_REMOVE && name.endsWith(".db"))){
+                    if(name.endsWith(".csv") || (deleteDbFile && name.endsWith(".db"))){
                         Files.deleteIfExists(file.toPath());
                     }
                 }
