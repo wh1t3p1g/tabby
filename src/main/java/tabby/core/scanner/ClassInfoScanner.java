@@ -136,7 +136,7 @@ public class ClassInfoScanner {
             if(superClsRef == null && depth < 10){ // 正常情况不会进入这个阶段
                 superClsRef = collect0(clsRef.getSuperClass(), null, dataContainer, depth+1);
             }
-            if(superClsRef != null){
+            if(superClsRef != null && !"java.lang.Object".equals(superClsRef.getName())){
                 Extend extend =  Extend.newInstance(clsRef, superClsRef);
                 clsRef.setExtendEdge(extend);
                 dataContainer.store(extend);

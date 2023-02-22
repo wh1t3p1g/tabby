@@ -110,8 +110,7 @@ public class ClassReference {
 //            }
 //        }
         // 提取父类信息
-        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
-            // 剔除Object类的继承关系，节省继承边数量
+        if(cls.hasSuperclass()){
             classRef.setHasSuperClass(cls.hasSuperclass());
             classRef.setSuperClass(cls.getSuperclass().getName());
         }
