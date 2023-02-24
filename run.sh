@@ -6,4 +6,4 @@ then
 fi
 
 echo "start to run tabby"
-java -Xmx10g -jar build/libs/tabby-1.2.0.RELEASE.jar
+java -Xmx10g -jar build/libs/tabby.jar
