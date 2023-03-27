@@ -1,4 +1,7 @@
 # TABBY
+
+[English Version](https://github.com/wh1t3p1g/tabby/blob/master/README_EN.md)
+
 ![Platforms](https://img.shields.io/badge/Platforms-OSX-green.svg)
 ![Java version](https://img.shields.io/badge/Java-8+-blue.svg)
 ![License](https://img.shields.io/badge/License-apache%202-green.svg)
@@ -7,9 +10,9 @@ TABBY is a Java Code Analysis Tool based on [Soot](https://github.com/soot-oss/s
 
 It can parse JAR/WAR/CLASS files to CPG (Code Property Graph) based on [Neo4j](https://neo4j.com/) .
 
-TABBY 是一款针对 Java 语言的静态代码分析工具。
+TABBY 是一款针对 Java 语言的静态代码分析工具，相关工作已被接收发表在  The 53rd Annual IEEE/IFIP International Conference on Dependable Systems and Networks (DSN 2023)。 包括我们在内的所有会议论文录用名单可在https://dsn2023.dei.uc.pt/program_research.html查看。
 
-它使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为语义提取工具，将JAR/WAR/CLASS文件转化为代码属性图。
+TABBY使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为语义提取工具，将JAR/WAR/CLASS文件转化为代码属性图。
 并使用 [Neo4j](https://neo4j.com/) 图数据库来存储生成的代码属性图CPG。
 
 Note: 如果使用中存在什么问题，欢迎在 [discussions](https://github.com/wh1t3p1g/tabby/discussions) 提问！
@@ -95,7 +98,7 @@ class A extends B{
 class C extends B{  
     public void func(){}
 }  
-```  
+```
 假设 A 对象的 func 继承了 B 对象，并且重载了函数 func。那么此时会出现什么问题？
 
 首先，func1 函数中会存在函数调用 `func1-[:CALL]>A.func`，并且 func 函数存在 ALIAS 依赖边关系 `A.func-[:ALIAS]-B.func`
@@ -177,7 +180,7 @@ tabby 实验的时候大概 6gb 的内存可以处理 4w+类
 ```json  
 {"name": "com.seeyon.ctp.common.parser.BytesEncodingDetect", "rules":[  
     {"function": "initialize_frequencies", "type": "ignore", "vul": "","actions":{}, "polluted":[], "signatures":[]}  ]}  
-```  
+```
 
 4. 添加完 ignore 规则后，再运行 tabby 就可以跳过该函数的分析
 
