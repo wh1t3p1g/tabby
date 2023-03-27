@@ -15,7 +15,7 @@ It can parse JAR/WAR/CLASS files to CPG (Code Property Graph) based on [Neo4j](h
 ## #1. Environment
 
 Tabby requires the following environment
-- JDK17
+- JDK >= 8
 - Neo4j 
 
 ## #2. Compile tabby
@@ -154,7 +154,7 @@ tabby.build.isNeedToCreateIgnoreList      = false
 # targets to analyse  
 tabby.build.target                        = cases/target/ # your targets dir
 tabby.build.libraries                     = libs  
-tabby.build.mode                          = gadget  
+tabby.build.mode                          = gadget # mode with `web` or `gadget`  
   
 # db settings  
 tabby.cache.directory                     = ./cache
