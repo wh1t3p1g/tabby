@@ -48,6 +48,7 @@ Note: Welcome to new a discussion at [discussions](https://github.com/wh1t3p1g/t
 - CVE-2021-39148
 - CVE-2021-39152 [m0d9](http://m0d9.me/2021/08/29/XStream%E5%8F%8D%E5%BA%8F%E5%88%97%E5%8C%96%EF%BC%88%E4%B8%89%EF%BC%89%E2%80%94%E2%80%94Tabby%20CVE%E4%B9%8B%E6%97%85/)
 - CVE-2021-43297
+- CVE-2022-39198 [yemoli](https://yml-sec.top/2022/12/30/%E4%BB%8Ecve-2022-39198%E5%88%B0%E6%98%A5%E7%A7%8B%E6%9D%AFdubboapp/#CVE-2022-39198%E6%8C%96%E6%8E%98)
 - 子项目：Java 反序列化利用框架 [ysomap](https://github.com/wh1t3p1g/ysomap)
 - 子项目：具备数据流分析的 Neo4j 扩展 [tabby-path-finder](https://github.com/wh1t3p1g/tabby-path-finder)
 - 设计原理
