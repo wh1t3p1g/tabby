@@ -54,3 +54,4 @@ ignores.json
 cql.txt
 env/data
 env/import
+.DS_Store
