@@ -376,11 +376,6 @@ public class DataContainer {
     }
 
     public void save2Neo4j(){
-        int nodes = classRefService.countAll() + methodRefService.countAll();
-        int relations = relationshipsService.countAll();
-        log.info("Total nodes: {}, relations: {}", nodes, relations);
-        log.info("Clean old tabby.core.data in Neo4j.");
-        classService.clear();
         log.info("Save methods to Neo4j.");
         methodService.importMethodRef();
         log.info("Save classes to Neo4j.");

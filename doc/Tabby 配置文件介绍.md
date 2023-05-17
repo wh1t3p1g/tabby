@@ -5,7 +5,6 @@ Tabby >= 1.1.0 版本后，支持使用配置文件的方式来分析文件（�
 # enables  
 tabby.build.enable                        = true  
 tabby.load.enable                         = true  
-tabby.cache.compress                      = false  
 # debug  
 tabby.debug.details                       = false  
   
@@ -29,11 +28,7 @@ tabby.build.libraries                     = libs
 tabby.build.mode                          = gadget  
   
 # db settings  
-tabby.cache.directory                     = ./cache
-tabby.cache.db.filename                   = dev
 tabby.cache.isDockerImportPath            = false
-tabby.cache.auto.remove                   = true
-tabby.cache.compress.times                = 1
   
 tabby.neo4j.username                      = neo4j  
 tabby.neo4j.password                      = password  
@@ -74,11 +69,7 @@ tabby.build.mode                          = web # 分析类型 web 或 gadget，
 
 ```properties
 # db settings
-tabby.cache.directory                     = ./cache # cache 目录
-tabby.cache.db.filename                   = dev # h2 database 名
 tabby.cache.isDockerImportPath            = false # 运行环境是否为docker环境
-tabby.cache.auto.remove                   = true  # 运行前删除原有db文件
-tabby.cache.compress.times                = 1     # 选择 db 文件压缩次数
 
 tabby.neo4j.username                      = neo4j # neo4j 用户名
 tabby.neo4j.password                      = password # neo4j 密码

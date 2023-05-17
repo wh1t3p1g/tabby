@@ -39,9 +39,6 @@ public class App {
     CommandLineRunner run(){
         return args -> {
             try{
-//                if(!JavaVersion.isJDK8()){
-//                    throw new JDKVersionErrorException("Error JDK version. Please using JDK8.");
-//                }
                 setLogDebugLevel();
                 analyser.run();
             }catch (IllegalArgumentException e){

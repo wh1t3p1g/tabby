@@ -3,7 +3,10 @@ package tabby.core;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.*;
+import soot.CompilationDeathException;
+import soot.G;
+import soot.Main;
+import soot.Scene;
 import soot.options.Options;
 import tabby.config.GlobalConfiguration;
 import tabby.config.SootConfiguration;
@@ -16,7 +19,6 @@ import tabby.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
@@ -89,13 +91,9 @@ public class Analyser {
             }
 
             runSootAnalysis(targets, new ArrayList<>(cps.values()));
+            dataContainer.count();
+            dataContainer.save2CSV();
         }
-
-        if(GlobalConfiguration.IS_NEED_CACHE_COMPRESS){
-            compress();
-        }
-
-        dataContainer.count();
 
         if(loadEnabled){
             G.reset();
@@ -169,40 +167,13 @@ public class Analyser {
         }
     }
 
-    public void compress(){
-        log.info("Try to compress db cache {} times.", GlobalConfiguration.CACHE_COMPRESS_TIMES);
-        for(int i=0; i<GlobalConfiguration.CACHE_COMPRESS_TIMES; i++){
-            dataContainer.save2CSV();
-            clean();
-        }
-        log.info("Compress db cache done.");
-    }
-
     public void save(){
         log.info("Start to save cache.");
         long start = System.nanoTime();
-
-        dataContainer.save2CSV();
         dataContainer.save2Neo4j();
-        clean();
         long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
         log.info("Cost {} min {} seconds."
                 , time/60, time%60);
     }
 
-    public void clean(){
-        try {
-            File cacheDir = new File(GlobalConfiguration.CACHE_DIRECTORY);
-            File[] files = cacheDir.listFiles();
-            if(files != null){
-                for(File file: files){
-                    if(file.getName().endsWith(".csv")){
-                        Files.deleteIfExists(file.toPath());
-                    }
-                }
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
 }

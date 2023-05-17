@@ -57,11 +57,11 @@ public class RelationshipsService {
     }
 
     public void save2CSV(){
-        aliasEdgeRepository.save2Csv(GlobalConfiguration.ALIAS_RELATIONSHIP_CACHE_PATH);
-        hasEdgeRepository.save2Csv(GlobalConfiguration.HAS_RELATIONSHIP_CACHE_PATH);
-        extendEdgeRepository.save2Csv(GlobalConfiguration.EXTEND_RELATIONSHIP_CACHE_PATH);
-        callEdgeRepository.save2Csv(GlobalConfiguration.CALL_RELATIONSHIP_CACHE_PATH);
-        interfacesEdgeRepository.save2Csv(GlobalConfiguration.INTERFACE_RELATIONSHIP_CACHE_PATH);
+        aliasEdgeRepository.save2Csv(GlobalConfiguration.ALIAS_RELATIONSHIP_OUTPUT_PATH);
+        hasEdgeRepository.save2Csv(GlobalConfiguration.HAS_RELATIONSHIP_OUTPUT_PATH);
+        extendEdgeRepository.save2Csv(GlobalConfiguration.EXTEND_RELATIONSHIP_OUTPUT_PATH);
+        callEdgeRepository.save2Csv(GlobalConfiguration.CALL_RELATIONSHIP_OUTPUT_PATH);
+        interfacesEdgeRepository.save2Csv(GlobalConfiguration.INTERFACE_RELATIONSHIP_OUTPUT_PATH);
     }
 
     public int countAll(){

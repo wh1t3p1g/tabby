@@ -34,7 +34,7 @@ public class ClassRefService {
     }
 
     public void save2Csv(){
-        classRepository.save2Csv(GlobalConfiguration.CLASSES_CACHE_PATH);
+        classRepository.save2Csv(GlobalConfiguration.CLASSES_OUTPUT_PATH);
     }
 
     public List<ClassReference> loadNecessaryClassRefs(){

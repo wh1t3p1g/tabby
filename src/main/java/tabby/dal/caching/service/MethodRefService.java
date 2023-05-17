@@ -37,7 +37,7 @@ public class MethodRefService {
     }
 
     public void save2Csv(){
-        methodRepository.save2Csv(GlobalConfiguration.METHODS_CACHE_PATH);
+        methodRepository.save2Csv(GlobalConfiguration.METHODS_OUTPUT_PATH);
     }
 
     public List<MethodReference> loadNecessaryMethodRefs(){

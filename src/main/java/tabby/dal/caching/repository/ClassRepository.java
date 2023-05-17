@@ -3,6 +3,7 @@ package tabby.dal.caching.repository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import tabby.dal.caching.bean.ref.ClassReference;
 
 import java.util.List;
@@ -11,6 +12,7 @@ import java.util.List;
  * @author wh1t3P1g
  * @since 2021/1/8
  */
+@Repository
 public interface ClassRepository extends CrudRepository<ClassReference, String> {
 
     @Query(value = "select * from CLASSES where NAME = :name limit 1", nativeQuery = true)

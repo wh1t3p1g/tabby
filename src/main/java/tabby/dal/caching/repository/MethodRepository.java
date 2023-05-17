@@ -1,18 +1,18 @@
 package tabby.dal.caching.repository;
 
-import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 import tabby.dal.caching.bean.ref.MethodReference;
 
-import javax.persistence.LockModeType;
 import java.util.List;
 
 /**
  * @author wh1t3P1g
  * @since 2021/1/8
  */
+@Repository
 public interface MethodRepository extends CrudRepository<MethodReference, String> {
 
     @Query(value = "select * from METHODS where SIGNATURE = :signature limit 1", nativeQuery = true)
