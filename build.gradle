@@ -28,7 +28,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 //    implementation 'org.soot-oss:soot:4.2.1'
 //    implementation 'org.soot-oss:soot:4.3.0-SNAPSHOT'
-    implementation 'org.soot-oss:soot:4.4.0-SNAPSHOT'
+    implementation 'org.soot-oss:soot:4.4.1'
 //    implementation 'ca.mcgill.sable:soot:4.0.0'
 
     implementation 'com.google.code.gson:gson:2.8.9'
