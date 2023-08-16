@@ -94,7 +94,7 @@ public class GlobalConfiguration {
             int maxThreadPoolSize = Runtime.getRuntime().availableProcessors();
             if("max".equals(THREAD_POOL_SIZE)){
                 AsyncConfiguration.CORE_POOL_SIZE = maxThreadPoolSize;
-            } else{
+            } else {
                 try{
                     AsyncConfiguration.CORE_POOL_SIZE = Math.min(Integer.parseInt(THREAD_POOL_SIZE), maxThreadPoolSize);
                 }catch (Exception e){
@@ -114,10 +114,13 @@ public class GlobalConfiguration {
         TARGET = getProperty("tabby.build.target", "", props);
 
         OUTPUT_DIRECTORY = getProperty("tabby.output.directory", "./output", props);
+        IS_LOAD_ENABLE = getBooleanProperty("tabby.load.enable", "false", props);
+        IS_BUILD_ENABLE = getBooleanProperty("tabby.build.enable", "false", props);
+        IS_DOCKER_IMPORT_PATH = getBooleanProperty("tabby.cache.isDockerImportPath", "false", props);
 
         if(!FileUtils.fileExists(OUTPUT_DIRECTORY)){
             FileUtils.createDirectory(OUTPUT_DIRECTORY);
-        }else{
+        }else if(IS_BUILD_ENABLE){
             // 如果存在output，则删除该目录下的csv文件
             clean(OUTPUT_DIRECTORY);
         }
@@ -132,10 +135,6 @@ public class GlobalConfiguration {
         EXTEND_RELATIONSHIP_OUTPUT_PATH = String.join(File.separator,OUTPUT_DIRECTORY, "GRAPHDB_PUBLIC_EXTEND.csv");
         HAS_RELATIONSHIP_OUTPUT_PATH = String.join(File.separator,OUTPUT_DIRECTORY, "GRAPHDB_PUBLIC_HAS.csv");
         INTERFACE_RELATIONSHIP_OUTPUT_PATH = String.join(File.separator,OUTPUT_DIRECTORY, "GRAPHDB_PUBLIC_INTERFACES.csv");
-
-        IS_LOAD_ENABLE = getBooleanProperty("tabby.load.enable", "false", props);
-        IS_BUILD_ENABLE = getBooleanProperty("tabby.build.enable", "false", props);
-        IS_DOCKER_IMPORT_PATH = getBooleanProperty("tabby.cache.isDockerImportPath", "false", props);
 
         DEBUG = getBooleanProperty("tabby.debug.details", "false", props);
 
