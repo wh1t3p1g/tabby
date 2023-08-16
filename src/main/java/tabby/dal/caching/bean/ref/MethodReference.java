@@ -11,6 +11,7 @@ import tabby.dal.caching.bean.edge.Alias;
 import tabby.dal.caching.bean.edge.Call;
 import tabby.dal.caching.converter.ListInteger2JsonStringConverter;
 import tabby.dal.caching.converter.Map2JsonStringConverter;
+import tabby.dal.caching.converter.Map2JsonStringForAnnotationsConverter;
 import tabby.util.SemanticHelper;
 
 import javax.persistence.*;
@@ -112,6 +113,10 @@ public class MethodReference {
 
     private transient SootMethod sootMethod = null;
 
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = Map2JsonStringForAnnotationsConverter.class)
+    private Map<String, Map<String, Set<String>>> annotations = new HashMap<>();
+
     public static MethodReference newInstance(String name, String signature){
         MethodReference methodRef = new MethodReference();
         String id = null;
@@ -152,6 +157,7 @@ public class MethodReference {
 //                methodRef.getParameters().add(gson.toJson(param));
 //            }
         }
+        methodRef.setAnnotations(SemanticHelper.getAnnotations(method.getTags()));
         return methodRef;
     }
 

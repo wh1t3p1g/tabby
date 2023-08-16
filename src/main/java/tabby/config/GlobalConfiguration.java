@@ -3,7 +3,6 @@ package tabby.config;
 import com.google.gson.Gson;
 import lombok.extern.slf4j.Slf4j;
 import tabby.core.container.RulesContainer;
-import tabby.util.ArgumentEnum;
 import tabby.util.FileUtils;
 
 import java.io.File;
@@ -22,15 +21,14 @@ import java.util.Properties;
 @Slf4j
 public class GlobalConfiguration {
 
+    public static String CONFIG_FILE_PATH = String.join(File.separator, System.getProperty("user.dir"), "config", "settings.properties");
     public static String LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "libs");
-    public static String RULES_PATH = String.join(File.separator, System.getProperty("user.dir"), "rules");
-    public static String KNOWLEDGE_PATH = String.join(File.separator, RULES_PATH, "knowledges.json");
-    public static String SINK_RULE_PATH = String.join(File.separator, RULES_PATH, "sinks.json");
-    public static String SYSTEM_RULE_PATH = String.join(File.separator, RULES_PATH, "system.json");
-    public static String IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignores.json");
-    public static String BASIC_CLASSES_PATH = String.join(File.separator, RULES_PATH, "basicClasses.json");
-    public static String COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
-    public static boolean IS_DOCKER_IMPORT_PATH = false;
+    public static String RULES_PATH;
+    public static String SINK_RULE_PATH;
+    public static String SYSTEM_RULE_PATH;
+    public static String IGNORE_PATH;
+    public static String BASIC_CLASSES_PATH;
+    public static String COMMON_JARS_PATH;
     public static String CLASSES_OUTPUT_PATH;
     public static String METHODS_OUTPUT_PATH;
     public static String CALL_RELATIONSHIP_OUTPUT_PATH;
@@ -38,7 +36,7 @@ public class GlobalConfiguration {
     public static String EXTEND_RELATIONSHIP_OUTPUT_PATH;
     public static String HAS_RELATIONSHIP_OUTPUT_PATH;
     public static String INTERFACE_RELATIONSHIP_OUTPUT_PATH;
-
+    public static boolean IS_DOCKER_IMPORT_PATH = false;
     public static Gson GSON = new Gson();
     public static boolean DEBUG = false;
     public static int TIMEOUT = 2;
@@ -63,47 +61,64 @@ public class GlobalConfiguration {
     public static boolean IS_CHECK_FAT_JAR = false;
     public static boolean IS_FULL_CALL_GRAPH_CONSTRUCT = false;
     public static boolean IS_NEED_TO_CREATE_IGNORE_LIST = true;
-
+    private static Properties props;
     public static boolean isInitialed = false;
     public static boolean isNeedStop = false;
 
-    static {
-        if(!FileUtils.fileExists(RULES_PATH)){
-            FileUtils.createDirectory(RULES_PATH);
+    public static String THREAD_POOL_SIZE = "max";
+
+    public static void init(){
+        if(props == null){
+            props = new Properties();
+            // read from config/settings.properties
+            try(Reader reader = new FileReader(CONFIG_FILE_PATH)){
+                props.load(reader);
+            } catch (IOException e) {
+                throw new IllegalArgumentException("Config ERROR: settings.properties file not found!");
+            }
+            // resolve rule directory
+            RULES_PATH = getProperty("tabby.build.rules.directory", "./rules", props);
+            RULES_PATH = FileUtils.getRealPath(RULES_PATH);
+
+            SINK_RULE_PATH = String.join(File.separator, RULES_PATH, "sinks.json");
+            SYSTEM_RULE_PATH = String.join(File.separator, RULES_PATH, "system.json");
+            IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignores.json");
+            BASIC_CLASSES_PATH = String.join(File.separator, RULES_PATH, "basicClasses.json");
+            COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
+            THREAD_POOL_SIZE = getProperty("tabby.build.thread.size", "max", props);
+
+            int maxThreadPoolSize = Runtime.getRuntime().availableProcessors();
+            if("max".equals(THREAD_POOL_SIZE)){
+                AsyncConfiguration.CORE_POOL_SIZE = maxThreadPoolSize;
+            } else{
+                try{
+                    AsyncConfiguration.CORE_POOL_SIZE = Math.min(Integer.parseInt(THREAD_POOL_SIZE), maxThreadPoolSize);
+                }catch (Exception e){
+                    // 解析出错 使用最大的线程数
+                    AsyncConfiguration.CORE_POOL_SIZE = maxThreadPoolSize;
+                }
+            }
         }
     }
 
     public static void initConfig(){
         if(isInitialed) return;
 //        log.info("Try to apply settings.properties");
-        Properties props = new Properties();
-        // read from config/settings.properties
-        try(Reader reader = new FileReader("config/settings.properties")){
-            props.load(reader);
-        } catch (IOException e) {
-            throw new IllegalArgumentException("Config ERROR: config/settings.properties file not found!");
-        }
-        // apply to GlobalConfiguration
-
-        IS_JDK_ONLY = getBooleanProperty(ArgumentEnum.IS_JDK_ONLY.getValue(), "false", props);
-        IS_LOAD_ENABLE = getBooleanProperty(ArgumentEnum.LOAD_ENABLE.getValue(), "false", props);
-        IS_BUILD_ENABLE = getBooleanProperty(ArgumentEnum.BUILD_ENABLE.getValue(), "false", props);
-
-        if(IS_JDK_ONLY){
-            props.setProperty(ArgumentEnum.WITH_ALL_JDK.getValue(), "true");
-        }
-
-        MODE = getProperty(ArgumentEnum.SET_BUILD_MODE.getValue(), "gadget", props);
-        TARGET = getProperty(ArgumentEnum.TARGET.getValue(), "", props);
+        init();
+        // db settings
         NEO4J_USERNAME = getProperty("tabby.neo4j.username", "neo4j", props);
         NEO4J_PASSWORD = getProperty("tabby.neo4j.password", "neo4j", props);
         NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
 
+        // apply others
+        MODE = getProperty("tabby.build.mode", "gadget", props);
+        TARGET = getProperty("tabby.build.target", "", props);
 
         OUTPUT_DIRECTORY = getProperty("tabby.output.directory", "./output", props);
+
         if(!FileUtils.fileExists(OUTPUT_DIRECTORY)){
             FileUtils.createDirectory(OUTPUT_DIRECTORY);
-        }else if(IS_BUILD_ENABLE){
+        }else{
             // 如果存在output，则删除该目录下的csv文件
             clean(OUTPUT_DIRECTORY);
         }
@@ -119,21 +134,31 @@ public class GlobalConfiguration {
         HAS_RELATIONSHIP_OUTPUT_PATH = String.join(File.separator,OUTPUT_DIRECTORY, "GRAPHDB_PUBLIC_HAS.csv");
         INTERFACE_RELATIONSHIP_OUTPUT_PATH = String.join(File.separator,OUTPUT_DIRECTORY, "GRAPHDB_PUBLIC_INTERFACES.csv");
 
-        IS_DOCKER_IMPORT_PATH = getBooleanProperty(ArgumentEnum.IS_DOCKER_IMPORT_PATH.getValue(), "false", props);
+        IS_LOAD_ENABLE = getBooleanProperty("tabby.load.enable", "false", props);
+        IS_BUILD_ENABLE = getBooleanProperty("tabby.build.enable", "false", props);
+        IS_DOCKER_IMPORT_PATH = getBooleanProperty("tabby.cache.isDockerImportPath", "false", props);
 
-        DEBUG = getBooleanProperty(ArgumentEnum.SET_DEBUG_ENABLE.getValue(), "false", props);
+        DEBUG = getBooleanProperty("tabby.debug.details", "false", props);
 
         IS_WEB_MODE = "web".equals(MODE);
-        IS_EXCLUDE_JDK = getBooleanProperty(ArgumentEnum.EXCLUDE_JDK.getValue(), "false", props);
-        IS_JDK_PROCESS = getBooleanProperty(ArgumentEnum.IS_JDK_PROCESS.getValue(), "false", props);
+        IS_JDK_ONLY = getBooleanProperty("tabby.build.isJDKOnly", "false", props);
 
-        IS_WITH_ALL_JDK = getBooleanProperty(ArgumentEnum.WITH_ALL_JDK.getValue(), "false", props);
-        IS_CHECK_FAT_JAR = getBooleanProperty(ArgumentEnum.CHECK_FAT_JAR.getValue(), "false", props);
-        IS_FULL_CALL_GRAPH_CONSTRUCT = getBooleanProperty(ArgumentEnum.IS_FULL_CALL_GRAPH_CREATE.getValue(), "false", props);
-        IS_NEED_TO_CREATE_IGNORE_LIST = getBooleanProperty(ArgumentEnum.IS_NEET_TO_CREATE_IGNORE_LIST.getValue(), "true", props);
+        if(IS_JDK_ONLY){
+            IS_WITH_ALL_JDK = true;
+            IS_EXCLUDE_JDK = false;
+            IS_JDK_PROCESS = true;
+        }else{
+            IS_WITH_ALL_JDK = getBooleanProperty("tabby.build.withAllJDK", "false", props);
+            IS_EXCLUDE_JDK = getBooleanProperty("tabby.build.excludeJDK", "false", props);
+            IS_JDK_PROCESS = getBooleanProperty("tabby.build.isJDKProcess", "false", props);
+        }
+
+        IS_CHECK_FAT_JAR = getBooleanProperty("tabby.build.checkFatJar", "false", props);
+        IS_FULL_CALL_GRAPH_CONSTRUCT = getBooleanProperty("tabby.build.isFullCallGraphCreate", "false", props);
+        IS_NEED_TO_CREATE_IGNORE_LIST = getBooleanProperty("tabby.build.isNeedToCreateIgnoreList", "true", props);
 
         try{
-            TIMEOUT = getIntProperty(ArgumentEnum.SET_THREADS_TIMEOUT.getValue(), "2", props);
+            TIMEOUT = getIntProperty("tabby.build.thread.timeout", "2", props);
         }catch (Exception ignore){
         }
 
@@ -145,7 +170,7 @@ public class GlobalConfiguration {
             }
         }
 
-        String libraries = props.getProperty(ArgumentEnum.LIBRARIES.getValue());
+        String libraries = props.getProperty("tabby.build.libraries");
         if(libraries != null){
             if(FileUtils.fileExists(libraries)){
                 LIBS_PATH = libraries;

@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
+import soot.tagkit.*;
 import tabby.dal.caching.bean.ref.MethodReference;
 
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author wh1t3p1g
@@ -384,5 +383,54 @@ public class SemanticHelper {
         }else{
             return Scene.v().loadClassAndSupport(cls);
         }
+    }
+
+    public static Map<String, Map<String, Set<String>>> getAnnotations(List<Tag> tags){
+        Map<String, Map<String, Set<String>>> ret = new HashMap<>();
+        for (Tag tag : tags) {
+            if (tag instanceof VisibilityAnnotationTag) {
+                VisibilityAnnotationTag visibilityAnnotationTag = (VisibilityAnnotationTag) tag;
+                for (AnnotationTag annotationTag : visibilityAnnotationTag.getAnnotations()) {
+                    String type = normalize(annotationTag.getType());
+                    if("kotlin.Metadata".equals(type) || type.startsWith("io.swagger.v3.oas.annotations.media.Schema")){
+                        continue;
+                    }
+                    Map<String, Set<String>> annotationTagInfo = new HashMap<>();
+                    Collection<AnnotationElem> elems = annotationTag.getElems();
+                    for(AnnotationElem elem:elems){
+                        String elemKey = elem.getName();
+                        Set<String> elemValueList = new HashSet<>();
+                        if (elem instanceof AnnotationArrayElem) {
+                            ArrayList elemValues =  ((AnnotationArrayElem) elem).getValues();
+                            for (Object item:elemValues.stream().toArray()) {
+                                if (item instanceof AnnotationStringElem) {
+                                    AnnotationStringElem annotationStringElem = (AnnotationStringElem) item;
+                                    elemValueList.add(annotationStringElem.getValue());
+                                } else if (item instanceof AnnotationEnumElem){
+                                    AnnotationEnumElem annotationEnumElem = (AnnotationEnumElem) item;
+                                    String enumName = String.format("%s.%s", normalize(annotationEnumElem.getTypeName()), annotationEnumElem.getName());
+                                    elemValueList.add(enumName);
+                                } else {
+                                    elemValueList.add(item.toString());
+                                }
+                            }
+                        }
+                        if (elem instanceof AnnotationStringElem) {
+                            AnnotationStringElem annotationStringElem = (AnnotationStringElem) elem;
+                            elemValueList.add(annotationStringElem.getValue());
+                        }
+                        annotationTagInfo.put(elemKey, elemValueList);
+                    }
+                    ret.put(type, annotationTagInfo);
+                }
+            }
+        }
+        return ret;
+    }
+
+    public static String normalize(String type){
+        String ret = type.substring(1);
+        ret = ret.substring(0, ret.length()-1);
+        return ret.replace("/", ".");
     }
 }

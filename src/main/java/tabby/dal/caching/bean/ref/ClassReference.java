@@ -8,14 +8,12 @@ import tabby.dal.caching.bean.edge.Extend;
 import tabby.dal.caching.bean.edge.Has;
 import tabby.dal.caching.bean.edge.Interfaces;
 import tabby.dal.caching.converter.List2JsonStringConverter;
+import tabby.dal.caching.converter.Map2JsonStringForAnnotationsConverter;
 import tabby.util.SemanticHelper;
 
 import javax.persistence.*;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * @author wh1t3P1g
@@ -59,6 +57,10 @@ public class ClassReference {
     @Column(columnDefinition = "TEXT")
     @Convert(converter = List2JsonStringConverter.class)
     private List<String> childClassnames = new ArrayList<>();
+
+    @Column(columnDefinition = "TEXT")
+    @Convert(converter = Map2JsonStringForAnnotationsConverter.class)
+    private Map<String, Map<String, Set<String>>> annotations = new HashMap<>();
     // neo4j relationships
     /**
      * 继承边
@@ -99,6 +101,7 @@ public class ClassReference {
         classRef.setInterface(cls.isInterface());
         classRef.setHasDefaultConstructor(SemanticHelper.hasDefaultConstructor(cls));
         classRef.setAbstract(cls.isAbstract());
+        classRef.setAnnotations(SemanticHelper.getAnnotations(cls.getTags()));
         // 提取类属性信息 没用到 剔除
 //        if(cls.getFieldCount() > 0){
 //            for (SootField field : cls.getFields()) {

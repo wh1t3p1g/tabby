@@ -13,6 +13,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import tabby.config.GlobalConfiguration;
 import tabby.core.Analyser;
+import tabby.util.FileUtils;
 
 @Slf4j
 @SpringBootApplication
@@ -24,7 +25,10 @@ public class App {
     private Analyser analyser;
 
     public static void main(String[] args) {
-        GlobalConfiguration.initConfig();
+        if(args.length == 2 && "--config".equals(args[0])){
+            GlobalConfiguration.CONFIG_FILE_PATH = FileUtils.getRealPath(args[1]);
+        }
+        GlobalConfiguration.init();
         SpringApplication.run(App.class, args).close();
     }
 
@@ -39,16 +43,13 @@ public class App {
     CommandLineRunner run(){
         return args -> {
             try{
+                GlobalConfiguration.initConfig();
                 setLogDebugLevel();
                 analyser.run();
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() + ", Please check your settings.properties file.");
             }
-//            catch (JDKVersionErrorException e){
-//                log.error(e.getMessage());
-//            }
             log.info("Done. Bye!");
-//            System.exit(0);
         };
     }
 }
