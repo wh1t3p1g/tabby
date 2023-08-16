@@ -76,6 +76,10 @@ public class GlobalConfiguration {
             } catch (IOException e) {
                 throw new IllegalArgumentException("Config ERROR: settings.properties file not found!");
             }
+            // db settings
+            NEO4J_USERNAME = getProperty("tabby.neo4j.username", "neo4j", props);
+            NEO4J_PASSWORD = getProperty("tabby.neo4j.password", "neo4j", props);
+            NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
             // resolve rule directory
             RULES_PATH = getProperty("tabby.build.rules.directory", "./rules", props);
             RULES_PATH = FileUtils.getRealPath(RULES_PATH);
@@ -105,11 +109,6 @@ public class GlobalConfiguration {
         if(isInitialed) return;
 //        log.info("Try to apply settings.properties");
         init();
-        // db settings
-        NEO4J_USERNAME = getProperty("tabby.neo4j.username", "neo4j", props);
-        NEO4J_PASSWORD = getProperty("tabby.neo4j.password", "neo4j", props);
-        NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
-
         // apply others
         MODE = getProperty("tabby.build.mode", "gadget", props);
         TARGET = getProperty("tabby.build.target", "", props);

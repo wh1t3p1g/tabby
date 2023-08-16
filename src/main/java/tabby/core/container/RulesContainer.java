@@ -67,11 +67,7 @@ public class RulesContainer {
         TabbyRule[] sinkRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.SINK_RULE_PATH, TabbyRule[].class);
         TabbyRule[] systemRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.SYSTEM_RULE_PATH, TabbyRule[].class);
         if(sinkRules == null || systemRules == null){
-            // 适配老版本
-            sinkRules = (TabbyRule[]) FileUtils.getJsonContent(GlobalConfiguration.KNOWLEDGE_PATH, TabbyRule[].class);
-            if(sinkRules == null){
-                throw new FileNotFoundException("File sinks.json or system.json Not Found");
-            }
+            throw new FileNotFoundException("File sinks.json or system.json Not Found");
         }
         Collections.addAll(tabbyRules, sinkRules);
         if(systemRules != null){
