@@ -23,7 +23,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
 
-import javax.sound.sampled.AudioFileFormat.Type;
 
 /**
  * switcher的公共函数
