@@ -15,12 +15,15 @@ import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
 import tabby.dal.caching.bean.edge.Call;
 import tabby.dal.caching.bean.ref.MethodReference;
 import tabby.util.PositionHelper;
+import tabby.util.SemanticHelper;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.*;
+
+import javax.sound.sampled.AudioFileFormat.Type;
 
 /**
  * switcher的公共函数
@@ -105,11 +108,38 @@ public class Switcher {
         if(!flag) return null;
         // baseVar，入参均不可控，返回值必不可控，无需做分析
         // find target MethodRef
-        SootClass cls = invokeExpr.getMethod().getDeclaringClass();
-        SootMethod invokedMethod = invokeExpr.getMethod();
-
+        SootMethodRef targetMethodRef = null;
+        SootMethod invokedMethod = null;
+        SootClass cls = null;
+        if (invokeExpr instanceof VirtualInvokeExpr) {
+            // 尝试访问base查找caller的实际类型
+            VirtualInvokeExpr virtualInvokeExpr = (VirtualInvokeExpr) invokeExpr;
+            Type type = virtualInvokeExpr.getBase().getType();
+            cls = SemanticHelper.getSootClass(type.toString());
+            if (cls != null && !virtualInvokeExpr.getMethod().
+                    getDeclaringClass().getName().equals(cls.getName())){
+                try{
+                    // 当前caller对象所在类中重写了该方法
+                    String subSignature = invokeExpr.getMethod().getSubSignature();
+                    invokedMethod = cls.getMethod(subSignature);
+                    targetMethodRef = Scene.v().makeMethodRef(cls, invokedMethod.getName(), invokedMethod.getParameterTypes(),
+                            invokedMethod.getReturnType(),invokedMethod.isStatic());
+                }catch(RuntimeException runtimeException){
+                    // 类中没有重写该方法，直接使用父类方法，cls保留caller类型
+                    invokedMethod = invokeExpr.getMethod();
+                    targetMethodRef = invokeExpr.getMethodRef();
+                }
+            }
+        }
+        if (invokedMethod == null){
+            // 上述情况的补集，同时处理其他invoke类型
+            cls = invokeExpr.getMethod().getDeclaringClass();
+            invokedMethod = invokeExpr.getMethod();
+            targetMethodRef = invokeExpr.getMethodRef();
+        }
+        
         MethodReference methodRef = dataContainer
-                .getOrAddMethodRef(invokeExpr.getMethodRef(), invokedMethod);
+                .getOrAddMethodRef(targetMethodRef, invokedMethod);
 
         // construct call edge
         String invokeType = "";
