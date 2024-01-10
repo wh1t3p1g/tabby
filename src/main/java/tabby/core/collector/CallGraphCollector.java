@@ -6,11 +6,11 @@ import org.springframework.stereotype.Service;
 import soot.Modifier;
 import soot.SootMethod;
 import tabby.core.container.DataContainer;
-import tabby.core.data.Context;
-import tabby.core.switcher.Switcher;
-import tabby.core.toolkit.PollutedVarsPointsToAnalysis;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.util.TickTock;
+import tabby.analysis.data.Context;
+import tabby.analysis.switcher.Switcher;
+import tabby.analysis.PollutedVarsPointsToAnalysis;
+import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.TickTock;
 
 /**
  * @author wh1t3P1g

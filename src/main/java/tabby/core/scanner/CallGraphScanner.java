@@ -8,9 +8,9 @@ import tabby.config.GlobalConfiguration;
 import tabby.core.collector.CallEdgeCollector;
 import tabby.core.collector.CallGraphCollector;
 import tabby.core.container.DataContainer;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.dal.caching.service.MethodRefService;
-import tabby.util.TickTock;
+import tabby.common.bean.ref.MethodReference;
+import tabby.dal.service.MethodRefService;
+import tabby.common.utils.TickTock;
 
 import java.util.ArrayList;
 import java.util.Collection;

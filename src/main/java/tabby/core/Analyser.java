@@ -15,7 +15,7 @@ import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.util.FileUtils;
+import tabby.common.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -47,63 +47,39 @@ public class Analyser {
 
 
     public void run() throws IOException {
-        boolean buildEnabled = GlobalConfiguration.IS_BUILD_ENABLE;
-        boolean loadEnabled = GlobalConfiguration.IS_LOAD_ENABLE;
-        Future<Boolean> future = null;
-        if(loadEnabled){ // 用线程先删除neo4j中老数据
-            future = dataContainer.cleanAll();
-            if(!buildEnabled){
-                while (!future.isDone()){
-                    // do nothing 等待结束
-                }
-            }
+        Map<String, String> dependencies = fileCollector.collectJdkDependencies();
+
+        log.info("Get {} JDK dependencies", dependencies.size());
+        log.info("Try to collect all targets");
+
+        Map<String, String> cps = GlobalConfiguration.IS_EXCLUDE_JDK ? new HashMap<>():new HashMap<>(dependencies);
+        Map<String, String> targets = new HashMap<>();
+        // 收集目标
+        GlobalConfiguration.rulesContainer = rulesContainer;
+        if(!GlobalConfiguration.IS_JDK_ONLY){
+            Map<String, String> files = fileCollector.collect(GlobalConfiguration.TARGET);
+            cps.putAll(files);
+            targets.putAll(files);
         }
 
-        if(buildEnabled){
-            Map<String, String> dependencies = fileCollector.collectJdkDependencies();
-
-            log.info("Get {} JDK dependencies", dependencies.size());
-            log.info("Try to collect all targets");
-
-            Map<String, String> cps = GlobalConfiguration.IS_EXCLUDE_JDK ? new HashMap<>():new HashMap<>(dependencies);
-            Map<String, String> targets = new HashMap<>();
-            // 收集目标
-            GlobalConfiguration.rulesContainer = rulesContainer;
-            if(!GlobalConfiguration.IS_JDK_ONLY){
-                Map<String, String> files = fileCollector.collect(GlobalConfiguration.TARGET);
-                cps.putAll(files);
-                targets.putAll(files);
-            }
-
-            if(GlobalConfiguration.IS_JDK_ONLY
-                    || GlobalConfiguration.IS_JDK_PROCESS){
-                targets.putAll(dependencies);
-            }
-
-            // 添加必要的依赖，防止信息缺失，比如servlet依赖
-            if(FileUtils.fileExists(GlobalConfiguration.LIBS_PATH)){
-                Map<String, String> files = fileCollector.collect(GlobalConfiguration.LIBS_PATH);
-                GlobalConfiguration.libraries.putAll(files);
-            }
-
-            for(Map.Entry<String, String> entry:GlobalConfiguration.libraries.entrySet()){
-                cps.putIfAbsent(entry.getKey(), entry.getValue());
-            }
-
-            runSootAnalysis(targets, new ArrayList<>(cps.values()));
-            dataContainer.count();
-            dataContainer.save2CSV();
+        if(GlobalConfiguration.IS_JDK_ONLY
+                || GlobalConfiguration.IS_JDK_PROCESS){
+            targets.putAll(dependencies);
         }
 
-        if(loadEnabled){
-            G.reset();
-            if(future != null){
-                while (!future.isDone()){
-                    // do nothing 等待结束
-                }
-            }
-            save();
+        // 添加必要的依赖，防止信息缺失，比如servlet依赖
+        if(FileUtils.fileExists(GlobalConfiguration.LIBS_PATH)){
+            Map<String, String> files = fileCollector.collect(GlobalConfiguration.LIBS_PATH);
+            GlobalConfiguration.libraries.putAll(files);
         }
+
+        for(Map.Entry<String, String> entry:GlobalConfiguration.libraries.entrySet()){
+            cps.putIfAbsent(entry.getKey(), entry.getValue());
+        }
+
+        runSootAnalysis(targets, new ArrayList<>(cps.values()));
+        dataContainer.count();
+        dataContainer.save2CSV();
     }
 
     public void runSootAnalysis(Map<String, String> targets, List<String> classpaths){
@@ -165,15 +141,6 @@ public class Analyser {
         for(String cls:basicClasses){
             Scene.v().addBasicClass(cls, HIERARCHY);
         }
-    }
-
-    public void save(){
-        log.info("Start to save cache.");
-        long start = System.nanoTime();
-        dataContainer.save2Neo4j();
-        long time = TimeUnit.NANOSECONDS.toSeconds(System.nanoTime() - start);
-        log.info("Cost {} min {} seconds."
-                , time/60, time%60);
     }
 
 }

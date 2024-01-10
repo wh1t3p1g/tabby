@@ -10,10 +10,10 @@ import soot.tagkit.Tag;
 import soot.tagkit.VisibilityAnnotationTag;
 import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
-import tabby.core.data.TabbyRule;
-import tabby.dal.caching.bean.edge.Has;
-import tabby.dal.caching.bean.ref.ClassReference;
-import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.common.rule.TabbyRule;
+import tabby.common.bean.edge.Has;
+import tabby.common.bean.ref.ClassReference;
+import tabby.common.bean.ref.MethodReference;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;

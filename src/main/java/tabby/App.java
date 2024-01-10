@@ -10,15 +10,13 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
-import org.springframework.data.neo4j.repository.config.EnableNeo4jRepositories;
 import tabby.config.GlobalConfiguration;
 import tabby.core.Analyser;
-import tabby.util.FileUtils;
+import tabby.common.utils.FileUtils;
 
 @Slf4j
 @SpringBootApplication
-@EntityScan({"tabby.dal.caching.bean","tabby.dal.neo4j.entity"})
-@EnableNeo4jRepositories("tabby.dal.neo4j.repository")
+@EntityScan({"tabby.common.bean"})
 public class App {
 
     @Autowired

@@ -1,9 +1,10 @@
 package tabby.config;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import tabby.core.container.RulesContainer;
-import tabby.util.FileUtils;
+import tabby.common.utils.FileUtils;
 
 import java.io.File;
 import java.io.FileReader;
@@ -36,16 +37,12 @@ public class GlobalConfiguration {
     public static String EXTEND_RELATIONSHIP_OUTPUT_PATH;
     public static String HAS_RELATIONSHIP_OUTPUT_PATH;
     public static String INTERFACE_RELATIONSHIP_OUTPUT_PATH;
-    public static boolean IS_DOCKER_IMPORT_PATH = false;
-    public static Gson GSON = new Gson();
+    public static Gson GSON = new GsonBuilder().disableHtmlEscaping().create();
     public static boolean DEBUG = false;
     public static int TIMEOUT = 2;
     public static String MODE = "gadget";
     public static String TARGET = null;
     public static String OUTPUT_DIRECTORY = "";
-    public static String NEO4J_USERNAME = null;
-    public static String NEO4J_PASSWORD = null;
-    public static String NEO4J_URL = null;
 
     public static RulesContainer rulesContainer;
 
@@ -54,8 +51,6 @@ public class GlobalConfiguration {
     public static boolean IS_WEB_MODE = false;
     public static boolean IS_JDK_ONLY = false;
     public static boolean IS_JDK_PROCESS = false;
-    public static boolean IS_BUILD_ENABLE = false;
-    public static boolean IS_LOAD_ENABLE = false;
     public static boolean IS_EXCLUDE_JDK = false;
     public static boolean IS_WITH_ALL_JDK = false;
     public static boolean IS_CHECK_FAT_JAR = false;
@@ -76,10 +71,6 @@ public class GlobalConfiguration {
             } catch (IOException e) {
                 throw new IllegalArgumentException("Config ERROR: settings.properties file not found!");
             }
-            // db settings
-            NEO4J_USERNAME = getProperty("tabby.neo4j.username", "neo4j", props);
-            NEO4J_PASSWORD = getProperty("tabby.neo4j.password", "neo4j", props);
-            NEO4J_URL = getProperty("tabby.neo4j.url", "bolt://localhost:7687", props);
             // resolve rule directory
             RULES_PATH = getProperty("tabby.build.rules.directory", "./rules", props);
             RULES_PATH = FileUtils.getRealPath(RULES_PATH);
@@ -114,13 +105,10 @@ public class GlobalConfiguration {
         TARGET = getProperty("tabby.build.target", "", props);
 
         OUTPUT_DIRECTORY = getProperty("tabby.output.directory", "./output", props);
-        IS_LOAD_ENABLE = getBooleanProperty("tabby.load.enable", "false", props);
-        IS_BUILD_ENABLE = getBooleanProperty("tabby.build.enable", "false", props);
-        IS_DOCKER_IMPORT_PATH = getBooleanProperty("tabby.cache.isDockerImportPath", "false", props);
 
         if(!FileUtils.fileExists(OUTPUT_DIRECTORY)){
             FileUtils.createDirectory(OUTPUT_DIRECTORY);
-        }else if(IS_BUILD_ENABLE){
+        }else{
             // 如果存在output，则删除该目录下的csv文件
             clean(OUTPUT_DIRECTORY);
         }

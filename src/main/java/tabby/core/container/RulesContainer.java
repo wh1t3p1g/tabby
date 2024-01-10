@@ -4,8 +4,8 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tabby.config.GlobalConfiguration;
-import tabby.core.data.TabbyRule;
-import tabby.util.FileUtils;
+import tabby.common.rule.TabbyRule;
+import tabby.common.utils.FileUtils;
 
 import java.io.FileNotFoundException;
 import java.util.*;

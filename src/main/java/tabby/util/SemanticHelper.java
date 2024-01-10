@@ -6,7 +6,8 @@ import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
 import soot.tagkit.*;
-import tabby.dal.caching.bean.ref.MethodReference;
+import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.JavaVersionUtils;
 
 import java.nio.charset.StandardCharsets;
 import java.util.*;
@@ -378,7 +379,7 @@ public class SemanticHelper {
     }
 
     public static SootClass loadClass(String cls){
-        if(JavaVersion.isAtLeast(9)){
+        if(JavaVersionUtils.isAtLeast(9)){
             return ModuleScene.v().loadClassAndSupport(cls);
         }else{
             return Scene.v().loadClassAndSupport(cls);

@@ -9,11 +9,11 @@ import soot.Unit;
 import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
+import tabby.common.utils.SemanticUtils;
 import tabby.core.container.DataContainer;
-import tabby.core.model.DefaultInvokeModel;
-import tabby.core.switcher.Switcher;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.util.TickTock;
+import tabby.analysis.model.DefaultInvokeModel;
+import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.TickTock;
 
 /**
  * @author wh1t3p1g
@@ -53,7 +53,7 @@ public class CallEdgeCollector {
                 return;
             }
 
-            JimpleBody body = (JimpleBody) Switcher.retrieveBody(method, method.getSignature());
+            JimpleBody body = (JimpleBody) SemanticUtils.retrieveBody(method, method.getSignature(), true);
             if(body == null) {
                 tickTock.countDown();
                 return;

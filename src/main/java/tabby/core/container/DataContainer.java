@@ -4,25 +4,21 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
 import org.springframework.stereotype.Component;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
+import tabby.common.bean.edge.*;
+import tabby.common.bean.ref.ClassReference;
+import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.SemanticUtils;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.dal.caching.bean.edge.*;
-import tabby.dal.caching.bean.ref.ClassReference;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.dal.caching.service.ClassRefService;
-import tabby.dal.caching.service.MethodRefService;
-import tabby.dal.caching.service.RelationshipsService;
-import tabby.dal.neo4j.service.ClassService;
-import tabby.dal.neo4j.service.MethodService;
+import tabby.dal.service.ClassRefService;
+import tabby.dal.service.MethodRefService;
+import tabby.dal.service.RelationshipsService;
 import tabby.util.SemanticHelper;
 
 import java.util.*;
-import java.util.concurrent.Future;
 
 /**
  * global tabby.core.data container
@@ -37,12 +33,6 @@ public class DataContainer {
 
     @Autowired
     private RulesContainer rulesContainer;
-
-    @Autowired
-    private ClassService classService;
-
-    @Autowired
-    private MethodService methodService;
 
     @Autowired
     private ClassRefService classRefService;
@@ -280,7 +270,7 @@ public class DataContainer {
         MethodReference target = getMethodRefBySubSignature(classname, subSignature);
         if(target != null) return target;
 
-        SootClass sc = SemanticHelper.getSootClass(clean(classname));
+        SootClass sc = SemanticUtils.getSootClass(clean(classname));
         if(sc != null && sc.hasSuperclass()){
             target = getFirstMethodRef(sc.getSuperclass().getName(), subSignature);
         }
@@ -375,29 +365,12 @@ public class DataContainer {
         });
     }
 
-    public void save2Neo4j(){
-        log.info("Save methods to Neo4j.");
-        methodService.importMethodRef();
-        log.info("Save classes to Neo4j.");
-        classService.importClassRef();
-        log.info("Save relation to Neo4j.");
-        classService.buildEdge();
-    }
-
     public void save2CSV(){
         log.info("Save cache to CSV.");
         classRefService.save2Csv();
         methodRefService.save2Csv();
         relationshipsService.save2CSV();
         log.info("Save cache to CSV. DONE!");
-    }
-
-    @Async("tabby-collector")
-    public Future<Boolean> cleanAll(){
-        log.info("Clean old tabby.core.data in Neo4j.");
-        classService.clear();
-        log.info("Clean old tabby.core.data in Neo4j. DONE!");
-        return new AsyncResult<>(true);
     }
 
     public void count(){

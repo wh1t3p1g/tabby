@@ -1,9 +1,14 @@
-if [ $1 = 'clean' ]
+if [ $1 = 'build' ]
 then
-	echo "clean old data"
-	rm -rf cache/*.db && ls -alh cache | grep graphdb
-	rm -rf rules/ignores.json && ls -alh rules | grep ignores
+	echo "start to run tabby"
+  java -Xmx16g -jar build/libs/tabby.jar
+elif [ $1 = 'load' ]
+then
+	java -jar tabby-vul-finder.jar load $2
+elif [ $1 = 'query' ]
+then
+	java -jar tabby-vul-finder.jar query $2
+elif [ $1 = 'pack' ]
+then
+  tar -czvf output.tar.gz ./output/*.csv
 fi
-
-echo "start to run tabby"
-java -Xmx10g -jar tabby.jar

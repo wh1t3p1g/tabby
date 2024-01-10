@@ -5,16 +5,16 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.*;
+import tabby.common.bean.edge.Alias;
+import tabby.common.bean.edge.Extend;
+import tabby.common.bean.edge.Has;
+import tabby.common.bean.edge.Interfaces;
+import tabby.common.bean.ref.ClassReference;
+import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.JavaVersionUtils;
+import tabby.common.utils.SemanticUtils;
 import tabby.core.collector.ClassInfoCollector;
 import tabby.core.container.DataContainer;
-import tabby.dal.caching.bean.edge.Alias;
-import tabby.dal.caching.bean.edge.Extend;
-import tabby.dal.caching.bean.edge.Has;
-import tabby.dal.caching.bean.edge.Interfaces;
-import tabby.dal.caching.bean.ref.ClassReference;
-import tabby.dal.caching.bean.ref.MethodReference;
-import tabby.util.JavaVersion;
-import tabby.util.SemanticHelper;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -54,7 +54,7 @@ public class ClassInfoScanner {
         Map<String, CompletableFuture<ClassReference>> results = new HashMap<>();
         log.info("Start to collect {} targets' class information.", targets.size());
         Map<String, List<String>> moduleClasses = null;
-        if(JavaVersion.isAtLeast(9)){
+        if(JavaVersionUtils.isAtLeast(9)){
             moduleClasses = ModulePathSourceLocator.v().getClassUnderModulePath("jrt:/");
         }
         for (final String path : targets) {
@@ -63,7 +63,6 @@ public class ClassInfoScanner {
 
             for (String cl : classes) {
                 try{
-//                    SootClass theClass = SemanticHelper.loadClass(cl);
                     SootClass theClass = Scene.v().loadClassAndSupport(cl);
                     if (!theClass.isPhantom()) {
                         // 这里存在类数量不一致的情况，是因为存在重复的对象
@@ -85,7 +84,7 @@ public class ClassInfoScanner {
         Path path = Paths.get(filepath);
         if(Files.notExists(path)) return null;
 
-        if(JavaVersion.isAtLeast(9) && moduleClasses != null){
+        if(JavaVersionUtils.isAtLeast(9) && moduleClasses != null){
             String filename = path.getFileName().toString();
             if(filename.endsWith(".jmod")){
                 filename = filename.substring(0, filename.length() - 5);
@@ -138,7 +137,6 @@ public class ClassInfoScanner {
             }
             if(superClsRef != null && !"java.lang.Object".equals(superClsRef.getName())){
                 Extend extend =  Extend.newInstance(clsRef, superClsRef);
-                clsRef.setExtendEdge(extend);
                 dataContainer.store(extend);
             }
         }
@@ -153,7 +151,6 @@ public class ClassInfoScanner {
                 }
                 if(infaceClsRef != null){
                     Interfaces interfaces = Interfaces.newInstance(clsRef, infaceClsRef);
-                    clsRef.getInterfaceEdge().add(interfaces);
                     dataContainer.store(interfaces);
                 }
             }
@@ -172,7 +169,7 @@ public class ClassInfoScanner {
         ClassReference classRef = null;
         try{
             if(cls == null){
-                cls = SemanticHelper.getSootClass(classname);
+                cls = SemanticUtils.getSootClass(classname);
             }
         }catch (Exception e){
             // class not found

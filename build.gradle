@@ -25,7 +25,7 @@ repositories {
 
 dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
-    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
+//    implementation 'org.springframework.boot:spring-boot-starter-data-neo4j'
 //    implementation 'org.soot-oss:soot:4.2.1'
 //    implementation 'org.soot-oss:soot:4.3.0-SNAPSHOT'
     implementation 'org.soot-oss:soot:4.4.1'

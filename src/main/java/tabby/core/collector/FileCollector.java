@@ -2,9 +2,9 @@ package tabby.core.collector;
 
 import org.springframework.stereotype.Service;
 import tabby.config.GlobalConfiguration;
-import tabby.core.data.FileLocation;
-import tabby.util.FileUtils;
-import tabby.util.JavaVersion;
+import tabby.analysis.data.FileLocation;
+import tabby.common.utils.FileUtils;
+import tabby.common.utils.JavaVersionUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -53,7 +53,7 @@ public class FileCollector {
         Map<String, String> allJdkDependencies = new HashMap<>();
 
         String javaHome = System.getProperty("java.home");
-        if(JavaVersion.isAtLeast(9)){ // jdk >= 9
+        if(JavaVersionUtils.isAtLeast(9)){ // jdk >= 9
             if(GlobalConfiguration.IS_WITH_ALL_JDK){
                 allJdkDependencies.putAll(FileUtils.findAllJdkDependencies(javaHome+"/jmods/", false));
             }else{
