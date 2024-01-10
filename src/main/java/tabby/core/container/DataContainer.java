@@ -142,10 +142,10 @@ public class DataContainer {
      * @return
      */
     public ClassReference getClassRefByName(String name){
-        ClassReference ref = savedClassRefs.getOrDefault(name, null);
+        ClassReference ref = savedClassRefs.getOrDefault(clean(name), null);
         if(ref != null) return ref;
         // find from h2
-        ref = classRefService.getClassRefByName(name);
+        ref = classRefService.getClassRefByName(clean(name));
         return ref;
     }
 
@@ -177,10 +177,10 @@ public class DataContainer {
      * @return
      */
     public MethodReference getMethodRefBySignature(String signature){
-        MethodReference ref = savedMethodRefs.getOrDefault(signature, null);
+        MethodReference ref = savedMethodRefs.getOrDefault(clean(signature), null);
         if(ref != null) return ref;
         // find from h2
-        ref = methodRefService.getMethodRefBySignature(signature);
+        ref = methodRefService.getMethodRefBySignature(clean(signature));
         return ref;
     }
 
