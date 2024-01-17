@@ -13,7 +13,7 @@ import tabby.common.bean.edge.Alias;
 import tabby.common.bean.edge.Call;
 import tabby.common.utils.SemanticUtils;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;

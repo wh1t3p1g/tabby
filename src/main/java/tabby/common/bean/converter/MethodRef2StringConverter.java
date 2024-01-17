@@ -2,8 +2,8 @@ package tabby.common.bean.converter;
 
 import tabby.common.bean.ref.MethodReference;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 
 /**
  * @author wh1t3P1g

@@ -9,9 +9,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.Executor;
 import java.util.concurrent.ThreadPoolExecutor;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
 /**
  * @author wh1t3P1g
  * @since 2021/4/23
@@ -27,16 +24,19 @@ public class AsyncConfiguration {
     public Executor master() {
         int corePoolSize = (int) (CORE_POOL_SIZE / 0.8);
         int maxPoolSize = (int) (CORE_POOL_SIZE / 0.6);
-        return makeExecutor(corePoolSize, maxPoolSize,"tabby-collector");
+        ThreadPoolTaskExecutor executor = makeExecutor(corePoolSize, maxPoolSize,"tabby-collector");
+        GlobalConfiguration.tabbyCollectorExecutor = executor;
+        return executor;
     }
 
-    private Executor makeExecutor(int corePoolSize, int maxPoolSize, String prefix){
+    private ThreadPoolTaskExecutor makeExecutor(int corePoolSize, int maxPoolSize, String prefix){
         log.info("Open {} size for thread pool {}", corePoolSize, prefix);
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.setCorePoolSize(corePoolSize);
         executor.setMaxPoolSize(maxPoolSize);
         executor.setQueueCapacity(maxPoolSize * 1000);
         executor.setKeepAliveSeconds(300);
+        executor.setAwaitTerminationSeconds(1);
         executor.setThreadNamePrefix(prefix+"-");
         executor.setRejectedExecutionHandler(new ThreadPoolExecutor.CallerRunsPolicy());
         executor.initialize();

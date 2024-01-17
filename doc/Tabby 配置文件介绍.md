@@ -33,11 +33,13 @@ tabby.build.isNeedToCreateIgnoreList      = false
 #### 配置 jdk 依赖是否参与分析
 ```properties
 # jdk settings
+tabby.build.isJRE9Module                  = false # 指代下述javaHome版本是否 >= 9
+tabby.build.javaHome                      = /Library/Java/JavaVirtualMachines/zulu-8.jdk/Contents/Home
 tabby.build.isJDKProcess                  = false # 分析过程是否加入基础的2个jdk依赖
 tabby.build.withAllJDK                    = false # 分析过程是否加入全量的jdk依赖
-tabby.build.excludeJDK                    = false # 分析过程是否剔除当前运行环境的jdk依赖，此时target目录需要提供需要分析的jdk依赖
 tabby.build.isJDKOnly                     = false # 分析过程是否仅分析jdk依赖，不会去分析target目录下的文件
 ```
+如果 javaHome 所指向的路径是 jdk >= 9, 第一次生成jre_libs目录会花一点时间，请耐心等待。
 
 #### 配置分析目标
 

@@ -1,6 +1,5 @@
 if [ $1 = 'build' ]
 then
-	echo "start to run tabby"
   java -Xmx16g -jar build/libs/tabby.jar
 elif [ $1 = 'load' ]
 then

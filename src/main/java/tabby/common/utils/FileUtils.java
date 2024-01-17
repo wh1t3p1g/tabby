@@ -4,11 +4,14 @@ import com.google.common.hash.Hashing;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.RandomStringUtils;
 import tabby.config.GlobalConfiguration;
+import tabby.plugin.jmod.JModTransferPlugin;
 
 import java.io.*;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 import java.util.jar.JarFile;
 import java.util.zip.ZipEntry;
 import java.util.zip.ZipFile;
@@ -298,5 +301,110 @@ public class FileUtils {
         }catch (Exception ig){
             throw new IllegalArgumentException("Cache Path error!");
         }
+    }
+
+    public static void copy(String source, String target) throws IOException {
+        Files.copy(Paths.get(source), Paths.get(target), StandardCopyOption.REPLACE_EXISTING);
+    }
+
+    public static Set<String> findAllJdkDependencies(JModTransferPlugin plugin){
+        String javaHome = GlobalConfiguration.TARGET_JAVA_HOME;
+
+        if(javaHome == null){
+            throw new RuntimeException("JAVA_HOME not set!");
+        }
+
+        Set<String> targets = new HashSet<>();
+        if(GlobalConfiguration.IS_JRE9_MODULE){
+            targets.add(String.join(File.separator, Arrays.asList(javaHome, "jmods")));
+        }else{
+            targets.add(String.join(File.separator, Arrays.asList(javaHome, "lib")));
+            targets.add(String.join(File.separator, Arrays.asList(javaHome, "jre", "lib")));
+        }
+
+        Set<CompletableFuture<Boolean>> futures = new HashSet<>();
+        Set<String> libraries = new HashSet<>();
+        for(String target:targets){
+            try{
+                Path path = Paths.get(target).toRealPath();
+                String realPath = path.toString();
+                Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
+                    @Override
+                    public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                        String source = path.toAbsolutePath().toString();
+                        String filename = path.getFileName().toString();
+                        if(source.endsWith("local_policy.jar") || source.endsWith("US_export_policy.jar")){
+                            return FileVisitResult.CONTINUE;
+                        }
+
+                        if(source.endsWith(".jar")){
+                            String dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename));
+                            futures.add(plugin.transfer(source, dest));
+                            libraries.add(dest);
+                        }else if(source.endsWith(".jmod")){
+                            String dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename+".jar"));
+                            futures.add(plugin.transfer(source, dest));
+                            libraries.add(dest);
+                        }
+
+                        return FileVisitResult.CONTINUE;
+                    }
+
+                    @Override
+                    public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                        if(!GlobalConfiguration.IS_JRE9_MODULE || realPath.equals(dir.toAbsolutePath().toString())){
+                            return super.preVisitDirectory(dir, attrs);
+                        }else{
+                            return FileVisitResult.SKIP_SUBTREE;
+                        }
+                    }
+                });
+            }catch (Exception e){
+                e.printStackTrace();
+            }
+        }
+
+        // wait for finished
+        for(CompletableFuture<Boolean> future:futures){
+            try {
+                future.get();
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        return libraries;
+    }
+
+    public static Set<String> findAllJarFiles(String target, boolean isNeedRecursion) throws IOException {
+        Set<String> paths = new HashSet<>();
+        Path path = Paths.get(target).toRealPath();
+        String realPath = path.toString();
+        if (!Files.exists(path)) {
+            throw new IllegalArgumentException("Invalid target path: " + path);
+        }
+
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>(){
+            @Override
+            public FileVisitResult visitFile(Path path, BasicFileAttributes attrs) throws IOException {
+                String file = path.toAbsolutePath().toString();
+                if(file.endsWith(".jar") || file.endsWith(".jmod")){
+                    paths.add(file);
+                }
+                return FileVisitResult.CONTINUE;
+            }
+
+            @Override
+            public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs) throws IOException {
+                if(isNeedRecursion || realPath.equals(dir.toAbsolutePath().toString())){
+                    return super.preVisitDirectory(dir, attrs);
+                }else{
+                    return FileVisitResult.SKIP_SUBTREE;
+                }
+            }
+        });
+
+        return paths;
     }
 }

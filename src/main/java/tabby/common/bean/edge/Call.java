@@ -8,7 +8,7 @@ import tabby.common.bean.converter.ListSet2JsonStringConverter;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.HashingUtils;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.util.*;
 
 /**

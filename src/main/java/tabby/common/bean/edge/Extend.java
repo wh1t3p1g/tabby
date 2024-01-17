@@ -6,7 +6,7 @@ import lombok.Setter;
 import tabby.common.bean.ref.ClassReference;
 import tabby.common.utils.HashingUtils;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 
 /**
  * @author wh1t3P1g

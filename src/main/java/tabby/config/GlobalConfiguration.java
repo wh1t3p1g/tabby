@@ -3,6 +3,7 @@ package tabby.config;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import tabby.core.container.RulesContainer;
 import tabby.common.utils.FileUtils;
 
@@ -24,6 +25,7 @@ public class GlobalConfiguration {
 
     public static String CONFIG_FILE_PATH = String.join(File.separator, System.getProperty("user.dir"), "config", "settings.properties");
     public static String LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "libs");
+    public static String JRE_LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "jre_libs");
     public static String RULES_PATH;
     public static String SINK_RULE_PATH;
     public static String SYSTEM_RULE_PATH;
@@ -51,7 +53,6 @@ public class GlobalConfiguration {
     public static boolean IS_WEB_MODE = false;
     public static boolean IS_JDK_ONLY = false;
     public static boolean IS_JDK_PROCESS = false;
-    public static boolean IS_EXCLUDE_JDK = false;
     public static boolean IS_WITH_ALL_JDK = false;
     public static boolean IS_CHECK_FAT_JAR = false;
     public static boolean IS_FULL_CALL_GRAPH_CONSTRUCT = false;
@@ -59,8 +60,16 @@ public class GlobalConfiguration {
     private static Properties props;
     public static boolean isInitialed = false;
     public static boolean isNeedStop = false;
-
+    public static boolean IS_JRE9_MODULE = false;
+    public static String TARGET_JAVA_HOME = null;
     public static String THREAD_POOL_SIZE = "max";
+    public static ThreadPoolTaskExecutor tabbyCollectorExecutor;
+
+    static {
+        if(!FileUtils.fileExists(JRE_LIBS_PATH)){
+            FileUtils.createDirectory(JRE_LIBS_PATH);
+        }
+    }
 
     public static void init(){
         if(props == null){
@@ -81,7 +90,8 @@ public class GlobalConfiguration {
             BASIC_CLASSES_PATH = String.join(File.separator, RULES_PATH, "basicClasses.json");
             COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
             THREAD_POOL_SIZE = getProperty("tabby.build.thread.size", "max", props);
-
+            IS_JRE9_MODULE = getBooleanProperty("tabby.build.isJRE9Module", "false", props);
+            TARGET_JAVA_HOME = getProperty("tabby.build.javaHome", null, props);
             int maxThreadPoolSize = Runtime.getRuntime().availableProcessors();
             if("max".equals(THREAD_POOL_SIZE)){
                 AsyncConfiguration.CORE_POOL_SIZE = maxThreadPoolSize;
@@ -131,11 +141,9 @@ public class GlobalConfiguration {
 
         if(IS_JDK_ONLY){
             IS_WITH_ALL_JDK = true;
-            IS_EXCLUDE_JDK = false;
             IS_JDK_PROCESS = true;
         }else{
             IS_WITH_ALL_JDK = getBooleanProperty("tabby.build.withAllJDK", "false", props);
-            IS_EXCLUDE_JDK = getBooleanProperty("tabby.build.excludeJDK", "false", props);
             IS_JDK_PROCESS = getBooleanProperty("tabby.build.isJDKProcess", "false", props);
         }
 
@@ -189,7 +197,11 @@ public class GlobalConfiguration {
     }
 
     public static String getProperty(String key, String defaultValue, Properties props){
-        return props.getProperty(key, defaultValue).trim();
+        String data = props.getProperty(key, defaultValue);
+        if(data != null){
+            return data.trim();
+        }
+        return null;
     }
 
     public static boolean getBooleanProperty(String key, String defaultValue, Properties props){

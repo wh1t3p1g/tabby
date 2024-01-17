@@ -10,7 +10,7 @@ import tabby.common.bean.edge.Has;
 import tabby.common.bean.converter.List2JsonStringConverter;
 import tabby.common.bean.converter.Map2JsonStringForAnnotationsConverter;
 
-import javax.persistence.*;
+import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 

@@ -3,8 +3,8 @@ package tabby.common.bean.converter;
 import com.google.gson.reflect.TypeToken;
 import tabby.config.GlobalConfiguration;
 
-import javax.persistence.AttributeConverter;
-import javax.persistence.Converter;
+import jakarta.persistence.AttributeConverter;
+import jakarta.persistence.Converter;
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;

@@ -1,12 +1,12 @@
 package tabby.core.collector;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import tabby.config.GlobalConfiguration;
 import tabby.analysis.data.FileLocation;
 import tabby.common.utils.FileUtils;
-import tabby.common.utils.JavaVersionUtils;
+import tabby.config.GlobalConfiguration;
+import tabby.plugin.jmod.JModTransferPlugin;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +21,9 @@ import java.util.Set;
  */
 @Service
 public class FileCollector {
+
+    @Autowired
+    public JModTransferPlugin jModTransferPlugin;
 
     public Map<String, String> collect(String targetPath){
         Map<String, String> allTargets = new HashMap<>();
@@ -50,36 +53,33 @@ public class FileCollector {
 
 
     public Map<String, String> collectJdkDependencies() throws IOException {
-        Map<String, String> allJdkDependencies = new HashMap<>();
+        Map<String, String> dependencies = new HashMap<>();
 
-        String javaHome = System.getProperty("java.home");
-        if(JavaVersionUtils.isAtLeast(9)){ // jdk >= 9
+        Set<String> jdkLibs = null;
+        if(FileUtils.fileExists(GlobalConfiguration.JRE_LIBS_PATH)){
+            jdkLibs = FileUtils.findAllJarFiles(GlobalConfiguration.JRE_LIBS_PATH, false);
+        }
+        if(jdkLibs == null || jdkLibs.isEmpty()){
+            jdkLibs = FileUtils.findAllJdkDependencies(jModTransferPlugin);
+        }
+
+        for(String filepath:jdkLibs){
             if(GlobalConfiguration.IS_WITH_ALL_JDK){
-                allJdkDependencies.putAll(FileUtils.findAllJdkDependencies(javaHome+"/jmods/", false));
-            }else{
-                String path = javaHome+"/jmods/java.base.jmod";
-                File file = new File(path);
-                if(file.exists()){
-                    allJdkDependencies.put(FileUtils.getFileMD5(file), path);
+                dependencies.put(FileUtils.getFileMD5(filepath), filepath);
+            }else if(GlobalConfiguration.IS_JRE9_MODULE){
+                if(filepath.endsWith("java.base.jmod.jar")
+                        || filepath.endsWith("java.desktop.jmod.jar")
+                        || filepath.endsWith("java.logging.jmod.jar")){
+                    dependencies.put(FileUtils.getFileMD5(filepath), filepath);
                 }
-            }
-        }else{ // jdk <= 8
-            if(GlobalConfiguration.IS_WITH_ALL_JDK){
-                allJdkDependencies.putAll(FileUtils.findAllJdkDependencies(javaHome+"/lib", true));
-                allJdkDependencies.putAll(FileUtils.findAllJdkDependencies(javaHome+"/../lib", false));
             }else{
-                String[] jre = new String[]{"lib/rt.jar","lib/jce.jar"};
-                for(String cp:jre){
-                    String path = String.join(File.separator, javaHome, cp);
-                    File file = new File(path);
-                    if(file.exists()){
-                        allJdkDependencies.put(FileUtils.getFileMD5(file), path);
-                    }
+                if(filepath.endsWith("rt.jar") || filepath.endsWith("jce.jar")){
+                    dependencies.put(FileUtils.getFileMD5(filepath), filepath);
                 }
             }
         }
 
-        return allJdkDependencies;
+        return dependencies;
     }
 
 }

@@ -10,9 +10,11 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import sun.misc.Signal;
+import tabby.common.utils.FileUtils;
 import tabby.config.GlobalConfiguration;
 import tabby.core.Analyser;
-import tabby.common.utils.FileUtils;
 
 @Slf4j
 @SpringBootApplication
@@ -30,6 +32,21 @@ public class App {
         SpringApplication.run(App.class, args).close();
     }
 
+    public void setJavaHome(){
+        // set java home
+        if(GlobalConfiguration.TARGET_JAVA_HOME == null){
+            String javaHome = System.getProperty("java.home");
+            if(javaHome == null){
+                javaHome = System.getenv("JAVA_HOME");
+            }
+            if(javaHome != null){
+                GlobalConfiguration.TARGET_JAVA_HOME = javaHome;
+            }
+        }
+
+        log.info("Analysis target java.home: " + GlobalConfiguration.TARGET_JAVA_HOME);
+    }
+
     public void setLogDebugLevel(){
         LoggerContext loggerContext = (LoggerContext) LoggerFactory.getILoggerFactory();
         if(GlobalConfiguration.DEBUG) {
@@ -42,12 +59,25 @@ public class App {
         return args -> {
             try{
                 GlobalConfiguration.initConfig();
+                setJavaHome();
                 setLogDebugLevel();
+                Signal.handle(new Signal("INT"),  // SIGINT
+                        signal -> {
+                            log.error("Force Stop by control+c");
+                            stopThreads(GlobalConfiguration.tabbyCollectorExecutor);
+                            System.exit(0);
+                        });
                 analyser.run();
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() + ", Please check your settings.properties file.");
             }
             log.info("Done. Bye!");
         };
+    }
+
+    public static void stopThreads(ThreadPoolTaskExecutor executor){
+        if(executor != null && executor.getActiveCount() > 0){
+            executor.shutdown();
+        }
     }
 }

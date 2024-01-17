@@ -4,10 +4,10 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import soot.CompilationDeathException;
-import soot.G;
 import soot.Main;
 import soot.Scene;
 import soot.options.Options;
+import tabby.common.utils.FileUtils;
 import tabby.config.GlobalConfiguration;
 import tabby.config.SootConfiguration;
 import tabby.core.collector.FileCollector;
@@ -15,12 +15,10 @@ import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 import tabby.core.scanner.CallGraphScanner;
 import tabby.core.scanner.ClassInfoScanner;
-import tabby.common.utils.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.*;
-import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 
 import static soot.SootClass.HIERARCHY;
@@ -52,7 +50,7 @@ public class Analyser {
         log.info("Get {} JDK dependencies", dependencies.size());
         log.info("Try to collect all targets");
 
-        Map<String, String> cps = GlobalConfiguration.IS_EXCLUDE_JDK ? new HashMap<>():new HashMap<>(dependencies);
+        Map<String, String> cps = new HashMap<>(dependencies);
         Map<String, String> targets = new HashMap<>();
         // 收集目标
         GlobalConfiguration.rulesContainer = rulesContainer;
@@ -87,6 +85,7 @@ public class Analyser {
             SootConfiguration.initSootOption();
             addBasicClasses();
             log.info("Load basic classes");
+            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
             Scene.v().loadBasicClasses();
             log.info("Load dynamic classes");
             Scene.v().loadDynamicClasses();

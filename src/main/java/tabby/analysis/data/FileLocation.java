@@ -4,7 +4,7 @@ import lombok.Data;
 import org.apache.commons.lang3.RandomStringUtils;
 import tabby.config.GlobalConfiguration;
 import tabby.common.utils.FileUtils;
-import tabby.plugin.JspCompilePlugin;
+import tabby.plugin.jsp.JspCompilePlugin;
 
 import java.io.File;
 import java.io.IOException;
