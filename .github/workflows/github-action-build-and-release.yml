@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v2
         with:
           distribution: 'adopt'
-          java-version: '8'
+          java-version: '17'
 
       - name: Validate Gradle wrapper matches official SHA-256 checksums for security
         uses: gradle/wrapper-validation-action@v1
