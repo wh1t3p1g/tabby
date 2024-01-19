@@ -57,7 +57,7 @@ apoc.import.file.use_neo4j_config=false
 
 查询 `CALL apoc.help('all')`
 ![](assets/Neo4j%20环境配置/image-20230110233659101.jpeg)
-查询 `CALL tabby.help('all')`
+查询 `CALL tabby.help('tabby')`
 ![](assets/Neo4j%20环境配置/image-20230110233750744.png)
 
 ## #6 图数据库索引配置（必做项）
