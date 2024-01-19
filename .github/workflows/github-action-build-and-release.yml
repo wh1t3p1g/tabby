@@ -8,24 +8,21 @@ on:
 
 jobs:
   build_release:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-latest
     name: build_release
     steps:
       - name: checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
       - name: Setup JDK
-        uses: actions/setup-java@v2
+        uses: actions/setup-java@v4
         with:
-          distribution: 'adopt'
+          distribution: 'zulu'
           java-version: '17'
 
-      - name: Validate Gradle wrapper matches official SHA-256 checksums for security
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: build
+      - name: Build
         run: |
           ./gradlew bootJar
           echo "artifactPath=$(pwd)" >> $GITHUB_ENV
@@ -36,10 +33,6 @@ jobs:
           cp build/libs/tabby.jar .
           zip -r tabby.zip . -x "build/*" ".github/*" "cyphers/*" ".git/*" "doc/*" "gradle/*" "src/*" ".gitignore" "README.md" "*gradle*"
           rm tabby.jar
-      #      - name: get semantic tag version and release notes from commit messages
-      #        id: tag
-      #        run: |
-      #          curtag=${GITHUB_REF_NAME}
 
       # debug
       - run: echo version is ${{ env.version }}
