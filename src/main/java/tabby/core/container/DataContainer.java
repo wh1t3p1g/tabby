@@ -254,6 +254,7 @@ public class DataContainer {
 
             if(methodRef == null){
                 methodRef = MethodReference.newInstance(classRef.getName(), method);
+                rulesContainer.applyRule(cls.getName(), methodRef, new HashSet<>());
                 Has has = Has.newInstance(classRef, methodRef);
                 if(!classRef.getHasEdge().contains(has)){
                     classRef.getHasEdge().add(has);

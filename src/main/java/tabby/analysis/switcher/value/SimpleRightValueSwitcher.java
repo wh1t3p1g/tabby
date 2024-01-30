@@ -4,9 +4,9 @@ import lombok.extern.slf4j.Slf4j;
 import soot.Local;
 import soot.Value;
 import soot.jimple.*;
+import tabby.analysis.data.TabbyVariable;
 import tabby.analysis.switcher.Switcher;
 import tabby.config.GlobalConfiguration;
-import tabby.analysis.data.TabbyVariable;
 
 /**
  * @author wh1t3P1g

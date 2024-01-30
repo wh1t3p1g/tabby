@@ -63,7 +63,10 @@ public class ClassInfoScanner {
 
             for (String cl : classes) {
                 try{
-                    SootClass theClass = Scene.v().loadClassAndSupport(cl);
+
+//                    if(!cl.startsWith("")) continue;
+
+                    SootClass theClass = Scene.v().loadClassAndSupport(cl); // TODO debug
                     if (!theClass.isPhantom()) {
                         // 这里存在类数量不一致的情况，是因为存在重复的对象
                         results.put(cl, collector.collect(theClass));

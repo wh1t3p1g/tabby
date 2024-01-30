@@ -5,12 +5,11 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import soot.Modifier;
 import soot.SootMethod;
-import tabby.core.container.DataContainer;
 import tabby.analysis.data.Context;
 import tabby.analysis.switcher.Switcher;
-import tabby.analysis.PollutedVarsPointsToAnalysis;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.TickTock;
+import tabby.core.container.DataContainer;
 
 /**
  * @author wh1t3P1g
@@ -46,17 +45,21 @@ public class CallGraphCollector {
                 return;
             }
 
-            log.debug(method.getDeclaringClass().getName()+" "+method.getName());
+//            if(!methodRef.getSignature().equals("")){
+//                tickTock.countDown();
+//                return;
+//            }
+
+            log.debug(method.getDeclaringClass().getName()+" "+method.getName()); // TODO debug
 
             Context context = Context.newInstance(method.getSignature(), methodRef);
 
-            PollutedVarsPointsToAnalysis pta =
-                    Switcher.doMethodAnalysis(
-                            context, dataContainer,
-                            method, methodRef);
+            Switcher.doMethodAnalysis(context, dataContainer, method, methodRef);
             context.clear();
         }catch (RuntimeException e){
-            e.printStackTrace();
+            log.error("Something error on call graph. " + methodRef.getSignature());
+            String msg = e.getMessage();
+            log.error(msg);
         }catch (Exception e){
             if(e instanceof InterruptedException) {
                 log.error("Thread interrupted. " + methodRef.getSignature());

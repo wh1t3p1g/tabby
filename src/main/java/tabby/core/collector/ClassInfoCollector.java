@@ -8,12 +8,11 @@ import soot.SootMethod;
 import soot.tagkit.AnnotationTag;
 import soot.tagkit.Tag;
 import soot.tagkit.VisibilityAnnotationTag;
-import tabby.core.container.DataContainer;
-import tabby.core.container.RulesContainer;
-import tabby.common.rule.TabbyRule;
 import tabby.common.bean.edge.Has;
 import tabby.common.bean.ref.ClassReference;
 import tabby.common.bean.ref.MethodReference;
+import tabby.core.container.DataContainer;
+import tabby.core.container.RulesContainer;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
@@ -68,46 +67,7 @@ public class ClassInfoCollector {
         RulesContainer rulesContainer = dataContainer.getRulesContainer();
         String classname = ref.getName();
         MethodReference methodRef = MethodReference.newInstance(classname, method);
-        TabbyRule.Rule rule = rulesContainer.getRule(classname, methodRef.getName());
-
-        if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
-            for (String relatedClassname : relatedClassnames) {
-                TabbyRule.Rule tmpRule = rulesContainer.getRule(relatedClassname, methodRef.getName());
-                if (tmpRule != null && tmpRule.isIgnore()) {
-                    rule = tmpRule;
-                    break;
-                }
-            }
-        }
-        boolean isSink = false;
-        boolean isIgnore = false;
-        boolean isSource = false;
-        if(rule != null && (rule.isEmptySignaturesList() || rule.isContainsSignature(methodRef.getSignature()))){
-            // 当rule存在signatures时，该rule为精确匹配，否则为模糊匹配，仅匹配函数名是否符合
-            isSink = rule.isSink();
-            isIgnore = rule.isIgnore();
-            isSource = rule.isSource();
-
-            // 此处，对于sink、know、ignore类型的规则，直接选取先验知识
-            // 对于source类型 不赋予其actions和polluted
-            if (!isSource) {
-                Map<String, String> actions = rule.getActions();
-                List<Integer> polluted = rule.getPolluted();
-                if(isSink){
-                    methodRef.setVul(rule.getVul());
-                }
-                methodRef.setActions(actions!=null?actions:new HashMap<>());
-                methodRef.setPollutedPosition(polluted!=null?polluted:new ArrayList<>());
-                methodRef.setActionInitialed(true);
-                if(isIgnore){// 不构建ignore的类型
-                    methodRef.setInitialed(true);
-                }
-            }
-        }
-
-        methodRef.setSink(isSink);
-        methodRef.setIgnore(isIgnore);
-        methodRef.setSource(isSource);
+        rulesContainer.applyRule(classname, methodRef, relatedClassnames);
         methodRef.setEndpoint(ref.isStrutsAction() || isEndpoint(method, relatedClassnames));
         methodRef.setNettyEndpoint(isNettyEndpoint(method, relatedClassnames));
         methodRef.setGetter(isGetter(method));

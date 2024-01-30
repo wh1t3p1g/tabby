@@ -111,7 +111,16 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         if(GlobalConfiguration.isNeedStop){
             return;
         }
-        Map<Local, TabbyVariable> newIn = new HashMap<>();
+
+//        if(context.getMethodSignature().equals("")){
+//            System.out.println(1);
+//        }
+//
+//        if("".equals(d.toString())){
+//            System.out.println(1);
+//        }
+
+        Map<Local, TabbyVariable> newIn = new HashMap<>(); // TODO debug
         copy(in, newIn);
         context.setLocalMap(newIn);
         context.setInitialMap(initialMap);

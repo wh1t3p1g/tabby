@@ -56,3 +56,5 @@ env/data
 env/import
 .DS_Store
 jre_libs
+*.jar
+db.properties

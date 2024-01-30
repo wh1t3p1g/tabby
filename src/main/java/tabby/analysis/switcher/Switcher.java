@@ -7,20 +7,19 @@ import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
 import soot.toolkits.graph.BriefUnitGraph;
 import soot.toolkits.graph.UnitGraph;
-import tabby.common.utils.SemanticUtils;
-import tabby.core.container.DataContainer;
+import tabby.analysis.PollutedVarsPointsToAnalysis;
 import tabby.analysis.data.Context;
 import tabby.analysis.data.TabbyVariable;
-import tabby.analysis.PollutedVarsPointsToAnalysis;
 import tabby.common.bean.edge.Call;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.PositionUtils;
+import tabby.common.utils.SemanticUtils;
+import tabby.core.container.DataContainer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.*;
 
 /**
  * switcher的公共函数
@@ -68,10 +67,9 @@ public class Switcher {
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
             return pta;
-        }catch (RuntimeException e){
-            e.printStackTrace();
+        }catch (Exception e){
+            throw new RuntimeException(e);
         }
-        return null;
     }
 
 
