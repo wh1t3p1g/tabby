@@ -61,15 +61,10 @@ public class GlobalConfiguration {
     public static boolean isInitialed = false;
     public static boolean isNeedStop = false;
     public static boolean IS_JRE9_MODULE = false;
+    public static boolean IS_USING_SETTING_JRE = false;
     public static String TARGET_JAVA_HOME = null;
     public static String THREAD_POOL_SIZE = "max";
     public static ThreadPoolTaskExecutor tabbyCollectorExecutor;
-
-    static {
-        if(!FileUtils.fileExists(JRE_LIBS_PATH)){
-            FileUtils.createDirectory(JRE_LIBS_PATH);
-        }
-    }
 
     public static void init(){
         if(props == null){
@@ -91,6 +86,7 @@ public class GlobalConfiguration {
             COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
             THREAD_POOL_SIZE = getProperty("tabby.build.thread.size", "max", props);
             IS_JRE9_MODULE = getBooleanProperty("tabby.build.isJRE9Module", "false", props);
+            IS_USING_SETTING_JRE = getBooleanProperty("tabby.build.useSettingJRE", "false", props);
             TARGET_JAVA_HOME = getProperty("tabby.build.javaHome", null, props);
             int maxThreadPoolSize = Runtime.getRuntime().availableProcessors();
             if("max".equals(THREAD_POOL_SIZE)){
@@ -121,6 +117,10 @@ public class GlobalConfiguration {
         }else{
             // 如果存在output，则删除该目录下的csv文件
             clean(OUTPUT_DIRECTORY);
+        }
+
+        if(IS_USING_SETTING_JRE && !FileUtils.fileExists(JRE_LIBS_PATH)){
+            FileUtils.createDirectory(JRE_LIBS_PATH);
         }
 
         // resolve cache directory

@@ -56,7 +56,7 @@ public class FileCollector {
         Map<String, String> dependencies = new HashMap<>();
 
         Set<String> jdkLibs = null;
-        if(FileUtils.fileExists(GlobalConfiguration.JRE_LIBS_PATH)){
+        if(GlobalConfiguration.IS_USING_SETTING_JRE && FileUtils.fileExists(GlobalConfiguration.JRE_LIBS_PATH)){
             jdkLibs = FileUtils.findAllJarFiles(GlobalConfiguration.JRE_LIBS_PATH, false);
         }
         if(jdkLibs == null || jdkLibs.isEmpty()){
@@ -67,9 +67,9 @@ public class FileCollector {
             if(GlobalConfiguration.IS_WITH_ALL_JDK){
                 dependencies.put(FileUtils.getFileMD5(filepath), filepath);
             }else if(GlobalConfiguration.IS_JRE9_MODULE){
-                if(filepath.endsWith("java.base.jmod.jar")
-                        || filepath.endsWith("java.desktop.jmod.jar")
-                        || filepath.endsWith("java.logging.jmod.jar")){
+                if(filepath.contains("java.base.jmod")
+                        || filepath.contains("java.desktop.jmod")
+                        || filepath.contains("java.logging.jmod")){
                     dependencies.put(FileUtils.getFileMD5(filepath), filepath);
                 }
             }else{

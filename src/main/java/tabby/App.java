@@ -34,7 +34,7 @@ public class App {
 
     public void setJavaHome(){
         // set java home
-        if(GlobalConfiguration.TARGET_JAVA_HOME == null){
+        if(GlobalConfiguration.TARGET_JAVA_HOME == null || !GlobalConfiguration.IS_USING_SETTING_JRE){
             String javaHome = System.getProperty("java.home");
             if(javaHome == null){
                 javaHome = System.getenv("JAVA_HOME");
@@ -44,7 +44,7 @@ public class App {
             }
         }
 
-        log.info("Analysis target java.home: " + GlobalConfiguration.TARGET_JAVA_HOME);
+        log.info("Target java.home: " + GlobalConfiguration.TARGET_JAVA_HOME);
     }
 
     public void setLogDebugLevel(){

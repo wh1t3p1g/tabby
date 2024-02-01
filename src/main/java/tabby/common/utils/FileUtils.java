@@ -307,8 +307,22 @@ public class FileUtils {
         Files.copy(Paths.get(source), Paths.get(target), StandardCopyOption.REPLACE_EXISTING);
     }
 
+    private static String getJavaHome(){
+        String javaHome = System.getProperty("java.home");
+        if(javaHome == null){
+            javaHome = System.getenv("JAVA_HOME");
+        }
+        return javaHome;
+    }
+
     public static Set<String> findAllJdkDependencies(JModTransferPlugin plugin){
-        String javaHome = GlobalConfiguration.TARGET_JAVA_HOME;
+        String javaHome;
+        if(GlobalConfiguration.IS_USING_SETTING_JRE){
+            javaHome = GlobalConfiguration.TARGET_JAVA_HOME;
+        }else{
+            javaHome = getJavaHome();
+            GlobalConfiguration.IS_JRE9_MODULE = true; // 仅允许 17 运行，所以为 true
+        }
 
         if(javaHome == null){
             throw new RuntimeException("JAVA_HOME not set!");
@@ -337,14 +351,21 @@ public class FileUtils {
                             return FileVisitResult.CONTINUE;
                         }
 
-                        if(source.endsWith(".jar")){
-                            String dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename));
-                            futures.add(plugin.transfer(source, dest));
-                            libraries.add(dest);
-                        }else if(source.endsWith(".jmod")){
-                            String dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename+".jar"));
-                            futures.add(plugin.transfer(source, dest));
-                            libraries.add(dest);
+                        String dest;
+                        if(GlobalConfiguration.IS_USING_SETTING_JRE){
+                            if(source.endsWith(".jar")){
+                                dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename));
+                                futures.add(plugin.transfer(source, dest));
+                                libraries.add(dest);
+                            }else if(source.endsWith(".jmod")){
+                                dest = String.join(File.separator, Arrays.asList(GlobalConfiguration.JRE_LIBS_PATH, filename+".jar"));
+                                futures.add(plugin.transfer(source, dest));
+                                libraries.add(dest);
+                            }
+                        }else{
+                            if(source.endsWith(".jar") || source.endsWith(".jmod")){
+                                libraries.add(source);
+                            }
                         }
 
                         return FileVisitResult.CONTINUE;

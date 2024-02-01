@@ -85,7 +85,9 @@ public class Analyser {
             SootConfiguration.initSootOption();
             addBasicClasses();
             log.info("Load basic classes");
-            Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
+            if(GlobalConfiguration.IS_USING_SETTING_JRE){
+                Scene.v().setSootClassPath(String.join(File.pathSeparator, classpaths));
+            }
             Scene.v().loadBasicClasses();
             log.info("Load dynamic classes");
             Scene.v().loadDynamicClasses();

@@ -13,6 +13,7 @@ import tabby.common.bean.ref.ClassReference;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.JavaVersionUtils;
 import tabby.common.utils.SemanticUtils;
+import tabby.config.GlobalConfiguration;
 import tabby.core.collector.ClassInfoCollector;
 import tabby.core.container.DataContainer;
 
@@ -53,10 +54,12 @@ public class ClassInfoScanner {
     public Map<String, CompletableFuture<ClassReference>> loadAndExtract(List<String> targets){
         Map<String, CompletableFuture<ClassReference>> results = new HashMap<>();
         log.info("Start to collect {} targets' class information.", targets.size());
+
         Map<String, List<String>> moduleClasses = null;
-        if(JavaVersionUtils.isAtLeast(9)){
+        if(!GlobalConfiguration.IS_USING_SETTING_JRE){
             moduleClasses = ModulePathSourceLocator.v().getClassUnderModulePath("jrt:/");
         }
+
         for (final String path : targets) {
             List<String> classes = getTargetClasses(path, moduleClasses);
             if(classes == null) continue;
