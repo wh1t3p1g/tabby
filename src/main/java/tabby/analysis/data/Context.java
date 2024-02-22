@@ -1,6 +1,7 @@
 package tabby.analysis.data;
 
 import lombok.Data;
+import lombok.extern.slf4j.Slf4j;
 import soot.Local;
 import soot.SootField;
 import soot.SootFieldRef;
@@ -8,11 +9,15 @@ import soot.Value;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.StaticFieldRef;
 import tabby.common.bean.ref.MethodReference;
+import tabby.config.GlobalConfiguration;
 
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 函数的域表示
@@ -21,8 +26,9 @@ import java.util.Set;
  * @author wh1t3P1g
  * @since 2020/11/24
  */
+@Slf4j
 @Data
-public class Context {
+public class Context implements AutoCloseable {
 
     private String methodSignature; // 当前函数签名
     private MethodReference methodReference;
@@ -30,6 +36,7 @@ public class Context {
     private Local thisVar;// 设置当前的函数调用时的base变量是什么 或者说是this变量
     private Map<Integer, Local> args = new HashMap<>(); // 前置函数的入参
     private Context preContext;// 如果当前函数为被调用的函数，那么preContext指向之前的函数context
+    private Context subContext;
     private int depth; // 当前函数调用深度，限制无限循环的情况
     // 经过flowThough 函数时，拷贝 in集合
     private Map<Local, TabbyVariable> localMap;
@@ -38,6 +45,13 @@ public class Context {
     // 用于return给当前
     private TabbyVariable returnVar;
     private String topMethodSignature;
+    private boolean analyseTimeout = false;
+    private boolean isClosed = false;
+
+    private LocalDateTime start;
+    private long startTime;
+    private long subTime; // 过程间分析，去除递归分析子函数所花的时间
+
 
     public Context(){
         this.localMap = new HashMap<>();
@@ -50,10 +64,31 @@ public class Context {
         this.depth = depth;
         this.preContext = preContext;
         this.localMap = new HashMap<>();
+        this.startTime = System.nanoTime();
+        this.subTime = startTime;
+        this.start = LocalDateTime.now();
     }
 
     public static Context newInstance(String methodSignature, MethodReference methodReference) {
         return new Context(methodSignature, methodReference,null,0);
+    }
+
+    public boolean isTimeout(){
+        long cost = TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - subTime);
+        boolean flag = cost >= GlobalConfiguration.METHOD_TIMEOUT;
+        if(flag && !analyseTimeout){ // 只打印最底层的timeout函数分析
+            log.error("Method {} analysis timeout, cost {} min, plz check!", methodSignature, cost);
+        }
+        return flag;
+    }
+
+    @Override
+    public void close(){
+        // 清除引用
+        methodReference = null;
+        preContext = null;
+        isClosed = true;
+        clear();
     }
 
     /**
@@ -63,10 +98,32 @@ public class Context {
         Context subContext = new Context(methodSignature, methodReference, this,depth + 1);
         subContext.setGlobalMap(globalMap); // 同步所有globalmap
         subContext.setTopMethodSignature(topMethodSignature);
+        this.subContext = subContext;
         return subContext;
     }
 
+    public long getSeconds(){
+        return Duration.between(start, LocalDateTime.now()).getSeconds();
+    }
 
+    public void sub(long cost){
+        subTime += cost;
+    }
+
+    public long cost(){
+        return System.nanoTime() - startTime;
+    }
+
+    public void setAnalyseTimeout(boolean analyseTimeout) {
+        this.analyseTimeout = analyseTimeout;
+        if(subContext != null && !subContext.isClosed()){
+            subContext.setAnalyseTimeout(analyseTimeout);
+        }
+    }
+
+    public boolean isTopContext(){
+        return preContext == null;
+    }
     /**
      * 接受 Local 和 staticField
      * 从localMap 和 globalMap 中分别查询对应的变量实例

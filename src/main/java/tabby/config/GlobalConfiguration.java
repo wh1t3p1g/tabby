@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import tabby.common.utils.TickTock;
 import tabby.core.container.RulesContainer;
 import tabby.common.utils.FileUtils;
 
@@ -62,9 +63,18 @@ public class GlobalConfiguration {
     public static boolean isNeedStop = false;
     public static boolean IS_JRE9_MODULE = false;
     public static boolean IS_USING_SETTING_JRE = false;
+    public static boolean TIMEOUT_FORCE_STOP = false;
+    public static boolean PRINT_METHODS = false;
+    public static boolean IS_NEED_TO_DEAL_NEW_ADDED_METHOD = true;
+    public static boolean IS_NEED_ADD_TO_TIMEOUT_LIST = true;
+    public static int METHOD_TIMEOUT = 10;
+    public static long METHOD_TIMEOUT_SECONDS = 600;
     public static String TARGET_JAVA_HOME = null;
     public static String THREAD_POOL_SIZE = "max";
     public static ThreadPoolTaskExecutor tabbyCollectorExecutor;
+    public static ThreadPoolTaskExecutor tabbySaverExecutor;
+    public static TickTock tickTock;
+    public static boolean GLOBAL_FORCE_STOP = false;
 
     public static void init(){
         if(props == null){
@@ -150,9 +160,18 @@ public class GlobalConfiguration {
         IS_CHECK_FAT_JAR = getBooleanProperty("tabby.build.checkFatJar", "false", props);
         IS_FULL_CALL_GRAPH_CONSTRUCT = getBooleanProperty("tabby.build.isFullCallGraphCreate", "false", props);
         IS_NEED_TO_CREATE_IGNORE_LIST = getBooleanProperty("tabby.build.isNeedToCreateIgnoreList", "true", props);
+        TIMEOUT_FORCE_STOP = getBooleanProperty("tabby.build.timeout.forceStop", "true", props);
+        PRINT_METHODS = getBooleanProperty("tabby.debug.print.current.methods", "false", props);
+        IS_NEED_TO_DEAL_NEW_ADDED_METHOD = getBooleanProperty("tabby.build.isNeedToDealNewAddedMethod", "true", props);
 
         try{
             TIMEOUT = getIntProperty("tabby.build.thread.timeout", "2", props);
+        }catch (Exception ignore){
+        }
+
+        try{
+            METHOD_TIMEOUT = getIntProperty("tabby.build.method.timeout", "10", props);
+            METHOD_TIMEOUT_SECONDS = METHOD_TIMEOUT * 60L;
         }catch (Exception ignore){
         }
 

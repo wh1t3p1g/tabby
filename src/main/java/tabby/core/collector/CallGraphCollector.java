@@ -2,6 +2,7 @@ package tabby.core.collector;
 
 import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import soot.Modifier;
 import soot.SootMethod;
@@ -9,7 +10,10 @@ import tabby.analysis.data.Context;
 import tabby.analysis.switcher.Switcher;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.TickTock;
+import tabby.config.GlobalConfiguration;
 import tabby.core.container.DataContainer;
+
+import java.util.UUID;
 
 /**
  * @author wh1t3P1g
@@ -20,8 +24,9 @@ import tabby.core.container.DataContainer;
 @Setter
 public class CallGraphCollector {
 
-//    @Async("tabby-collector")
+    @Async("tabby-collector")
     public void collect(MethodReference methodRef, DataContainer dataContainer, TickTock tickTock){
+        String uuid = UUID.randomUUID().toString();
         try{
             SootMethod method = methodRef.getMethod();
             if(method == null) {
@@ -51,22 +56,33 @@ public class CallGraphCollector {
 //            }
 
             log.debug(method.getDeclaringClass().getName()+" "+method.getName()); // TODO debug
-
-            Context context = Context.newInstance(method.getSignature(), methodRef);
-
-            Switcher.doMethodAnalysis(context, dataContainer, method, methodRef);
-            context.clear();
+            try(Context context = Context.newInstance(method.getSignature(), methodRef)){
+                dataContainer.getRunningMethods().put(uuid, context);
+                Switcher.doMethodAnalysis(context, dataContainer, method, methodRef);
+            }
         }catch (RuntimeException e){
-            log.error("Something error on call graph. " + methodRef.getSignature());
             String msg = e.getMessage();
-            log.error(msg);
-        }catch (Exception e){
+            if(msg != null && msg.contains("Body retrieve error")){
+                log.warn("Body retrieve error: " + methodRef.getSignature());
+            }else{
+                log.error(msg);
+                e.printStackTrace();
+            }
+        }
+        catch (OutOfMemoryError e){
+            log.error("OOM Error!!!! Force Stop Everything!!!");
+            GlobalConfiguration.GLOBAL_FORCE_STOP = true;
+        }
+        catch (Exception e){
             if(e instanceof InterruptedException) {
                 log.error("Thread interrupted. " + methodRef.getSignature());
             } else {
                 log.error("Something error on call graph. "+methodRef.getSignature());
                 e.printStackTrace();
             }
+        }finally {
+            dataContainer.getRunningMethods().remove(uuid);
+            methodRef.setRunning(false);
         }
         tickTock.countDown();
     }

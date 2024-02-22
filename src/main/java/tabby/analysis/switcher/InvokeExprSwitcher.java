@@ -6,13 +6,13 @@ import lombok.extern.slf4j.Slf4j;
 import soot.*;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocal;
-import tabby.core.container.DataContainer;
-import tabby.core.container.RulesContainer;
-import tabby.analysis.data.TabbyVariable;
 import tabby.analysis.PollutedVarsPointsToAnalysis;
-import tabby.common.bean.edge.Call;
+import tabby.analysis.data.TabbyVariable;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.PositionUtils;
+import tabby.core.container.DataContainer;
+import tabby.core.container.RulesContainer;
 
 import java.util.*;
 
@@ -38,23 +38,22 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     private DataContainer dataContainer;
     private RulesContainer rulesContainer;
+    private CallEdgeBuilder builder = new CallEdgeBuilder();
 
 
     @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
         if(isNecessaryEdge("StaticInvoke", v)){
-            SootMethodRef sootMethodRef = v.getMethodRef();
             generate(v);
-            buildCallRelationship(sootMethodRef.getDeclaringClass().getName(), sootMethodRef, "StaticInvoke");
+            buildCallRelationship(v);
         }
     }
 
     @Override
     public void caseVirtualInvokeExpr(VirtualInvokeExpr v) { // a.A()
-        SootMethodRef sootMethodRef = v.getMethodRef();
         baseValue = v.getBase();
         generate(v);
-        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "VirtualInvoke");
+        buildCallRelationship(v);
     }
 
     @Override
@@ -63,57 +62,19 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
         if(sootMethodRef.getSignature().contains("<init>") && v.getArgCount() == 0) return; // 无参的构造函数 不影响数据流分析
         baseValue = v.getBase();
         generate(v);
-        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "SpecialInvoke");
+        buildCallRelationship(v);
     }
 
     @Override
     public void caseInterfaceInvokeExpr(InterfaceInvokeExpr v) {
-        SootMethodRef sootMethodRef = v.getMethodRef();
         baseValue = v.getBase();
         generate(v);
-        buildCallRelationship(v.getBase().getType().toString(), sootMethodRef, "InterfaceInvoke");
+        buildCallRelationship(v);
     }
 
-    public void buildCallRelationship(String classname, SootMethodRef sootMethodRef, String invokerType){
-        MethodReference target = dataContainer.getOrAddMethodRef(sootMethodRef, sootMethodRef.resolve());// 递归父类，接口 查找目标函数
-        MethodReference source = dataContainer.getMethodRefBySignature(this.source.getClassname(), this.source.getSignature());
-
-        if(target.isSink()){
-            // 调用sink函数时，需要符合sink函数的可控点，如果均为可控点，则当前调用是可控的
-            for(int i:target.getPollutedPosition()){
-                if(pollutedPosition.size() > i+1 && pollutedPosition.get(i+1) == PositionUtils.NOT_POLLUTED_POSITION){
-                    isPolluted = false;
-                    break;
-                }
-            }
-        }
-
-        if(source != null
-                && !target.isIgnore()
-                && isPolluted){ // 剔除不可控边
-
-            if("java.lang.String".equals(classname) // 这种情况一般均不可控，可控也没有意义
-                    && ("equals".equals(target.getName())
-                        || "hashCode".equals(target.getName())
-                        || "length".equals(target.getName()))) return;
-
-            if("java.lang.StringBuilder".equals(classname) // 这种情况一般均不可控，可控也没有意义
-                    && ("toString".equals(target.getName())
-                        || "hashCode".equals(target.getName()))) return;
-
-            Call call = Call.newInstance(source, target);
-            call.setRealCallType(classname);
-            call.setInvokerType(invokerType);
-            call.setPollutedPosition(new ArrayList<>(pollutedPosition));
-            call.setLineNum(unit.getJavaSourceStartLineNumber());
-            call.generateId();
-
-            if(!source.getCallEdge().contains(call)){
-                source.getCallEdge().add(call);
-                dataContainer.store(call);
-            }
-
-        }
+    public void buildCallRelationship(InvokeExpr ie){
+        builder.setPollutedPosition(pollutedPosition);
+        builder.build((Stmt) ie, source, dataContainer);
     }
 
     public <T> boolean isNecessaryEdge(String type, T v){

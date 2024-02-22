@@ -12,8 +12,7 @@ import tabby.common.bean.ref.MethodReference;
 import tabby.dal.service.MethodRefService;
 import tabby.common.utils.TickTock;
 
-import java.util.ArrayList;
-import java.util.Collection;
+import java.util.*;
 
 /**
  * 收集所有调用关系，这部分不做污点分析
@@ -40,22 +39,60 @@ public class CallGraphScanner {
     }
 
     public void collect() {
-        Collection<MethodReference> targets =
-                new ArrayList<>(dataContainer.getSavedMethodRefs().values());
-        log.info("Build call graph. START!");
-        TickTock tickTock = new TickTock(targets.size(), true);
-        for (MethodReference target : targets) {
-            if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
-                callEdgeCollector.collect(target, dataContainer, tickTock);
-            }else{
-                callGraphCollector.collect(target, dataContainer, tickTock);
+        if(GlobalConfiguration.IS_FULL_CALL_GRAPH_CONSTRUCT){
+            collectAllCallEdge();
+        }else{
+            List<String> targets = new ArrayList<>(dataContainer.getTargets());;
+            log.info("Build call graph. START!");
+            log.info("Method Timeout on {} min.", GlobalConfiguration.METHOD_TIMEOUT);
+            doCollectWithNewAddedMethods(targets);
+            log.info("Build call graph. DONE!");
+        }
+    }
+
+    public void doCollectWithNewAddedMethods(List<String> targets){
+        boolean flag = true;
+        while(!targets.isEmpty()){
+            doCollect(targets, flag);
+            targets = new ArrayList<>(dataContainer.getNewAddedMethodSigs());
+            dataContainer.setNewAddedMethodSigs(Collections.synchronizedSet(new HashSet<>()));
+
+            if(targets.size() > 0){
+                log.info("Analyse {} newAddedMethods", targets.size());
+                flag = false;
             }
         }
-        tickTock.await();
+    }
+
+    public void doCollect(List<String> targets, boolean show){
+        int total = targets.size();
+        TickTock tt = new TickTock(total, show);
+        Collections.shuffle(targets);
+        for(String signature:targets){
+            MethodReference ref = dataContainer.getMethodRefBySignature(signature, false);
+            if(ref != null){
+                callGraphCollector.collect(ref, dataContainer, tt);
+            }else{
+                tt.countDown();
+            }
+        }
+        tt.awaitUntilCompleted();
+    }
+
+    public void collectAllCallEdge(){
+        log.info("Build call graph. START!");
+        Collection<MethodReference> targets =
+                new ArrayList<>(dataContainer.getSavedMethodRefs().values());
+        TickTock tickTock = new TickTock(targets.size(), true);
+        for (MethodReference target : targets) {
+            callEdgeCollector.collect(target, dataContainer, tickTock);
+        }
+        tickTock.awaitUntilCompleted();
         log.info("Build call graph. DONE!");
     }
 
     public void save() {
+        if(GlobalConfiguration.GLOBAL_FORCE_STOP) return;
         log.info("Save remained data to graphdb. START!");
         dataContainer.save("class");
         dataContainer.save("method");

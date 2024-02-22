@@ -1,12 +1,8 @@
 package tabby.common.utils;
 
-import com.google.common.collect.ImmutableMap;
 import lombok.extern.slf4j.Slf4j;
 import soot.*;
-import soot.jimple.ArrayRef;
-import soot.jimple.Constant;
-import soot.jimple.FieldRef;
-import soot.jimple.InstanceFieldRef;
+import soot.jimple.*;
 import soot.tagkit.*;
 import tabby.config.GlobalConfiguration;
 
@@ -104,12 +100,74 @@ public class SemanticUtils {
         }
     }
 
+    public static SootMethod getMethod(InvokeExpr ie) {
+        SootMethod method = null;
+        int i = 0;
+        do{
+            try{
+                method = ie.getMethod();
+            }catch (Exception e){
+                // try again
+                int random = (int)(Math.random()*100);
+                try {
+                    Thread.sleep(random);
+                } catch (InterruptedException ex) {
+                    System.exit(0);
+                }
+            }
+            i++;
+            // 防止因为多线程导致invoke重复提取
+        }while(method == null && i < 3);
+
+        return method;
+    }
+
+    public static SootMethod getMethod(SootMethodRef sootMethodRef) {
+        SootMethod method = null;
+        int i = 0;
+        do{
+            try{
+                method = sootMethodRef.resolve();
+            }catch (Exception e){
+                // try again
+                int random = (int)(Math.random()*100);
+                try {
+                    Thread.sleep(random);
+                } catch (InterruptedException ex) {
+                    System.exit(0);
+                }
+            }
+            i++;
+            // 防止因为多线程导致invoke重复提取
+        }while(method == null && i < 3);
+
+        return method;
+    }
+
     public static SootMethod getMethod(String classname, String subSignature){
         SootClass cls = getSootClass(classname);
 
         if(cls == null) return null;
 
         return getMethod(cls, subSignature);
+    }
+
+    public static InvokeExpr getInvokeExpr(Stmt stmt) throws InterruptedException {
+        InvokeExpr ie = null;
+        int i = 0;
+        do{
+            try{
+                ie = stmt.getInvokeExpr();
+            }catch (Exception e){
+                // try again
+                int random = (int)(Math.random()*100);
+                Thread.sleep(random);
+            }
+            i++;
+            // 防止因为多线程导致invoke重复提取
+        }while(ie == null && i < 3);
+
+        return ie;
     }
 
     public static synchronized Body retrieveBody(SootMethod method, String signature, boolean tries){
@@ -127,7 +185,7 @@ public class SemanticUtils {
         } catch (ExecutionException | InterruptedException e) {
 //            e.printStackTrace();
             String msg = e.getMessage();
-            if(tries && msg.contains("Failed to convert")){
+            if(tries && msg != null && msg.contains("Failed to convert")){
                 Throwable temp = e;
                 do{
                     String message = temp.getMessage();

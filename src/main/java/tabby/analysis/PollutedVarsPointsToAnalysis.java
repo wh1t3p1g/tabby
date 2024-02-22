@@ -7,15 +7,15 @@ import soot.jimple.ArrayRef;
 import soot.jimple.InstanceFieldRef;
 import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
-import tabby.config.GlobalConfiguration;
-import tabby.common.bean.ref.MethodReference;
 import tabby.analysis.data.Context;
-import tabby.core.container.DataContainer;
 import tabby.analysis.data.TabbyVariable;
 import tabby.analysis.switcher.stmt.SimpleStmtSwitcher;
 import tabby.analysis.switcher.stmt.StmtSwitcher;
 import tabby.analysis.switcher.value.SimpleLeftValueSwitcher;
 import tabby.analysis.switcher.value.SimpleRightValueSwitcher;
+import tabby.common.bean.ref.MethodReference;
+import tabby.config.GlobalConfiguration;
+import tabby.core.container.DataContainer;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -38,6 +38,8 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     private StmtSwitcher stmtSwitcher;
     private MethodReference methodRef;
     private Body body;
+    private boolean isNormalExit = true;
+
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
      *
@@ -108,7 +110,19 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
 
     @Override
     protected void flowThrough(Map<Local, TabbyVariable> in, Unit d, Map<Local, TabbyVariable> out) {
-        if(GlobalConfiguration.isNeedStop){
+        if(GlobalConfiguration.isNeedStop || context.isAnalyseTimeout() || GlobalConfiguration.GLOBAL_FORCE_STOP){
+            return;
+        }
+
+        if(context.getMethodReference().isInitialed()){
+            // 多个线程同时分析一个函数，且当前线程落后其他线程，则直接跳过后续的分析，且不保存当前分析所得的调用边
+            isNormalExit = false;
+            return;
+        }
+
+        if(context.isTimeout()){ // 如果当前函数分析超多最大限时，则停止分析当前函数
+            context.setAnalyseTimeout(true);
+            isNormalExit = false; // 下一次会重新分析，这里先不保存call边
             return;
         }
 
@@ -133,6 +147,21 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         //  影响 加快了分析速度
         //  但是丢失了一部分的关系边（暂未找到这部分缺失的影响，还需要进行实验）
         //  这里暂时为了效率舍弃了部分可控边
+    }
+
+    public void doEnd(){
+        MethodReference ref = context.getMethodReference();
+
+        if(context.isAnalyseTimeout()){
+            if(context.isTopContext()){
+                dataContainer.getAnalyseTimeoutMethodSigs().add(context.getMethodSignature());
+            }else{
+                Context preContext = context.getPreContext();
+                preContext.setAnalyseTimeout(true);
+            }
+        }
+
+        ref.setRunning(false);
     }
 
     @Override
@@ -198,6 +227,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         analysis.setMethodRef(methodRef);
         // 进行分析
         analysis.doAnalysis();
+        analysis.doEnd();
         return analysis;
     }
 }

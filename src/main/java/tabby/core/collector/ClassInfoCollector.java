@@ -5,16 +5,20 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import soot.SootClass;
 import soot.SootMethod;
-import soot.tagkit.AnnotationTag;
-import soot.tagkit.Tag;
-import soot.tagkit.VisibilityAnnotationTag;
+import tabby.common.bean.edge.Alias;
+import tabby.common.bean.edge.Extend;
 import tabby.common.bean.edge.Has;
+import tabby.common.bean.edge.Interfaces;
 import tabby.common.bean.ref.ClassReference;
 import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.SemanticUtils;
+import tabby.config.GlobalConfiguration;
 import tabby.core.container.DataContainer;
 import tabby.core.container.RulesContainer;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 import java.util.concurrent.CompletableFuture;
 
 /**
@@ -27,178 +31,166 @@ public class ClassInfoCollector {
     @Autowired
     private DataContainer dataContainer;
 
+    @Autowired RulesContainer rulesContainer;
+
     @Async("tabby-collector")
     public CompletableFuture<ClassReference> collect(SootClass cls){
-        return CompletableFuture.completedFuture(collect0(cls, dataContainer));
+        // generate class reference
+        ClassReference classRef = collectClassInfo(cls, rulesContainer);
+        // generate method reference
+        collectMethodsInfo(classRef, cls, dataContainer, rulesContainer, false);
+        return CompletableFuture.completedFuture(classRef);
     }
 
-    /**
-     * 仅收集classRef，不保存到内存
-     * @param cls
-     * @param dataContainer
-     * @return
-     */
-    public static ClassReference collect0(SootClass cls, DataContainer dataContainer){
+    public static ClassReference collectClassInfo(SootClass cls, RulesContainer rulesContainer){
         ClassReference classRef = ClassReference.newInstance(cls);
-        Set<String> relatedClassnames = getAllFatherNodes(cls);
-        classRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
-        classRef.setStrutsAction(relatedClassnames.contains("com.opensymphony.xwork2.ActionSupport")
-                || relatedClassnames.contains("com.opensymphony.xwork2.Action"));
-        // 提取类函数信息
-        if(cls.getMethodCount() > 0){
-            for (SootMethod method : cls.getMethods()) {
-                extractMethodInfo(method, classRef, relatedClassnames, dataContainer);
-            }
-        }
         return classRef;
     }
 
-
-    /**
-     * 提取函数基础信息，并保存到内存中
-     * @param method
-     * @param ref
-     */
-    public static void extractMethodInfo(SootMethod method,
-                                         ClassReference ref,
-                                         Set<String> relatedClassnames,
-                                         DataContainer dataContainer
-    ){
-        RulesContainer rulesContainer = dataContainer.getRulesContainer();
-        String classname = ref.getName();
-        MethodReference methodRef = MethodReference.newInstance(classname, method);
-        rulesContainer.applyRule(classname, methodRef, relatedClassnames);
-        methodRef.setEndpoint(ref.isStrutsAction() || isEndpoint(method, relatedClassnames));
-        methodRef.setNettyEndpoint(isNettyEndpoint(method, relatedClassnames));
-        methodRef.setGetter(isGetter(method));
-        methodRef.setSetter(isSetter(method));
-        methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
-        methodRef.setAbstract(method.isAbstract());
-        methodRef.setHasDefaultConstructor(ref.isHasDefaultConstructor());
-        methodRef.setFromAbstractClass(ref.isAbstract());
-
-        Has has = Has.newInstance(ref, methodRef);
-        ref.getHasEdge().add(has);
-        dataContainer.store(has);
-        dataContainer.store(methodRef);
-    }
-
-
-    /**
-     * check method is an endpoint
-     * @param method
-     * @param relatedClassnames
-     * @return
-     */
-    public static boolean isEndpoint(SootMethod method, Set<String> relatedClassnames){
-        // check jsp _jspService
-        if("_jspService".equals(method.getName())){
-            return true;
+    public static void collectMethodsInfo(ClassReference classRef, SootClass cls,
+                                          DataContainer dataContainer, RulesContainer rulesContainer, boolean newAdded){
+        if(cls == null){
+            cls = SemanticUtils.getSootClass(classRef.getName());
         }
 
-        // check from annotation
-        List<Tag> tags = method.getTags();
-        for (Tag tag : tags) {
-            if (tag instanceof VisibilityAnnotationTag) {
-                VisibilityAnnotationTag visibilityAnnotationTag = (VisibilityAnnotationTag) tag;
-                for (AnnotationTag annotationTag : visibilityAnnotationTag.getAnnotations()) {
-                    String type = annotationTag.getType();
-                    if(type.endsWith("Mapping;")
-                            || type.endsWith("javax/ws/rs/Path;")
-                            || type.endsWith("javax/ws/rs/GET;")
-                            || type.endsWith("javax/ws/rs/PUT;")
-                            || type.endsWith("javax/ws/rs/DELETE;")
-                            || type.endsWith("javax/ws/rs/POST;")){
-                        return true;
-                    }
-                }
+        // 提取类函数信息
+        if(cls != null && cls.getMethodCount() > 0){
+            List<SootMethod> methods = new ArrayList<>(cls.getMethods());
+            for (SootMethod method : methods) {
+                // check from db
+                MethodReference methodRef = dataContainer.getMethodRefBySignature(method.getSignature(), false);
+                if(methodRef != null) continue;
+                collectSingleMethodRef(classRef, method, newAdded, false, dataContainer, rulesContainer);
+            }
+        }
+    }
+
+    public static MethodReference collectSingleMethodRef(ClassReference classRef, SootMethod method, boolean newAdded, boolean genAlias,
+                                                         DataContainer dataContainer, RulesContainer rulesContainer){
+        String classname = classRef.getName();
+        MethodReference methodRef = MethodReference.newInstance(classname, method);
+        // apply rules
+        rulesContainer.applyRule(classname, methodRef);
+        // add to new added for next stage
+        if(GlobalConfiguration.IS_NEED_TO_DEAL_NEW_ADDED_METHOD && newAdded){
+            dataContainer.getNewAddedMethodSigs().add(methodRef.getSignature());
+        }
+        // generate has edge
+        generateHasEdge(classRef, methodRef, dataContainer, newAdded);
+        dataContainer.store(methodRef);
+        if(genAlias){
+            generateAliasEdge(methodRef, dataContainer);
+        }
+        return methodRef;
+    }
+
+    public static ClassReference collectAndSave(Object clazz, boolean newAdded,
+                                                DataContainer dataContainer, RulesContainer rulesContainer){
+        SootClass cls = null;
+        if(clazz instanceof SootClass){
+            cls = (SootClass) clazz;
+        }else if(clazz instanceof String){
+            cls = SemanticUtils.getSootClass((String) clazz);
+        }
+        if(cls != null){
+            if(rulesContainer == null){
+                rulesContainer = GlobalConfiguration.rulesContainer;
+            }
+            // generate class reference
+            ClassReference classRef = collectClassInfo(cls, rulesContainer);
+            // generate method reference
+            collectMethodsInfo(classRef, cls, dataContainer, rulesContainer, newAdded);
+            // save
+            dataContainer.store(classRef);
+            return classRef;
+        }
+        return null;
+    }
+
+    public static void collectRuntimeForSingleClazz(Object clazz, boolean newAdded,
+                                                    DataContainer dataContainer, RulesContainer rulesContainer){
+        ClassReference classReference = collectAndSave(clazz, newAdded, dataContainer, rulesContainer);
+        collectRelationInfo(classReference, newAdded, dataContainer, rulesContainer);
+    }
+
+    public static void collectRelationInfo(ClassReference classRef, boolean newAdded,
+                                           DataContainer dataContainer, RulesContainer rulesContainer){
+        if(classRef == null) return;
+        // 建立继承关系
+        if(classRef.isHasSuperClass() && !"java.lang.Object".equals(classRef.getSuperClass())){
+            ClassReference superClsRef = dataContainer.getClassRefByName(classRef.getSuperClass());
+
+            if(superClsRef == null){
+                superClsRef = collectAndSave(classRef.getSuperClass(), newAdded, dataContainer, rulesContainer);
+            }
+
+            if(superClsRef != null){
+                Extend extend =  Extend.newInstance(classRef, superClsRef);
+                dataContainer.store(extend);
+                superClsRef.getChildClassnames().add(classRef.getName());
             }
         }
 
-        // https://blog.csdn.net/melissa_heixiu/article/details/52472450
-        List<String> requestTypes = new ArrayList<>(
-                Arrays.asList("doGet","doPost","doPut","doDelete","doHead","doOptions","doTrace","service"));
-        // check from servlet
-        if((relatedClassnames.contains("javax.servlet.Servlet")
-                || relatedClassnames.contains("javax.servlet.http.HttpServlet") // 防止依赖缺失情况下的识别
-                || relatedClassnames.contains("javax.servlet.GenericServlet"))
-                && requestTypes.contains(method.getName())){
-            return true;
+        // 建立接口关系
+        if(classRef.isHasInterfaces()){
+            List<String> infaces = classRef.getInterfaces();
+            for(String inface:infaces){
+                ClassReference infaceClsRef = dataContainer.getClassRefByName(inface);
+                if(infaceClsRef == null){// 正常情况不会进入这个阶段
+                    infaceClsRef = collectAndSave(inface, false, dataContainer, rulesContainer);
+                }
+                if(infaceClsRef != null){
+                    Interfaces interfaces = Interfaces.newInstance(classRef, infaceClsRef);
+                    dataContainer.store(interfaces);
+                    infaceClsRef.getChildClassnames().add(classRef.getName());
+                }
+            }
         }
-        // not an endpoint
-        return false;
+        // 建立函数别名关系
+        List<Has> hasEdges = classRef.getHasEdge();
+        if(hasEdges != null && !hasEdges.isEmpty()){
+            for(Has has:hasEdges){
+                generateAliasEdge(has.getMethodRef(), dataContainer);
+            }
+        }
+        // finished
+        classRef.setInitialed(true);
     }
 
-    public static boolean isNettyEndpoint(SootMethod method, Set<String> relatedClassnames){
-        String classname = method.getDeclaringClass().getName();
-        if("io.netty.channel.ChannelInboundHandler".equals(classname)
-                || "io.netty.handler.codec.ByteToMessageDecoder".equals(classname)
-        ){
-            return false;
-        }
+    public static void generateHasEdge(ClassReference classRef, MethodReference methodRef,
+                                       DataContainer dataContainer, boolean newAdded){
+        Has has = Has.newInstance(classRef, methodRef);
+        if(classRef.getHasEdge().contains(has)) return;
 
-        String methodName = method.getName();
-        // check from ChannelInboundHandler
-        List<String> nettyReadMethods = Arrays.asList("channelRead", "channelRead0", "messageReceived");
-        if(relatedClassnames.contains("io.netty.channel.ChannelInboundHandler")
-                && nettyReadMethods.contains(methodName)){
-            return true;
+        classRef.getHasEdge().add(has);
+        dataContainer.store(has);
+        if(newAdded){
+            generateAliasEdge(methodRef, dataContainer);
         }
-
-        // check from io.netty.handler.codec.ByteToMessageDecoder
-        if(relatedClassnames.contains("io.netty.handler.codec.ByteToMessageDecoder")
-                && "decode".equals(methodName)){
-            return true;
-        }
-        // not an endpoint
-        return false;
     }
 
-    public static boolean isGetter(SootMethod method){
-        String methodName = method.getName();
-        String returnType = method.getReturnType().toString();
-        boolean noParameter = method.getParameterCount() == 0;
-        boolean isPublic = method.isPublic();
+    public static void generateAliasEdge(MethodReference methodRef, DataContainer dataContainer){
+        String methodName = methodRef.getName();
 
-        if(!noParameter || !isPublic) return false;
-
-        if(methodName.startsWith("get") && methodName.length() > 3){
-            return !"void".equals(returnType);
-        }else if(methodName.startsWith("is") && methodName.length() > 2){
-            return "boolean".equals(returnType);
+        if("<init>".equals(methodName)
+                || "<clinit>".equals(methodName)){
+            return;
         }
 
-        return false;
-    }
+        SootMethod currentSootMethod = methodRef.getMethod();
+        if(currentSootMethod == null) return;
 
-    public static boolean isSetter(SootMethod method){
-        String methodName = method.getName();
-        String returnType = method.getReturnType().toString();
-        boolean singleParameter = method.getParameterCount() == 1;
-        boolean isPublic = method.isPublic();
+        SootClass cls = currentSootMethod.getDeclaringClass();
 
-        if(!isPublic || !singleParameter) return false;
+        Set<MethodReference> refs =
+                dataContainer.getAliasMethodRefs(cls, currentSootMethod.getSubSignature());
 
-        if(methodName.startsWith("set") && methodName.length() > 3){
-            return "void".equals(returnType);
+        if(refs != null && !refs.isEmpty()){
+            for(MethodReference ref:refs){
+                Alias alias = Alias.newInstance(ref, methodRef);
+                ref.getChildAliasEdges().add(alias);
+                dataContainer.store(alias);
+            }
         }
-
-        return false;
-    }
-
-
-    public static Set<String> getAllFatherNodes(SootClass cls){
-        Set<String> nodes = new HashSet<>();
-        if(cls.hasSuperclass() && !cls.getSuperclass().getName().equals("java.lang.Object")){
-            nodes.add(cls.getSuperclass().getName());
-            nodes.addAll(getAllFatherNodes(cls.getSuperclass()));
-        }
-        if(cls.getInterfaceCount() > 0){
-            cls.getInterfaces().forEach(intface -> {
-                nodes.add(intface.getName());
-                nodes.addAll(getAllFatherNodes(intface));
-            });
-        }
-        return nodes;
     }
 }

@@ -4,6 +4,7 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.SemanticUtils;
 import tabby.config.GlobalConfiguration;
 import tabby.common.rule.TabbyRule;
 import tabby.common.utils.FileUtils;
@@ -43,8 +44,9 @@ public class RulesContainer {
         return null;
     }
 
-    public void applyRule(String classname, MethodReference methodRef, Set<String> relatedClassnames){
+    public void applyRule(String classname, MethodReference methodRef){
         TabbyRule.Rule rule = getRule(classname, methodRef.getName());
+        Set<String> relatedClassnames = SemanticUtils.getAllFatherNodes(classname);
 
         if (rule == null) { // 对于ignore类型，支持多级父类和接口的规则查找
             for (String relatedClassname : relatedClassnames) {

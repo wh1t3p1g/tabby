@@ -17,6 +17,8 @@ import jakarta.persistence.*;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * @author wh1t3P1g
@@ -82,7 +84,8 @@ public class MethodReference {
     private transient boolean isPreCollected = false;
 
     private transient boolean isContainSomeError = false;
-
+    private transient AtomicBoolean isRunning = new AtomicBoolean(false);
+    private transient AtomicInteger timeoutTimes = new AtomicInteger(0);
     /**
      * 污染传递点，主要标记2种类型，this和param
      * 其他函数可以依靠relatedPosition，来判断当前位置是否是通路
@@ -177,6 +180,22 @@ public class MethodReference {
 
     public void addAction(String key, String value){
         actions.put(key, value);
+    }
+
+    public boolean isEverTimeout(){
+        return timeoutTimes.get() >= 3;
+    }
+
+    public void incrementTimeoutTimes(){
+        timeoutTimes.incrementAndGet();
+    }
+
+    public void setRunning(boolean flag){
+        isRunning.set(flag);
+    }
+
+    public boolean isRunning(){
+        return isRunning.get();
     }
 
     @Override

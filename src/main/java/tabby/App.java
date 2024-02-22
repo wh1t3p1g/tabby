@@ -10,6 +10,7 @@ import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.domain.EntityScan;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import sun.misc.Signal;
 import tabby.common.utils.FileUtils;
@@ -18,6 +19,7 @@ import tabby.core.Analyser;
 
 @Slf4j
 @SpringBootApplication
+@EnableScheduling
 @EntityScan({"tabby.common.bean"})
 public class App {
 
@@ -63,15 +65,21 @@ public class App {
                 setLogDebugLevel();
                 Signal.handle(new Signal("INT"),  // SIGINT
                         signal -> {
-                            log.error("Force Stop by control+c");
+                            log.error("Force Stop by Control + C");
                             stopThreads(GlobalConfiguration.tabbyCollectorExecutor);
+                            stopThreads(GlobalConfiguration.tabbySaverExecutor);
                             System.exit(0);
                         });
                 analyser.run();
             }catch (IllegalArgumentException e){
                 log.error(e.getMessage() + ", Please check your settings.properties file.");
             }
-            log.info("Done. Bye!");
+
+            if(GlobalConfiguration.GLOBAL_FORCE_STOP){
+                log.info("OOM ERROR!");
+            }else{
+                log.info("Done. Bye!");
+            }
         };
     }
 

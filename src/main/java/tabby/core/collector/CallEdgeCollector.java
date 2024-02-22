@@ -6,14 +6,13 @@ import org.springframework.stereotype.Service;
 import soot.Modifier;
 import soot.SootMethod;
 import soot.Unit;
-import soot.jimple.InvokeExpr;
 import soot.jimple.JimpleBody;
 import soot.jimple.Stmt;
-import tabby.common.utils.SemanticUtils;
-import tabby.core.container.DataContainer;
-import tabby.analysis.model.DefaultInvokeModel;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.common.bean.ref.MethodReference;
+import tabby.common.utils.SemanticUtils;
 import tabby.common.utils.TickTock;
+import tabby.core.container.DataContainer;
 
 /**
  * @author wh1t3p1g
@@ -59,15 +58,11 @@ public class CallEdgeCollector {
                 return;
             }
 
-            DefaultInvokeModel model = new DefaultInvokeModel();
+            CallEdgeBuilder builder = new CallEdgeBuilder();
             for(Unit unit:body.getUnits()){
                 Stmt stmt = (Stmt) unit;
                 if(stmt.containsInvokeExpr()){
-                    InvokeExpr ie = stmt.getInvokeExpr();
-                    SootMethod targetMethod = ie.getMethod();
-                    MethodReference targetMethodRef
-                            = dataContainer.getOrAddMethodRef(ie.getMethodRef(), targetMethod);
-                    model.apply(stmt, false, methodRef, targetMethodRef, dataContainer);
+                    builder.build(stmt, methodRef, dataContainer);
                 }
             }
         }catch (RuntimeException e){

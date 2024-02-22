@@ -8,11 +8,14 @@ import org.springframework.stereotype.Component;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.SootMethodRef;
+import soot.jimple.InvokeExpr;
+import tabby.analysis.data.Context;
 import tabby.common.bean.edge.*;
 import tabby.common.bean.ref.ClassReference;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.SemanticUtils;
-import tabby.core.scanner.ClassInfoScanner;
+import tabby.config.GlobalConfiguration;
+import tabby.core.collector.ClassInfoCollector;
 import tabby.dal.service.ClassRefService;
 import tabby.dal.service.MethodRefService;
 import tabby.dal.service.RelationshipsService;
@@ -51,6 +54,12 @@ public class DataContainer {
     private Set<Alias> savedAliasNodes = Collections.synchronizedSet(new HashSet<>());
     private Set<Extend> savedExtendNodes = Collections.synchronizedSet(new HashSet<>());
     private Set<Interfaces> savedInterfacesNodes = Collections.synchronizedSet(new HashSet<>());
+    private Map<String, Context> runningMethods = Collections.synchronizedMap(new HashMap<>());
+    private Set<String> newAddedMethodSigs = Collections.synchronizedSet(new HashSet<>());
+    private Set<String> targets = Collections.synchronizedSet(new HashSet<>());
+    private Set<String> analyseTimeoutMethodSigs = Collections.synchronizedSet(new HashSet<>());
+
+
 
     /**
      * check size and save nodes
@@ -105,6 +114,10 @@ public class DataContainer {
         }
     }
 
+    public Context getRunningMethodContext(String signature){
+        return runningMethods.get(signature);
+    }
+
     /**
      * store nodes
      * 保存节点到内存
@@ -122,6 +135,7 @@ public class DataContainer {
         }else if(ref instanceof MethodReference){
             MethodReference methodRef = (MethodReference) ref;
             savedMethodRefs.put(methodRef.getSignature(), methodRef);
+            targets.add(methodRef.getSignature());
         }else if(ref instanceof Has){
             savedHasNodes.add((Has) ref);
         }else if(ref instanceof Call){
@@ -231,39 +245,74 @@ public class DataContainer {
         return null;
     }
 
-    /**
-     * 对于找不到的methodref
-     * 1. 新建classRef 如果不存在的话
-     * 2. 从classRef找methodRef
-     * 3. 如果还是找不到则新建
-     * @param sootMethodRef
-     * @return
-     */
-    public MethodReference getOrAddMethodRef(SootMethodRef sootMethodRef, SootMethod method){
+    public MethodReference getMethodRefBySignature(String signature, boolean isNeedFromDatabase){
+        MethodReference ref = savedMethodRefs.getOrDefault(clean(signature), null);
+        if(ref != null) return ref;
+        if(isNeedFromDatabase){
+            // find from h2
+            ref = methodRefService.getMethodRefBySignature(clean(signature));
+            if(ref != null){
+                store(ref);
+            }
+        }
+        return ref;
+    }
+
+    public MethodReference getOrAddMethodRef(SootMethod method){
         // 递归查找父节点
+        String signature = method.getSignature();
+        MethodReference methodRef = getMethodRefBySignature(signature, true);
+
+        if(methodRef == null){
+            SootClass cls = method.getDeclaringClass();
+            methodRef = addMethodRef(cls, method);
+        }
+        return methodRef;
+    }
+
+    public MethodReference getOrAddMethodRef(InvokeExpr ie){
+        SootMethod sootMethod = SemanticUtils.getMethod(ie);
+        if(sootMethod != null){
+            return getOrAddMethodRef(sootMethod);
+        }
+
+        SootMethodRef sootMethodRef = ie.getMethodRef();
+
         MethodReference methodRef = getMethodRefBySignature(sootMethodRef);
 
         if(methodRef == null){
-            // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
-            SootClass cls = sootMethodRef.getDeclaringClass();
-            ClassReference classRef = getClassRefByName(cls.getName());
-            if(classRef == null){// 对于新建的情况，再查一遍
-                classRef = ClassInfoScanner.collect0(cls.getName(), cls, this, 0);
-                methodRef = getMethodRefBySignature(sootMethodRef);
-            }
-
-            if(methodRef == null){
-                methodRef = MethodReference.newInstance(classRef.getName(), method);
-                rulesContainer.applyRule(cls.getName(), methodRef, new HashSet<>());
-                Has has = Has.newInstance(classRef, methodRef);
-                if(!classRef.getHasEdge().contains(has)){
-                    classRef.getHasEdge().add(has);
-                    store(has);
-                    ClassInfoScanner.makeAliasRelation(has, this);
-                }
-                store(methodRef);
-            }
+            methodRef = addMethodRef(sootMethodRef);
         }
+        return methodRef;
+    }
+
+    public MethodReference addMethodRef(SootMethodRef sootMethodRef){
+        // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
+        SootClass cls = sootMethodRef.getDeclaringClass();
+        SootMethod method = SemanticUtils.getMethod(sootMethodRef);
+        return addMethodRef(cls, method);
+    }
+
+    public MethodReference addMethodRef(SootClass cls, SootMethod method){
+        // 解决ClassInfoScanner阶段，函数信息收集不完全的问题
+        MethodReference methodRef = null;
+        ClassReference classRef = getClassRefByName(cls.getName());
+        if(classRef == null){// 对于新建的情况，再查一遍
+            ClassInfoCollector.collectRuntimeForSingleClazz(cls.getName(), true, this, null);
+            methodRef = getMethodRefBySignature(method.getSignature(), true);
+        }else if(method != null &&
+                ("soot.dummy.InvokeDynamic".equals(cls.getName())
+//                        || "java.lang.invoke.VarHandle".equals(cls.getName())
+//                        || "java.lang.invoke.MethodHandle".equals(cls.getName())
+                        || cls.getName().contains("$lambda_")
+                        || method.isNative()
+                )){
+            // force add Dynamic method
+            methodRef = ClassInfoCollector.collectSingleMethodRef(classRef, method, false,false, this, GlobalConfiguration.rulesContainer);
+        }else if(method != null){
+            methodRef = ClassInfoCollector.collectSingleMethodRef(classRef, method, true,true, this, GlobalConfiguration.rulesContainer);
+        }
+
         return methodRef;
     }
 

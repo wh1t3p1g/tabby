@@ -3,6 +3,7 @@ package tabby.common.utils;
 import lombok.extern.slf4j.Slf4j;
 import tabby.config.GlobalConfiguration;
 
+import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
@@ -17,7 +18,7 @@ public class TickTock {
     private int split;
     private boolean show = false;
     private CountDownLatch latch;
-
+    private long startTime;
 
     public TickTock(int total, boolean show) {
         this.total = total;
@@ -27,6 +28,8 @@ public class TickTock {
         if(this.split == 0){
             this.split = 1;
         }
+        GlobalConfiguration.tickTock = this;
+        startTime = System.nanoTime();
     }
 
     public void await() {
@@ -61,13 +64,12 @@ public class TickTock {
         }
     }
 
-    public void awaitWithoutTimeout(){
+    public void awaitUntilCompleted(){
         try {
-            info("Waiting for {} classes to be collected...", latch.getCount());
             latch.await();
         } catch (InterruptedException e) {
-            e.printStackTrace();
-            error("Still have {} classes to collected.", latch.getCount());
+//            e.printStackTrace();
+            error("Still have {} methods to analysis, but it reached the max timeout.", latch.getCount());
         }
     }
 
@@ -84,7 +86,24 @@ public class TickTock {
         long remain = latch.getCount();
         long finished = total - remain;
         if(finished % split == 0 || finished == total){
-            info("Status: {}%, Remain: {}", String.format("%.1f",finished*0.1/total*1000), remain);
+            info("Status: {}%, Finished: {}, Remain: {}, Cost: {} Mins",
+                    String.format("%.1f",finished*0.1/total*1000), finished, remain,
+                    TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - startTime));
+            if(finished == total){
+                info("All tasks completed.");
+            }
         }
+    }
+
+    public void ticktockForScheduleTask(Map map){
+        long remain = latch.getCount();
+        long finished = total - remain;
+        int size = 0;
+        if(map != null){
+            size = map.size();
+        }
+        info("Status: {}%, Finished: {}, Remain: {}, Cost: {} Mins, Current: {}",
+                String.format("%.1f",finished*0.1/total*1000), finished, remain,
+                TimeUnit.NANOSECONDS.toMinutes(System.nanoTime() - startTime), size);
     }
 }

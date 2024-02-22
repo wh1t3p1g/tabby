@@ -4,25 +4,20 @@ import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import soot.*;
-import tabby.common.bean.edge.Alias;
-import tabby.common.bean.edge.Extend;
-import tabby.common.bean.edge.Has;
-import tabby.common.bean.edge.Interfaces;
+import soot.ModulePathSourceLocator;
+import soot.Scene;
+import soot.SootClass;
 import tabby.common.bean.ref.ClassReference;
-import tabby.common.bean.ref.MethodReference;
-import tabby.common.utils.JavaVersionUtils;
 import tabby.common.utils.SemanticUtils;
 import tabby.config.GlobalConfiguration;
 import tabby.core.collector.ClassInfoCollector;
 import tabby.core.container.DataContainer;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+
+import static tabby.config.GlobalConfiguration.rulesContainer;
 
 /**
  * 处理jdk相关类的信息抽取
@@ -61,7 +56,8 @@ public class ClassInfoScanner {
         }
 
         for (final String path : targets) {
-            List<String> classes = getTargetClasses(path, moduleClasses);
+            List<String> classes = SemanticUtils.getTargetClasses(path, moduleClasses);
+
             if(classes == null) continue;
 
             for (String cl : classes) {
@@ -85,37 +81,25 @@ public class ClassInfoScanner {
         return results;
     }
 
-    public List<String> getTargetClasses(String filepath, Map<String, List<String>> moduleClasses){
-        List<String> classes = null;
-        Path path = Paths.get(filepath);
-        if(Files.notExists(path)) return null;
-
-        if(JavaVersionUtils.isAtLeast(9) && moduleClasses != null){
-            String filename = path.getFileName().toString();
-            if(filename.endsWith(".jmod")){
-                filename = filename.substring(0, filename.length() - 5);
-            }
-            classes = moduleClasses.get(filename);
-        }
-
-        if(classes == null){
-            classes = SourceLocator.v().getClassesUnder(filepath);
-        }
-
-        return classes;
-    }
-
     public void transform(Collection<CompletableFuture<ClassReference>> futures){
+        int count = 0;
         for(CompletableFuture<ClassReference> future:futures){
             try {
                 ClassReference classRef = future.get();
+                if(count%10000==0){
+                    log.info("Collected {} classes' information", count);
+                }
+                count++;
+                if(classRef == null) continue;
 
                 dataContainer.store(classRef);
             } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
+                log.error(e.getMessage());
+//                e.printStackTrace();
                 // 异步获取出错
             }
         }
+        log.info("Collected {} classes' information", futures.size());
     }
 
     public void buildClassEdges(List<String> classes){
@@ -129,118 +113,13 @@ public class ClassInfoScanner {
             counter++;
             ClassReference clsRef = dataContainer.getClassRefByName(cls);
             if(clsRef == null) continue;
-            extractRelationships(clsRef, dataContainer, 0);
+            ClassInfoCollector.collectRelationInfo(clsRef, false, dataContainer, rulesContainer);
         }
         log.info("Build {}/{} classes.", counter, total);
     }
 
-    public static void extractRelationships(ClassReference clsRef, DataContainer dataContainer, int depth){
-        // 建立继承关系
-        if(clsRef.isHasSuperClass()){
-            ClassReference superClsRef = dataContainer.getClassRefByName(clsRef.getSuperClass());
-            if(superClsRef == null && depth < 10){ // 正常情况不会进入这个阶段
-                superClsRef = collect0(clsRef.getSuperClass(), null, dataContainer, depth+1);
-            }
-            if(superClsRef != null && !"java.lang.Object".equals(superClsRef.getName())){
-                Extend extend =  Extend.newInstance(clsRef, superClsRef);
-                dataContainer.store(extend);
-            }
-        }
-
-        // 建立接口关系
-        if(clsRef.isHasInterfaces()){
-            List<String> infaces = clsRef.getInterfaces();
-            for(String inface:infaces){
-                ClassReference infaceClsRef = dataContainer.getClassRefByName(inface);
-                if(infaceClsRef == null && depth < 10){// 正常情况不会进入这个阶段
-                    infaceClsRef = collect0(inface, null, dataContainer, depth+1);
-                }
-                if(infaceClsRef != null){
-                    Interfaces interfaces = Interfaces.newInstance(clsRef, infaceClsRef);
-                    dataContainer.store(interfaces);
-                }
-            }
-        }
-        // 建立函数别名关系
-        makeAliasRelations(clsRef, dataContainer);
-    }
-
-    /**
-     * 根据单个类进行类信息收集
-     * @param classname 待收集的类名
-     * @return 具体的类信息
-     */
-    public static ClassReference collect0(String classname, SootClass cls,
-                                          DataContainer dataContainer, int depth){
-        ClassReference classRef = null;
-        try{
-            if(cls == null){
-                cls = SemanticUtils.getSootClass(classname);
-            }
-        }catch (Exception e){
-            // class not found
-        }
-
-        if(cls != null) {
-            if(cls.isPhantom()){
-                classRef = ClassReference.newInstance(cls);
-                classRef.setPhantom(true);
-            }else{
-                classRef = ClassInfoCollector.collect0(cls, dataContainer);
-
-                extractRelationships(classRef, dataContainer, depth);
-            }
-        }else if(!classname.isEmpty()){
-            classRef = ClassReference.newInstance(classname);
-            classRef.setPhantom(true);
-        }
-
-        dataContainer.store(classRef);
-        return classRef;
-    }
-
-
-
-    public static void makeAliasRelations(ClassReference ref, DataContainer dataContainer){
-        if(ref == null)return;
-        // build alias relationship
-        if(ref.getHasEdge() == null) return;
-
-        List<Has> hasEdges = ref.getHasEdge();
-        for(Has has:hasEdges){
-            makeAliasRelation(has, dataContainer);
-        }
-
-        ref.setInitialed(true);
-    }
-
-    public static void makeAliasRelation(Has has, DataContainer dataContainer){
-        MethodReference currentMethodRef = has.getMethodRef();
-
-        if("<init>".equals(currentMethodRef.getName())
-                || "<clinit>".equals(currentMethodRef.getName())){
-            return;
-        }
-
-        SootMethod currentSootMethod = currentMethodRef.getMethod();
-        if(currentSootMethod == null) return;
-
-        SootClass cls = currentSootMethod.getDeclaringClass();
-
-        Set<MethodReference> refs =
-                dataContainer.getAliasMethodRefs(cls, currentSootMethod.getSubSignature());
-
-        if(refs != null && !refs.isEmpty()){
-            for(MethodReference ref:refs){
-                Alias alias = Alias.newInstance(ref, currentMethodRef);
-                ref.getChildAliasEdges().add(alias);
-//            currentMethodRef.setAliasEdge(alias);
-                dataContainer.store(alias);
-            }
-        }
-    }
-
     public void save(){
+        if(GlobalConfiguration.GLOBAL_FORCE_STOP) return;
         log.info("Start to save remained data to graphdb.");
         dataContainer.save("class");
         dataContainer.save("has");

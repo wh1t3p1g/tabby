@@ -6,9 +6,9 @@ import soot.Value;
 import soot.ValueBox;
 import soot.jimple.*;
 import soot.jimple.internal.JimpleLocalBox;
-import tabby.core.container.DataContainer;
 import tabby.common.bean.edge.Call;
 import tabby.common.bean.ref.MethodReference;
+import tabby.core.container.DataContainer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,8 +20,9 @@ import java.util.List;
  */
 @Getter
 @Setter
-public class DefaultInvokeModel{
+public class DefaultInvokeModel implements Model{
 
+    private List<Integer> pollutedPosition = new ArrayList<>();
     private static final List<String> IGNORE_LIST = new ArrayList<>(Arrays.asList(
             "<java.lang.Object: void <init>()>",
             "<java.io.PrintStream: void println(java.lang.String)>",
@@ -33,32 +34,33 @@ public class DefaultInvokeModel{
             "<java.lang.String: boolean equals(java.lang.Object)>"
     ));
 
+    @Override
+    public void setPP(List<Integer> pollutedPosition) {
+        this.pollutedPosition = pollutedPosition;
+    }
 
-    public void apply(Stmt stmt, boolean isManual, MethodReference methodRef,
-                         MethodReference targetMethodRef, DataContainer dataContainer) {
-
-        String signature = targetMethodRef.getSignature();
-        if(IGNORE_LIST.contains(signature)) return ;
-        // 剔除递归调用自身的情况
-        if(methodRef.getId().equals(targetMethodRef.getId())) return ;
+    public boolean apply(Stmt stmt, boolean isManual, MethodReference caller, MethodReference callee, DataContainer dataContainer) {
+        if(caller.getId().equals(callee.getId())) return false;
 
         InvokeExpr ie = stmt.getInvokeExpr();
-
-        Call call = Call.newInstance(methodRef, targetMethodRef);
+        Call call = Call.newInstance(caller, callee);
         if(isManual){
-            call.setRealCallType(targetMethodRef.getClassname());
+            call.setRealCallType(callee.getClassname());
             call.setInvokerType("ManualInvoke");
         }else{
-            call.setRealCallType(getRealCallType(ie, targetMethodRef));
+            call.setRealCallType(getRealCallType(ie, callee));
             call.setInvokerType(getInvokeType(ie));
         }
+
+        call.setPollutedPosition(new ArrayList<>(pollutedPosition));
         call.setLineNum(stmt.getJavaSourceStartLineNumber());
         call.generateId();
 
-        if(!methodRef.getCallEdge().contains(call)){
-            methodRef.getCallEdge().add(call);
+        if(!caller.getCallEdge().contains(call)){
+            caller.getCallEdge().add(call);
             dataContainer.store(call);
         }
+        return true;
     }
 
     public String getInvokeType(InvokeExpr ie){
@@ -95,4 +97,6 @@ public class DefaultInvokeModel{
 
         return classname;
     }
+
+
 }

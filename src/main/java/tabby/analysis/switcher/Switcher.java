@@ -38,7 +38,7 @@ public class Switcher {
      * @param method
      * @param methodRef
      */
-    public static PollutedVarsPointsToAnalysis doMethodAnalysis(Context context,
+    public static boolean doMethodAnalysis(Context context,
                                                                 DataContainer dataContainer,
                                                                 SootMethod method,
                                                                 MethodReference methodRef){
@@ -47,28 +47,51 @@ public class Switcher {
                     || method.isPhantom()){
                 methodRef.setInitialed(true);
                 methodRef.setActionInitialed(true);
-                return null;
+                return false;
             }
 
             if(methodRef.isActionInitialed() && methodRef.isInitialed()){
                 // 已经初始化过了
-                return null;
+                return false;
+            }
+
+            if(methodRef.isBodyParseError()) return false;
+
+            int maxSleepTimes = 5;
+            while(methodRef.isRunning() && maxSleepTimes > 0){
+                // 如果已经有线程在运行了，随机睡几秒
+                int random = (int)(Math.random()*20);
+                try {
+                    Thread.sleep(random);
+                } catch (InterruptedException e) {
+                    throw new RuntimeException(e);
+                }
+                // 如果睡完，已经分析完了，则直接返回
+                if(methodRef.isActionInitialed()){
+                    return true;
+                }
+                maxSleepTimes--;
             }
 
             JimpleBody body = (JimpleBody) SemanticUtils.retrieveBody(method, methodRef.getSignature(), true);
-            if(body == null) return null;
+            if(body == null) return false;
+
+            methodRef.setRunning(true);
 
             UnitGraph graph = new BriefUnitGraph(body);
-            PollutedVarsPointsToAnalysis pta =
-                    PollutedVarsPointsToAnalysis
-                            .makeDefault(methodRef, body, graph,
-                            dataContainer, context, !methodRef.isActionInitialed());
+            PollutedVarsPointsToAnalysis.makeDefault(methodRef, body, graph, dataContainer, context, !methodRef.isActionInitialed());
 
             methodRef.setInitialed(true);
             methodRef.setActionInitialed(true);
-            return pta;
+            return true;
         }catch (Exception e){
+            String msg = e.getMessage();
+            if(msg != null && msg.contains("Body retrieve error")){
+                methodRef.setBodyParseError(true);
+            }
             throw new RuntimeException(e);
+        }finally {
+            methodRef.setRunning(false);
         }
     }
 
@@ -106,8 +129,7 @@ public class Switcher {
         SootClass cls = invokeExpr.getMethod().getDeclaringClass();
         SootMethod invokedMethod = invokeExpr.getMethod();
 
-        MethodReference methodRef = dataContainer
-                .getOrAddMethodRef(invokeExpr.getMethodRef(), invokedMethod);
+        MethodReference methodRef = dataContainer.getOrAddMethodRef(invokedMethod);
 
         // construct call edge
         String invokeType = "";
@@ -128,8 +150,11 @@ public class Switcher {
             //   由于获取到的method是没有函数内容的，所以需要找到对应的具体实现来进行分析
             //   这里继续进行简化，对于无返回的函数调用，可以仍然保持原状，也就是舍弃了函数参数在函数体内可能发生的变化
             //   对于有返回的函数调用，则找到一个会影响返回值的具体实现
-            Context subContext = context.createSubContext(methodRef.getSignature(), methodRef);
-            Switcher.doMethodAnalysis(subContext, dataContainer, invokedMethod, methodRef);
+
+            try(Context subContext = context.createSubContext(methodRef.getSignature(), methodRef)){
+                Switcher.doMethodAnalysis(subContext, dataContainer, invokedMethod, methodRef);
+                context.sub(subContext.cost());
+            }
         }
         // 回溯
         TabbyVariable retVar = null;
