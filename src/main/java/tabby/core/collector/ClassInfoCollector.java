@@ -1,5 +1,6 @@
 package tabby.core.collector;
 
+import com.google.common.collect.ImmutableList;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
@@ -147,9 +148,11 @@ public class ClassInfoCollector {
             }
         }
         // 建立函数别名关系
+
         List<Has> hasEdges = classRef.getHasEdge();
         if(hasEdges != null && !hasEdges.isEmpty()){
-            for(Has has:hasEdges){
+            List<Has> copied = ImmutableList.copyOf(hasEdges);
+            for(Has has:copied){
                 generateAliasEdge(has.getMethodRef(), dataContainer);
             }
         }
