@@ -43,10 +43,10 @@ public class InvokeExprSwitcher extends AbstractJimpleValueSwitch {
 
     @Override
     public void caseStaticInvokeExpr(StaticInvokeExpr v) {
-        if(isNecessaryEdge("StaticInvoke", v)){
+//        if(isNecessaryEdge("StaticInvoke", v)){
             generate(v);
             buildCallRelationship(v);
-        }
+//        }
     }
 
     @Override

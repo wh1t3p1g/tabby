@@ -107,23 +107,23 @@ public class Switcher {
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参、baseVar是否可控
         List<Integer> pollutedPosition = pollutedPositionAnalysis(baseVar, args, context);
-        TabbyVariable firstPollutedVar = null;
-        boolean flag = false;
-        int index = 0;
-        for(Integer pos:pollutedPosition){
-            if(pos != PositionUtils.NOT_POLLUTED_POSITION){
-                if(index == 0){
-                    firstPollutedVar = baseVar;
-                }else{
-                    firstPollutedVar = args.get(index-1);
-                }
-                flag=true;
-                break;
-            }
-            index++;
-        }
+//        TabbyVariable firstPollutedVar = null;
+//        boolean flag = false;
+//        int index = 0;
+//        for(Integer pos:pollutedPosition){
+//            if(pos != PositionUtils.NOT_POLLUTED_POSITION){
+//                if(index == 0){
+//                    firstPollutedVar = baseVar;
+//                }else{
+//                    firstPollutedVar = args.get(index-1);
+//                }
+//                flag=true;
+//                break;
+//            }
+//            index++;
+//        }
 
-        if(!flag) return null;
+//        if(!flag) return null;
         // baseVar，入参均不可控，返回值必不可控，无需做分析
         // find target MethodRef
         SootClass cls = invokeExpr.getMethod().getDeclaringClass();
