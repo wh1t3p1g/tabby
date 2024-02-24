@@ -3,11 +3,13 @@ package tabby.core.container;
 import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+import tabby.common.bean.ref.ClassReference;
 import tabby.common.bean.ref.MethodReference;
+import tabby.common.rule.TabbyRule;
+import tabby.common.rule.TagRule;
+import tabby.common.utils.FileUtils;
 import tabby.common.utils.SemanticUtils;
 import tabby.config.GlobalConfiguration;
-import tabby.common.rule.TabbyRule;
-import tabby.common.utils.FileUtils;
 
 import java.io.FileNotFoundException;
 import java.util.*;
@@ -26,10 +28,14 @@ public class RulesContainer {
     private List<String> excludedClasses; // 不进行分析的类
     private List<String> basicClasses; // 已经分析过的jar包
     private List<String> commonJars;
+    private TagRule[] tagRules;
+    private Map<String, TagRule> tagRuleMap = new HashMap<>();
+
 
     public RulesContainer() throws FileNotFoundException {
         load();
         loadIgnore();
+        loadTagRules();
         loadBasicClasses();
         loadCommonJars();
     }
@@ -88,6 +94,72 @@ public class RulesContainer {
         methodRef.setSource(isSource);
     }
 
+    public void applyTagRule(ClassReference clsRef, MethodReference methodRef){
+        // 根据tags规则处理
+        String classname = clsRef.getName();
+        for(TagRule tagRule:tagRules){
+            boolean flag = false;
+            if(tagRule.isInWhitelist(classname)){
+                break;
+            }
+
+            if(tagRule.isAnnotationType()){
+                Set<String> annotations = methodRef.getAnnotations().keySet();
+                for(String annotation:annotations){
+                    flag = check(annotation, tagRule.getAnnotations());
+                    if(flag){
+                        break;
+                    }
+                }
+                if(!flag) continue;
+            }
+
+            if(tagRule.isClassType()){
+                flag = check(classname, tagRule.getClasses());
+                if(!flag){
+                    Set<String> relatedClassnames = SemanticUtils.getAllFatherNodes(classname);
+                    for(String related:relatedClassnames){
+                        flag = check(related, tagRule.getClasses());
+                        if(flag) break;
+                    }
+                }
+                if(!flag) continue;
+            }
+
+            if(tagRule.isMethodType()){
+                flag = check(methodRef.getName(), tagRule.getMethods());
+                if(!flag) continue;
+            }
+
+            if(flag){ // annotation && class && method
+                methodRef.setType(tagRule.getValue()); // 可能不止命中一次规则
+
+                if(methodRef.isEndpoint()){
+                    Set<String> baseUrlPaths = SemanticUtils.getHttpUrlPaths(clsRef.getAnnotations());
+                    String urlPath = SemanticUtils.getHttpUrlPathWithBaseURLPaths(methodRef.getAnnotations(), baseUrlPaths);
+                    methodRef.setUrlPath(urlPath);
+                }
+            }
+        }
+    }
+
+    public boolean check(String data, Set<String> rules){
+        boolean flag = false;
+        for(String rule:rules){
+            if(rule.startsWith("%")){
+                String tmp = rule.substring(1);
+                flag = data.endsWith(tmp);
+            }else if(rule.endsWith("%")){
+                String tmp = rule.substring(0, rule.length()-1);
+                flag = data.startsWith(tmp);
+            }else{
+                flag = data.equals(rule);
+            }
+            if(flag) return true;
+        }
+        return false;
+    }
+
     public TabbyRule getRule(String classname){
         return rules.getOrDefault(classname, null);
     }
@@ -130,6 +202,19 @@ public class RulesContainer {
         }
         log.info("load "+ rules.size() +" rules success!");
     }
+
+    private void loadTagRules(){
+        tagRules = (TagRule[]) FileUtils.getJsonContent(GlobalConfiguration.TAG_RULE_PATH, TagRule[].class);
+        if(tagRules == null){
+            tagRules = new TagRule[0];
+        }
+
+        for(TagRule tagRule:tagRules){
+            tagRuleMap.put(tagRule.getName(), tagRule);
+        }
+    }
+
+
     @SuppressWarnings({"unchecked"})
     private void loadIgnore(){
         ignored = (List<String>) FileUtils.getJsonContent(GlobalConfiguration.IGNORE_PATH, List.class);

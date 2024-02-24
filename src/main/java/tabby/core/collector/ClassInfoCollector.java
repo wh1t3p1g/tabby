@@ -72,6 +72,7 @@ public class ClassInfoCollector {
         MethodReference methodRef = MethodReference.newInstance(classname, method);
         // apply rules
         rulesContainer.applyRule(classname, methodRef);
+        rulesContainer.applyTagRule(classRef, methodRef);
         // add to new added for next stage
         if(GlobalConfiguration.IS_NEED_TO_DEAL_NEW_ADDED_METHOD && newAdded){
             dataContainer.getNewAddedMethodSigs().add(methodRef.getSignature());

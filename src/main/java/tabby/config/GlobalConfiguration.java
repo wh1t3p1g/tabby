@@ -30,6 +30,7 @@ public class GlobalConfiguration {
     public static String RULES_PATH;
     public static String SINK_RULE_PATH;
     public static String SYSTEM_RULE_PATH;
+    public static String TAG_RULE_PATH;
     public static String IGNORE_PATH;
     public static String BASIC_CLASSES_PATH;
     public static String COMMON_JARS_PATH;
@@ -92,6 +93,7 @@ public class GlobalConfiguration {
             SINK_RULE_PATH = String.join(File.separator, RULES_PATH, "sinks.json");
             SYSTEM_RULE_PATH = String.join(File.separator, RULES_PATH, "system.json");
             IGNORE_PATH = String.join(File.separator, RULES_PATH, "ignores.json");
+            TAG_RULE_PATH = String.join(File.separator, RULES_PATH, "tags.json");
             BASIC_CLASSES_PATH = String.join(File.separator, RULES_PATH, "basicClasses.json");
             COMMON_JARS_PATH = String.join(File.separator, RULES_PATH, "commonJars.json");
             THREAD_POOL_SIZE = getProperty("tabby.build.thread.size", "max", props);

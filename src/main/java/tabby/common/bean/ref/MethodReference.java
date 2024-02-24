@@ -47,6 +47,9 @@ public class MethodReference {
     private int parameterSize;
     private String vul;
     private transient int callCounter = 0;
+    private String type;
+    private String urlPath;
+
 
     // 没有用上parameters 删除
 //    @Column(columnDefinition = "TEXT")
@@ -176,6 +179,12 @@ public class MethodReference {
         if(sootMethod == null){
             sootMethod = method;
         }
+    }
+
+    public void setType(String type) {
+        this.type = type;
+        this.isEndpoint = "web".equals(type);
+        this.isNettyEndpoint = "netty".equals(type);
     }
 
     public void addAction(String key, String value){

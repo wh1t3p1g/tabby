@@ -395,20 +395,40 @@ public class SemanticUtils {
         return uris;
     }
 
-    public static Set<String> getMRPCUrlPaths(Map<String, Map<String, Set<String>>> annotations) {
-        Set<String> uris = new HashSet<>();
-        for(Map.Entry<String, Map<String,Set<String>>> entry:annotations.entrySet()){
-            String annotationName = entry.getKey();
-            if(annotationName == null || annotationName.isEmpty()) continue;
+    public static String getHttpUrlPathWithBaseURLPaths(Map<String, Map<String, Set<String>>> annotations, Set<String> baseUrlPaths) {
+        Set<String> urls = new HashSet<>();
 
-            if(annotationName.endsWith("OperationType")){
-                Set<String> values = entry.getValue().get("value");
-                if(values != null){
-                    uris.addAll(values);
+        if (baseUrlPaths == null || baseUrlPaths.isEmpty()) {
+            baseUrlPaths = new HashSet<>();
+            baseUrlPaths.add("");
+        }
+
+        Set<String> subUrlPaths = getHttpUrlPaths(annotations);
+
+        for(String base:baseUrlPaths){
+            for(String sub:subUrlPaths){
+                String urlPath = base;
+                if(urlPath.isEmpty()){
+                    urlPath = sub;
+                }else{
+                    urlPath += "/"+sub;
+                }
+                if (urlPath.endsWith("/")) {
+                    urlPath = urlPath.substring(0, urlPath.length() - 1);
+                }
+
+                urlPath = urlPath.replace("//", "/");
+                if(!urlPath.isEmpty()){
+                    urls.add(urlPath);
                 }
             }
         }
-        return uris;
+
+        if(urls.isEmpty()){
+            return "";
+        }else{
+            return String.join(",", urls);
+        }
     }
 
     public static boolean isInterface(Type type){
