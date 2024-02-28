@@ -48,6 +48,7 @@ public class MethodReference {
     private String vul;
     private transient int callCounter = 0;
     private String type;
+    @Column(columnDefinition = "TEXT")
     private String urlPath;
 
 
