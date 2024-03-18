@@ -228,7 +228,7 @@ public class FileUtils {
      */
     public static Path registerTempDirectory(String directory) throws IOException {
 
-        final Path tmpDir = Files.createTempDirectory("tabby_"+directory);
+        final Path tmpDir = createTempDirectory("tabby_"+directory);
         // Delete the temp directory at shutdown
         Runtime.getRuntime().addShutdownHook(new Thread(() -> {
             try {
@@ -239,6 +239,14 @@ public class FileUtils {
         }));
 
         return tmpDir;
+    }
+
+    public static Path createTempDirectory(String directory){
+        String filepath = String.join(File.separator, GlobalConfiguration.TEMP_PATH, directory + UUID.randomUUID());
+        if(!fileExists(filepath)){
+            createDirectory(filepath);
+        }
+        return Paths.get(filepath);
     }
 
     /**

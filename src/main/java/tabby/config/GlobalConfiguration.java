@@ -27,6 +27,7 @@ public class GlobalConfiguration {
     public static String CONFIG_FILE_PATH = String.join(File.separator, System.getProperty("user.dir"), "config", "settings.properties");
     public static String LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "libs");
     public static String JRE_LIBS_PATH = String.join(File.separator, System.getProperty("user.dir"), "jre_libs");
+    public static String TEMP_PATH = String.join(File.separator, System.getProperty("user.dir"), "temp");
     public static String RULES_PATH;
     public static String SINK_RULE_PATH;
     public static String SYSTEM_RULE_PATH;
