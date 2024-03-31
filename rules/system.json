@@ -102,7 +102,9 @@
     {"function": "getParameter", "type": "know", "vul": "", "actions": {"return": "this"}, "polluted": [], "signatures": []},
     {"function": "getParameterMap", "type": "know", "vul": "", "actions": {"return": "this"}, "polluted": [], "signatures": []}
   ]},
-
+  {"name": "org.jooq.impl.Convert", "rules": [
+    {"function": "convert", "type": "know", "vul": "", "actions": {"return": "param-0"}, "polluted": [], "signatures": []}
+  ]},
 
   {"name":"java.io.PrintStream", "rules": [
     {"function": "print", "type": "ignore", "vul": "", "actions": {}, "polluted": [], "signatures": []}
