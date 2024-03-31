@@ -3,6 +3,7 @@ package tabby.analysis.switcher.stmt;
 import lombok.Getter;
 import lombok.Setter;
 import soot.jimple.AbstractStmtSwitch;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.analysis.switcher.value.ValueSwitcher;
 import tabby.common.bean.ref.MethodReference;
 import tabby.analysis.data.Context;
@@ -22,4 +23,5 @@ public abstract class StmtSwitcher extends AbstractStmtSwitch {
     public ValueSwitcher leftValueSwitcher;
     public ValueSwitcher rightValueSwitcher;
     public boolean reset = true;
+    public CallEdgeBuilder builder = null;
 }

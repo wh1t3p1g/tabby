@@ -9,6 +9,7 @@ import soot.toolkits.graph.DirectedGraph;
 import soot.toolkits.scalar.ForwardFlowAnalysis;
 import tabby.analysis.data.Context;
 import tabby.analysis.data.TabbyVariable;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.analysis.switcher.stmt.SimpleStmtSwitcher;
 import tabby.analysis.switcher.stmt.StmtSwitcher;
 import tabby.analysis.switcher.value.SimpleLeftValueSwitcher;
@@ -39,6 +40,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
     private MethodReference methodRef;
     private Body body;
     private boolean isNormalExit = true;
+    private CallEdgeBuilder builder = new CallEdgeBuilder();
 
     /**
      * Construct the analysis from a DirectedGraph representation of a Body.
@@ -49,7 +51,6 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         super(graph);
         emptyMap = new HashMap<>();
         initialMap = new HashMap<>();
-
     }
 
     public void doAnalysis(){
@@ -214,11 +215,15 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         // 配置switchers
         StmtSwitcher switcher = new SimpleStmtSwitcher();
         SimpleLeftValueSwitcher leftSwitcher = new SimpleLeftValueSwitcher();
+        SimpleRightValueSwitcher rightSwitcher = new SimpleRightValueSwitcher();
+        rightSwitcher.setBuilder(analysis.getBuilder());
+        leftSwitcher.setBuilder(analysis.getBuilder());
         leftSwitcher.setReset(reset);
         switcher.setReset(reset);
         switcher.setMethodRef(methodRef);
+        switcher.setBuilder(analysis.getBuilder());
         switcher.setLeftValueSwitcher(leftSwitcher);
-        switcher.setRightValueSwitcher(new SimpleRightValueSwitcher());
+        switcher.setRightValueSwitcher(rightSwitcher);
         // 配置pta依赖
         analysis.setBody(body);
         analysis.setDataContainer(dataContainer);

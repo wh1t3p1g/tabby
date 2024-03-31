@@ -67,7 +67,7 @@ public class Call {
 
     public void generateId(){
         String sb = source + target +
-                lineNum + isCallerThisFieldObj +
+                isCallerThisFieldObj +
                 invokerType + realCallType +
                 Arrays.deepToString(pollutedPosition.toArray());
         id = HashingUtils.hashString(sb);

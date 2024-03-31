@@ -10,6 +10,7 @@ import soot.toolkits.graph.UnitGraph;
 import tabby.analysis.PollutedVarsPointsToAnalysis;
 import tabby.analysis.data.Context;
 import tabby.analysis.data.TabbyVariable;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.common.bean.edge.Call;
 import tabby.common.bean.ref.MethodReference;
 import tabby.common.utils.PositionUtils;
@@ -101,48 +102,17 @@ public class Switcher {
             Unit unit,
             InvokeExpr invokeExpr,
             DataContainer dataContainer,
-            Context context){
+            Context context, CallEdgeBuilder builder){
         // extract baseVar and args
         TabbyVariable baseVar = Switcher.extractBaseVarFromInvokeExpr(invokeExpr, context); // 调用对象
         Map<Integer, TabbyVariable> args = Switcher.extractArgsFromInvokeExpr(invokeExpr, context);
         // 检查当前的调用 是否需要分析 看入参、baseVar是否可控
         List<Integer> pollutedPosition = pollutedPositionAnalysis(baseVar, args, context);
-//        TabbyVariable firstPollutedVar = null;
-//        boolean flag = false;
-//        int index = 0;
-//        for(Integer pos:pollutedPosition){
-//            if(pos != PositionUtils.NOT_POLLUTED_POSITION){
-//                if(index == 0){
-//                    firstPollutedVar = baseVar;
-//                }else{
-//                    firstPollutedVar = args.get(index-1);
-//                }
-//                flag=true;
-//                break;
-//            }
-//            index++;
-//        }
-
-//        if(!flag) return null;
-        // baseVar，入参均不可控，返回值必不可控，无需做分析
+        builder.setPollutedPosition(pollutedPosition);
+        builder.build((Stmt) unit, context.getMethodReference(), dataContainer); // build call edges
         // find target MethodRef
-        SootClass cls = invokeExpr.getMethod().getDeclaringClass();
         SootMethod invokedMethod = invokeExpr.getMethod();
-
         MethodReference methodRef = dataContainer.getOrAddMethodRef(invokedMethod);
-
-        // construct call edge
-        String invokeType = "";
-        if(invokeExpr instanceof StaticInvokeExpr){
-            invokeType = "StaticInvoke";
-        }else if(invokeExpr instanceof VirtualInvokeExpr){
-            invokeType = "VirtualInvoke";
-        }else if(invokeExpr instanceof SpecialInvokeExpr){
-            invokeType = "SpecialInvoke";
-        }else if(invokeExpr instanceof InterfaceInvokeExpr){
-            invokeType = "InterfaceInvoke";
-        }
-
         // try to analysis this method
         if((!methodRef.isInitialed() || !methodRef.isActionInitialed()) // never analysis with pta
                 && !context.isInRecursion(methodRef.getSignature())){ // not recursion
@@ -150,7 +120,6 @@ public class Switcher {
             //   由于获取到的method是没有函数内容的，所以需要找到对应的具体实现来进行分析
             //   这里继续进行简化，对于无返回的函数调用，可以仍然保持原状，也就是舍弃了函数参数在函数体内可能发生的变化
             //   对于有返回的函数调用，则找到一个会影响返回值的具体实现
-
             try(Context subContext = context.createSubContext(methodRef.getSignature(), methodRef)){
                 Switcher.doMethodAnalysis(subContext, dataContainer, invokedMethod, methodRef);
                 context.sub(subContext.cost());
@@ -199,7 +168,6 @@ public class Switcher {
         if(methodRef.getActions().containsKey("return")){
             retVar = parsePosition(methodRef.getActions().get("return"), baseVar, args, true);
         }
-        boolean optimize = false;
         // TODO 接口类型 传递优化
 //        if(retVar == null
 //                && "InterfaceInvoke".equals(invokeType)
@@ -215,10 +183,6 @@ public class Switcher {
 //            retVar.setName("temp");
 //            retVar.setValue(retValue);
 //        }
-
-        buildCallRelationship(cls.getName(), context, optimize,
-                methodRef, dataContainer, unit, invokeType,
-                pollutedPosition);
 
         return retVar;
     }

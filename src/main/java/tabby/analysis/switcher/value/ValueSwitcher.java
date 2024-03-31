@@ -4,6 +4,7 @@ import lombok.Getter;
 import lombok.Setter;
 import soot.Unit;
 import soot.jimple.AbstractJimpleValueSwitch;
+import tabby.analysis.model.CallEdgeBuilder;
 import tabby.common.bean.ref.MethodReference;
 import tabby.analysis.data.Context;
 import tabby.core.container.DataContainer;
@@ -24,5 +25,6 @@ public abstract class ValueSwitcher extends AbstractJimpleValueSwitch {
     public boolean unbind = false;
     public boolean reset = true;
     public Unit unit;
+    public CallEdgeBuilder builder = null;
 
 }

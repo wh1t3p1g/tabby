@@ -30,7 +30,7 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         if(GlobalConfiguration.DEBUG){
             log.debug("Analysis: "+ie.getMethodRef().getSignature() + "; "+context.getTopMethodSignature());
         }
-        Switcher.doInvokeExprAnalysis(stmt, ie, dataContainer, context);
+        Switcher.doInvokeExprAnalysis(stmt, ie, dataContainer, context, builder);
         if(GlobalConfiguration.DEBUG) {
             log.debug("Analysis: " + ie.getMethodRef().getName() + " done, return to" + context.getMethodSignature() + "; "+context.getTopMethodSignature());
         }

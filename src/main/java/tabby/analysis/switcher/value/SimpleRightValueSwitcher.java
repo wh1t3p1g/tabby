@@ -104,7 +104,7 @@ public class SimpleRightValueSwitcher extends ValueSwitcher {
             log.debug("Analysis: " + invokeExpr.getMethodRef().getSignature() + "; "+context.getTopMethodSignature());
         }
 
-        setResult(Switcher.doInvokeExprAnalysis(unit, invokeExpr, dataContainer, context));
+        setResult(Switcher.doInvokeExprAnalysis(unit, invokeExpr, dataContainer, context, builder));
 
         if(GlobalConfiguration.DEBUG) {
             log.debug("Analysis: " + invokeExpr.getMethodRef().getName() + " done, return to" + context.getMethodSignature() + "; "+context.getTopMethodSignature());

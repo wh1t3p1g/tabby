@@ -11,7 +11,6 @@ import tabby.common.bean.ref.MethodReference;
 import tabby.core.container.DataContainer;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -23,16 +22,6 @@ import java.util.List;
 public class DefaultInvokeModel implements Model{
 
     private List<Integer> pollutedPosition = new ArrayList<>();
-    private static final List<String> IGNORE_LIST = new ArrayList<>(Arrays.asList(
-            "<java.lang.Object: void <init>()>",
-            "<java.io.PrintStream: void println(java.lang.String)>",
-            "<java.lang.StringBuilder: java.lang.AbstractStringBuilder append(float)>",
-            "<java.lang.StringBuilder: java.lang.String toString()>",
-            "<java.lang.StringBuilder: int length()>",
-            "<java.lang.String: int hashCode()>",
-            "<java.lang.String: int length()>",
-            "<java.lang.String: boolean equals(java.lang.Object)>"
-    ));
 
     @Override
     public void setPP(List<Integer> pollutedPosition) {
