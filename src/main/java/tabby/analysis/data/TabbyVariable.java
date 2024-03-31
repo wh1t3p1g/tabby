@@ -92,7 +92,7 @@ public class TabbyVariable {
         fieldVar.setOwner(baseVar);
         fieldVar.setValue(tabbyValue);
 
-        if(baseVar != null && baseVar.isPolluted(-1)){
+        if(baseVar != null && baseVar.isPolluted()){
             tabbyValue.setPolluted(true);
             String type = baseVar.getValue().getRelatedType();
 
@@ -119,7 +119,7 @@ public class TabbyVariable {
         fieldVar.setOwner(baseVar);
         fieldVar.setValue(tabbyValue);
 
-        if(baseVar != null && baseVar.isPolluted(-1)){
+        if(baseVar != null && baseVar.isPolluted()){
             tabbyValue.setPolluted(true);
             String type = baseVar.getValue().getRelatedType();
 
@@ -164,7 +164,7 @@ public class TabbyVariable {
         // copy value
         if(var != null && var.getValue() != null
                 && !"Temp Variable".equals(var.getName())){ // 遇到临时变量，不做处理，通常为new操作
-            if(isPolluted(-1) && remain){
+            if(isPolluted() && remain){
                 return;
             }
             value = var.getValue();
@@ -246,15 +246,30 @@ public class TabbyVariable {
         return firstPollutedVarRelatedType;
     }
 
-    public boolean isPolluted(int index){
-        if(value.isPolluted() && index == -1){
-            return true;
-        }else if(index != -1){
-            if(elements.size() > index){
-                TabbyVariable var = elements.get(index);
-                return var.isPolluted(-1);
+    /**
+     * 只检查当前变量value、field、elements
+     * 不包括 field、elements 的 field、elements
+     * @return
+     */
+    public boolean isPolluted(){
+        if(value.isPolluted()) return true;
+
+        if(value.isArray() && !elements.isEmpty()){
+            for(TabbyVariable var:elements.values()){
+                if(var != null && var.getValue().isPolluted()){
+                    return true;
+                }
             }
         }
+
+        if(!fieldMap.isEmpty()){
+            for(TabbyVariable var:fieldMap.values()){
+                if(var != null && var.getValue().isPolluted()){
+                    return true;
+                }
+            }
+        }
+
         return false;
     }
 

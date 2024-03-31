@@ -96,25 +96,31 @@ public class SimpleLeftValueSwitcher extends ValueSwitcher {
 
     public void generateAction(TabbyVariable lvar, TabbyVariable rvar, int index, boolean unbind){
         if(!reset) return; // 不记录 actions
-        if(unbind && lvar.isPolluted(-1)){
+        String action = lvar.getValue().getRelatedType();
+        if(action == null)return;// 不记录 actions，不记录field、elements
+
+        if(unbind && lvar.isPolluted()){
             if(index != -1){
-                methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, "clear");
+                methodRef.addAction(action + "|"+index, "clear");
             }else{
-                methodRef.addAction(lvar.getValue().getRelatedType(), "clear");
+                methodRef.addAction(action, "clear");
             }
-        }else if(lvar.isPolluted(-1)){
-            if(rvar != null && rvar.isPolluted(-1)){
+        }else if(lvar.isPolluted()){
+            if(rvar != null && rvar.isPolluted()){
+                String rAction = rvar.getValue().getRelatedType();
+                if(rAction == null) return;
+
                 if(index != -1){
-                    methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, rvar.getValue().getRelatedType());
-                }else if(!lvar.getValue().getRelatedType().equals(rvar.getValue().getRelatedType())){
-                    methodRef.addAction(lvar.getValue().getRelatedType(), rvar.getValue().getRelatedType());
+                    methodRef.addAction(action + "|"+index, rAction);
+                }else if(!action.equals(rAction)){
+                    methodRef.addAction(action, rvar.getValue().getRelatedType());
                 }
 
             }else{
                 if(index != -1){
-                    methodRef.addAction(lvar.getValue().getRelatedType() + "|"+index, "clear");
+                    methodRef.addAction(action + "|"+index, "clear");
                 }else{
-                    methodRef.addAction(lvar.getValue().getRelatedType(), "clear");
+                    methodRef.addAction(action, "clear");
                 }
             }
         }

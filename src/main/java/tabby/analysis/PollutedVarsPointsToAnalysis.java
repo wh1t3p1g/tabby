@@ -199,7 +199,7 @@ public class PollutedVarsPointsToAnalysis extends ForwardFlowAnalysis<Unit, Map<
         // 是否需要剔除不是污染的变量
         Map<Local, TabbyVariable> tmp = new HashMap<>();
         localMap.forEach((local, var) -> {
-            if(var.isPolluted(-1)){
+            if(var.isPolluted()){
                 tmp.put(local, var);
             }
         });

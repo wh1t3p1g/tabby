@@ -7,9 +7,9 @@ import soot.Local;
 import soot.PrimType;
 import soot.Value;
 import soot.jimple.*;
+import tabby.analysis.data.TabbyVariable;
 import tabby.analysis.switcher.Switcher;
 import tabby.config.GlobalConfiguration;
-import tabby.analysis.data.TabbyVariable;
 
 import java.util.ArrayList;
 
@@ -104,8 +104,35 @@ public class SimpleStmtSwitcher extends StmtSwitcher {
         value.apply(rightValueSwitcher);
         var = (TabbyVariable) rightValueSwitcher.getResult();
         context.setReturnVar(var);
-        if(var != null && var.isPolluted(-1) && reset){
-            methodRef.addAction("return", var.getValue().getRelatedType());
+        if(var != null && var.isPolluted() && reset){
+            String action = var.getValue().getRelatedType();
+            if(action != null){
+                methodRef.addAction("return", action);
+            }
+
+            if(action == null && var.getValue().isArray()){
+                for(TabbyVariable element:var.getElements().values()){
+                    if(element != null && element.isPolluted()){
+                        action = element.getValue().getRelatedType();
+                        if(action != null){
+                            methodRef.addAction("return", action);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if(action == null && !var.getFieldMap().isEmpty()){
+                for(TabbyVariable field:var.getFieldMap().values()){
+                    if(field != null && field.isPolluted()){
+                        action = field.getValue().getRelatedType();
+                        if(action != null){
+                            methodRef.addAction("return", action);
+                            break;
+                        }
+                    }
+                }
+            }
         }
     }
 

@@ -128,14 +128,14 @@ public class Switcher {
         // 回溯
         TabbyVariable retVar = null;
         if("<init>".equals(methodRef.getName())
-                && baseVar != null && !baseVar.isPolluted(-1)){
+                && baseVar != null && !baseVar.isPolluted()){
             // 对于new语句 拆分成2个
             // obj = new type
             // obj.<init>(xxx)
             // 为了不丢失污点，这里近似处理
             // 将args的第一个污点状态传递给obj
             for(TabbyVariable arg: args.values()){
-                if(arg != null && arg.isPolluted(-1)){
+                if(arg != null && arg.isPolluted()){
                     baseVar.getValue().setPolluted(true);
                     baseVar.getValue().setRelatedType(arg.getValue().getRelatedType());
                     break;
@@ -205,8 +205,24 @@ public class Switcher {
     public static int getPollutedPosition(TabbyVariable var){
         if(var != null){
             String related = null;
-            if(var.isPolluted(-1)){ // var本身是pollted的情况
+            if(var.isPolluted()){ // var本身是pollted的情况
                 related = var.getValue().getRelatedType();
+                if(related == null){
+                    for(TabbyVariable element:var.getElements().values()){
+                        if(element != null && element.isPolluted()){
+                            related = element.getValue().getRelatedType();
+                            break;
+                        }
+                    }
+                }
+                if(related == null){
+                    for(TabbyVariable field:var.getFieldMap().values()){
+                        if(field != null && field.isPolluted()){
+                            related = field.getValue().getRelatedType();
+                            break;
+                        }
+                    }
+                }
             }else if(var.containsPollutedVar(new ArrayList<>())){ // 当前var的类属性，element元素是polluted的情况
                 related = var.getFirstPollutedVarRelatedType();
             }
@@ -304,13 +320,12 @@ public class Switcher {
             }else if(pos.startsWith("param-")){ // param-0
                 int index = Integer.valueOf(pos.split("-")[1]);
                 retVar = args.get(index);
-
             }else if(retVar != null && StringUtils.isNumeric(pos)){ // 后续找element 类似this|0
                 int index = Integer.valueOf(pos);
                 TabbyVariable tempVar = retVar.getElement(index);
                 if(created && tempVar == null){
                     tempVar = TabbyVariable.makeRandomInstance();
-                    boolean isPolluted = retVar.isPolluted(-1);
+                    boolean isPolluted = retVar.isPolluted();
                     tempVar.getValue().setPolluted(isPolluted);
                     if(isPolluted){
                         tempVar.getValue().setRelatedType(retVar.getValue().getRelatedType()+"|"+index);
