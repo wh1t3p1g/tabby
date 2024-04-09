@@ -16,11 +16,11 @@ public class JavaVersionUtils {
             return null;
         }
         JavaVersionUtils v = new JavaVersionUtils();
-        String parts[] = property.split("\\.|_|-");
+        String[] parts = property.split("\\.|_|-");
         int start = "1".equals(parts[0]) ? 1 : 0; // skip "1." prefix
-        v.major   = Integer.parseInt(parts[start + 0]);
-        v.minor   = Integer.parseInt(parts[start + 1]);
-        v.update  = Integer.parseInt(parts[start + 2]);
+        v.major   = Integer.parseInt(parts[start]);
+//        v.minor   = Integer.parseInt(parts[start + 1]);
+//        v.update  = Integer.parseInt(parts[start + 2]);
         return v;
     }
 
