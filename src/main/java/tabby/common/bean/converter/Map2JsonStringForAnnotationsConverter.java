@@ -1,10 +1,10 @@
 package tabby.common.bean.converter;
 
 import com.google.gson.reflect.TypeToken;
-import tabby.config.GlobalConfiguration;
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import tabby.common.utils.JsonUtils;
+
 import java.lang.reflect.Type;
 import java.util.HashMap;
 import java.util.Map;
@@ -23,7 +23,8 @@ public class Map2JsonStringForAnnotationsConverter implements AttributeConverter
         if(attribute == null){
             return "{}";
         }
-        return GlobalConfiguration.GSON.toJson(attribute);
+
+        return JsonUtils.toJsonWithReplace(attribute);
     }
 
     @Override
@@ -32,6 +33,6 @@ public class Map2JsonStringForAnnotationsConverter implements AttributeConverter
             return new HashMap<>();
         }
         Type objectType = new TypeToken<Map<String, Map<String, Set<String>>>>(){}.getType();
-        return new ConcurrentHashMap<>(GlobalConfiguration.GSON.fromJson(dbData, objectType));
+        return new ConcurrentHashMap<>(JsonUtils.fromJson(dbData, objectType));
     }
 }

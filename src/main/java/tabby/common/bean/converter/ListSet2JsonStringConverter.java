@@ -1,10 +1,10 @@
 package tabby.common.bean.converter;
 
 import com.google.gson.reflect.TypeToken;
-import tabby.config.GlobalConfiguration;
-
 import jakarta.persistence.AttributeConverter;
 import jakarta.persistence.Converter;
+import tabby.common.utils.JsonUtils;
+
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +23,7 @@ public class ListSet2JsonStringConverter implements AttributeConverter<List<Set<
             return "";
         }
 
-        return GlobalConfiguration.GSON.toJson(attribute);
+        return JsonUtils.toJson(attribute);
     }
 
     @Override
@@ -32,6 +32,6 @@ public class ListSet2JsonStringConverter implements AttributeConverter<List<Set<
             return new ArrayList<>();
         }
         Type objectType = new TypeToken<List<Set<String>>>(){}.getType();
-        return GlobalConfiguration.GSON.fromJson(dbData, objectType);
+        return JsonUtils.fromJson(dbData, objectType);
     }
 }
