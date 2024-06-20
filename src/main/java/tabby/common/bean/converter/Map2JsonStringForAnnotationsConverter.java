@@ -33,6 +33,6 @@ public class Map2JsonStringForAnnotationsConverter implements AttributeConverter
             return new HashMap<>();
         }
         Type objectType = new TypeToken<Map<String, Map<String, Set<String>>>>(){}.getType();
-        return new ConcurrentHashMap<>(JsonUtils.fromJson(dbData, objectType));
+        return new ConcurrentHashMap<>(JsonUtils.fromJsonWithReplace(dbData, objectType));
     }
 }
