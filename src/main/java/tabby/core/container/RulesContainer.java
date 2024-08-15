@@ -50,7 +50,8 @@ public class RulesContainer {
         return null;
     }
 
-    public void applyRule(String classname, MethodReference methodRef){
+    public void applyRule(ClassReference clsRef, MethodReference methodRef){
+        String classname = clsRef.getName();
         TabbyRule.Rule rule = getRule(classname, methodRef.getName());
         Set<String> relatedClassnames = SemanticUtils.getAllFatherNodes(classname);
 
@@ -92,6 +93,11 @@ public class RulesContainer {
         methodRef.setSink(isSink);
         methodRef.setIgnore(isIgnore);
         methodRef.setSource(isSource);
+        methodRef.setGetter(isGetter(methodRef));
+        methodRef.setSetter(isSetter(methodRef));
+        methodRef.setSerializable(relatedClassnames.contains("java.io.Serializable"));
+        methodRef.setHasDefaultConstructor(clsRef.isHasDefaultConstructor());
+        methodRef.setFromAbstractClass(clsRef.isAbstract());
     }
 
     public void applyTagRule(ClassReference clsRef, MethodReference methodRef){
@@ -141,6 +147,38 @@ public class RulesContainer {
                 }
             }
         }
+    }
+
+    public static boolean isGetter(MethodReference methodRef) {
+        String methodName = methodRef.getName();
+        String returnType = methodRef.getReturnType();
+        boolean noParameter = methodRef.getParameterSize() == 0;
+        boolean isPublic = methodRef.isPublic();
+
+        if (!noParameter || !isPublic) return false;
+
+        if (methodName.startsWith("get") && methodName.length() > 3) {
+            return !returnType.contains("void");
+        } else if (methodName.startsWith("is") && methodName.length() > 2) {
+            return returnType.contains("boolean");
+        }
+
+        return false;
+    }
+
+    public static boolean isSetter(MethodReference methodRef) {
+        String methodName = methodRef.getName();
+        String returnType = methodRef.getReturnType();
+        boolean singleParameter = methodRef.getParameterSize() == 1;
+        boolean isPublic = methodRef.isPublic();
+
+        if (!isPublic || !singleParameter) return false;
+
+        if (methodName.startsWith("set") && methodName.length() > 3) {
+            return returnType.contains("void");
+        }
+
+        return false;
     }
 
     public boolean check(String data, Set<String> rules){
