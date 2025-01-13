@@ -1,5 +1,5 @@
 ![img.png](logo.png)
-# TABBY
+# 
 ![Java version](https://img.shields.io/badge/Java-17-blue.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
 ![Blackhat](https://img.shields.io/badge/Blackhat-Arsenal%202024-red.svg)
