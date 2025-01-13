@@ -1,0 +1,23 @@
+[
+  "io.netty.channel.ChannelFutureListener",
+  "scala.runtime.java8.JFunction2$mcIII$sp",
+  "scala.runtime.java8.JFunction1$mcII$sp",
+  "scala.runtime.java8.JFunction0$mcV$sp",
+  "scala.runtime.java8.JFunction0$mcZ$sp",
+  "scala.runtime.java8.JFunction0$mcJ$sp",
+  "scala.runtime.java8.JFunction0$mcI$sp",
+  "scala.runtime.java8.JFunction1$mcZJ$sp",
+  "scala.runtime.java8.JFunction1$mcZI$sp",
+  "scala.runtime.java8.JFunction1$mcVI$sp",
+  "scala.runtime.java8.JFunction0$mcD$sp",
+  "scala.runtime.java8.JFunction0$mcF$sp",
+  "scala.runtime.java8.JFunction0$mcS$sp",
+  "scala.runtime.java8.JFunction0$mcB$sp",
+  "com.codahale.metrics.Gauge",
+  "java.net.URI",
+  "sun.reflect.generics.repository.ClassRepository",
+  "java.security.PermissionCollection",
+  "sun.reflect.generics.tree.ClassTypeSignature",
+  "java.net.URI$Parser",
+  "sun.reflect.generics.visitor.TypeTreeVisitor"
+]

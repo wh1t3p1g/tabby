@@ -1,0 +1,129 @@
+[
+  {
+    "name": "web-tags",
+    "type": "annotation",
+    "value": "web",
+    "annotations": [
+      "%Mapping",
+      "javax.ws.rs.%",
+      "javax.jws.%"
+    ],
+    "classes": [],
+    "methods": [],
+    "whitelist": []
+  },
+  {
+    "name": "jsp",
+    "type": "method",
+    "value": "web",
+    "annotations": [],
+    "classes": [],
+    "methods": [
+      "_jspService"
+    ],
+    "whitelist": []
+  },
+  {
+    "name": "struts actions",
+    "type": "class",
+    "value": "web",
+    "annotations": [],
+    "classes": [
+      "com.opensymphony.xwork2.ActionSupport",
+      "com.opensymphony.xwork2.Action",
+      "org.apache.struts.actions.DispatchAction"
+    ],
+    "methods": [],
+    "whitelist": [
+      "com.opensymphony.xwork2.ActionSupport",
+      "com.opensymphony.xwork2.Action",
+      "org.apache.struts.actions.DispatchAction"
+    ]
+  },
+  {
+    "name": "jfinal controller",
+    "type": "class",
+    "value": "web",
+    "annotations": [],
+    "classes": [
+      "com.jfinal.core.Controller"
+    ],
+    "methods": [],
+    "whitelist": [
+      "com.jfinal.core.Controller",
+      "weaver.weixin.core.controller.BaseController"
+    ]
+  },
+  {
+    "name": "servlet",
+    "type": "class&method",
+    "value": "web",
+    "annotations": [],
+    "classes": [
+      "javax.servlet.Servlet",
+      "javax.servlet.http.HttpServlet",
+      "javax.servlet.GenericServlet"
+    ],
+    "methods": [
+      "doGet", "doPost", "doPut", "doDelete",
+      "doHead", "doOptions", "doTrace", "service"
+    ],
+    "whitelist": []
+  },
+  {
+    "name": "netty-handler",
+    "type": "class&method",
+    "value": "netty",
+    "annotations": [],
+    "classes": [
+      "io.netty.channel.ChannelInboundHandler",
+      "org.jboss.netty.channel.SimpleChannelUpstreamHandler"
+    ],
+    "methods": [
+      "channelRead",
+      "channelRead0",
+      "messageReceived"
+    ],
+    "whitelist": [
+      "io.netty.channel.ChannelInboundHandler",
+      "org.jboss.netty.channel.SimpleChannelUpstreamHandler"
+    ]
+  },
+  {
+    "name": "netty-decoder",
+    "type": "class&method",
+    "value": "netty",
+    "annotations": [],
+    "classes": [
+      "io.netty.handler.codec.ByteToMessageDecoder",
+      "io.netty.handler.codec.MessageToMessageDecoder",
+      "org.jboss.netty.handler.codec.frame.FrameDecoder"
+    ],
+    "methods": ["decode"],
+    "whitelist": [
+      "io.netty.handler.codec.ByteToMessageDecoder",
+      "io.netty.handler.codec.MessageToMessageDecoder",
+      "org.jboss.netty.handler.codec.frame.FrameDecoder"
+    ]
+  },
+  {
+    "name": "repository-dto",
+    "type": "class",
+    "value": "dao",
+    "annotations": [],
+    "classes": [
+      "org.springframework.data.repository.Repository"
+    ],
+    "methods": [],
+    "whitelist": []
+  },
+  {
+    "name": "mybatis-dto",
+    "type": "class&method",
+    "value": "dao",
+    "annotations": [],
+    "classes": [],
+    "methods": [],
+    "whitelist": []
+  }
+]

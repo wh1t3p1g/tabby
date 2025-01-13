@@ -1,0 +1,806 @@
+[
+  {"name": "java.lang.Class","rules": [
+    {"function": "getMethod","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "getMethods","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getConstructor","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getConstructors","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getDeclaredMethod","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "getDeclaredMethods","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "isInstance","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "isAssignableFrom","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "isInterface","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "isArray","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "isPrimitive","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "isAnnotation","type": "know","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "getModifiers","type": "know","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.ObjectInputStream","rules": [
+    {"function": "readFields","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "<init>","type": "know","vul": "","actions": {"this<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "readInt","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.ObjectInput","rules": [
+    {"function": "readObject","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.beans.BeanInfo","rules": [
+    {"function": "getPropertyDescriptors","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getMethodDescriptors","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.beans.IndexedPropertyDescriptor","rules": [
+    {"function": "<init>","type": "know","vul": "","actions": {"this<s>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "getIndexedReadMethod","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getIndexedWriteMethod","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.beans.PropertyDescriptor","rules": [
+    {"function": "getWriteMethod","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getReadMethod","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.Long","rules": [
+    {"function": "parseLong","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.servlet.http.HttpServletRequest","rules": [
+    {"function": "getHeader","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getHeaders","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getQueryString","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getCookies","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getReader","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.servlet.ServletRequest","rules": [
+    {"function": "getContentType","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getInputStream","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getParameter","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getParameterNames","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getParameterValues","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getParameterMap","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.google.gwt.user.server.rpc.impl.ServerSerializationStreamReader","rules": [
+    {"function": "getString","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "readString","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "extract","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.Object","rules": [
+    {"function": "getClass","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toString","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.net.URI","rules": [
+    {"function": "<init>","type": "know","vul": "","actions": {"this<s>": ["param-0","param-1"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Scanner","rules": [
+    {"function": "<init>","type": "know","vul": "","actions": {"this<m>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "useDelimiter","type": "know","vul": "","actions": {"return": ["this"]},"polluted": [],"max": -2},
+    {"function": "next","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.BufferedReader","rules": [
+    {"function": "readLine","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "read","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.StringBuffer","rules": [
+    {"function": "toString","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "append","type": "know","vul": "","actions": {"this<m>": ["param-0"],"return": ["this"]},"polluted": [],"max": -2},
+    {"function": "substring","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Iterator","rules": [
+    {"function": "next","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.springframework.context.ApplicationContext","rules": [
+    {"function": "getBean","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "getType","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.net.URLDecoder","rules": [
+    {"function": "decode","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Map$Entry","rules": [
+    {"function": "getKey","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "getValue","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Enumeration","rules": [
+    {"function": "nextElement","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.System","rules": [
+    {"function": "arraycopy","type": "know","vul": "","actions": {"param-2<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "getenv","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.servlet.http.HttpServletResponse","rules": [
+    {"function": "getOutputStream","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.net.Socket","rules": [
+    {"function": "getInputStream","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.StringBuilder","rules": [
+    {"function": "append","type": "know","vul": "","actions": {"this<m>": ["param-0"],"return": ["this"]},"polluted": [],"max": -2},
+    {"function": "insert","type": "know","vul": "","actions": {"this<m>": ["param-1"],"return": ["this"]},"polluted": [],"max": -2},
+    {"function": "reverse","type": "know","vul": "","actions": {"return": ["this"]},"polluted": [],"max": -2},
+    {"function": "toString","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.List","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>","param-1<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "of","type": "know","vul": "","actions": {"return<s>": ["param-0"],"return<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.ArrayList","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>","param-1<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.CopyOnWriteArrayList","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>","param-1<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.LinkedList","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "addFirst","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addLast","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>","param-1<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getFirst","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getLast","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Stack","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "push","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "pop","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Vector","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addElement","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "elementAt","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Set","rules": [
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.LinkedHashSet","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "first","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "last","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.TreeSet","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "first","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "last","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.concurrent.CopyOnWriteArraySet","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.HashSet","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Collection","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Queue","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "offer","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "element","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "poll","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "peek","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.AbstractQueue","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "offer","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "element","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "poll","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "peek","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.PriorityQueue","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "offer","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "element","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "poll","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "peek","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.ArrayDeque","rules": [
+    {"function": "add","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addFirst","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addLast","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "offer","type": "know","vul": "","actions": {"this<a>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "addAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "element","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "poll","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getFirst","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getLast","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "peek","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "iterator","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this<a>"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.HashTable","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Map","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "keySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "values","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.HashMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.TreeMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.LinkedHashMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.WeakHashMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.SortedMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.concurrent.ConcurrentHashMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.concurrent.ConcurrentMap","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Properties","rules": [
+    {"function": "put","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "putAll","type": "know","vul": "","actions": {"this<a>": ["param-0<a>"]},"polluted": [],"max": -2},
+    {"function": "setProperty","type": "know","vul": "","actions": {"this<a>": ["param-0","param-1"]},"polluted": [],"max": -2},
+    {"function": "get","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getProperty","type": "know","vul": "","actions": {"return": ["this<a>"]},"polluted": [],"max": -2},
+    {"function": "getOrDefault","type": "know","vul": "","actions": {"return": ["this<a>","param-1"]},"polluted": [],"max": -2},
+    {"function": "entrySet","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.String","rules": [
+    {"function": "getBytes","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "charAt","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "replace","type": "know","vul": "","actions": {"return<s>": ["this","param-1"]},"polluted": [],"max": -2},
+    {"function": "replaceAll","type": "know","vul": "","actions": {"return<s>": ["this","param-1"]},"polluted": [],"max": -2},
+    {"function": "substring","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toUpperCase","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toCharArray","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toLowerCase","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "indexOf","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "indexOfSupplementary","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "format","type": "know","vul": "","actions": {"return<m>": ["param-1..n"]},"polluted": [],"max": -2},
+    {"function": "split","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Arrays","rules": [
+    {"function": "copyOf","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "copyOfRange","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.InputStream","rules": [
+    {"function": "read","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.Reader","rules": [
+    {"function": "read","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.FilterInputStream","rules": [
+    {"function": "read","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.CharArrayWriter","rules": [
+    {"function": "write","type": "know","vul": "","actions": {"this<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "writeTo","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toCharArray","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.Writer","rules": [
+    {"function": "write","type": "know","vul": "","actions": {"this<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.OutputStream","rules": [
+    {"function": "write","type": "know","vul": "","actions": {"this<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.ByteArrayOutputStream","rules": [
+    {"function": "write","type": "know","vul": "","actions": {"this<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "writeTo","type": "know","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2},
+    {"function": "toByteArray","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.google.gson.Gson","rules": [
+    {"function": "fromJson","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "toJson","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Base64$Decoder","rules": [
+    {"function": "decode","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "decode0","type": "know","vul": "","actions": {"param-3<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "soot.dummy.InvokeDynamic","rules": [
+    {"function": "makeConcatWithConstants","type": "know","vul": "","actions": {"return<s>": ["param-0..n"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "nc.bs.framework.naming.Context","rules": [
+    {"function": "lookup","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "nc.bs.framework.common.NCLocator","rules": [
+    {"function": "lookup","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.springframework.web.util.WebUtils","rules": [
+    {"function": "getNativeRequest","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.springframework.web.multipart.MultipartHttpServletRequest","rules": [
+    {"function": "getFile","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getFiles","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getFileMap","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getMultiFileMap","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.springframework.web.multipart.MultipartRequest","rules": [
+    {"function": "getFile","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getFiles","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getFileMap","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2},
+    {"function": "getMultiFileMap","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.FileSystem","rules": [
+    {"function": "normalize","type": "know","vul": "","actions": {"return": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "resolve","type": "know","vul": "","actions": {"return<s>": ["param-0","param-1"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.alibaba.fastjson.JSON","rules": [
+    {"function": "toJSONString","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": 0}
+  ]},
+  
+  {"name": "java.lang.ThreadLocal","rules": [
+    {"function": "get","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.StringCoding$StringDecoder","rules": [
+    {"function": "char[]decode(byte[],int,int)","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.StringCoding","rules": [
+    {"function": "char[]decode(java.lang.String,byte[],int,int)","type": "know","vul": "","actions": {"return<s>": ["param-1"]},"polluted": [],"max": -2},
+    {"function": "char[]decode(byte[],int,int)","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "char[]decode(java.nio.charset.Charset,byte[],int,int)","type": "know","vul": "","actions": {"return<s>": ["param-1"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.lang.StringUTF16","rules": [
+    {"function": "intcompress(char[],int,byte[],int,int)","type": "know","vul": "","actions": {"param-2<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "voidputChar(byte[],int,int)","type": "know","vul": "","actions": {"param-2<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "byte[]toBytes(char[],int,int)","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.alibaba.fastjson.JSONArray","rules": [
+    {"function": "toArray","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": 0},
+    {"function": "getString","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": 0},
+    {"function": "getObject","type": "know","vul": "","actions": {"return<s>": ["this"]},"polluted": [],"max": 0}
+  ]},
+  
+  {"name": "sun.net.httpserver.Request","rules": [
+    {"function": "<init>","type": "ignore","vul": "","actions": {"this<f>is": ["param-0"],"this<f>os": ["param-1"],"this<f>startLine<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.Base64$Encoder","rules": [
+    {"function": "encode","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encodeToString","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encode0","type": "know","vul": "","actions": {"param-3<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.apache.commons.codec.binary.Base64","rules": [
+    {"function": "encodeBase64","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encodeBase64String","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encodeBase64URLSafe","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encodeBase64URLSafeString","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "encodeBase64Chunked","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "decodeBase64","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.io.PrintStream","rules": [
+    {"function": "print","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.bluecast.xml.PiccoloLexer","rules": [
+    {"function": "yylex","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.apache.xmlbeans.impl.piccolo.xml.PiccoloLexer","rules": [
+    {"function": "yylex","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "sun.util.resources.OpenListResourceBundle","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.swing.plaf.nimbus.NimbusDefaults","rules": [
+    {"function": "initializeDefaults","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.swing.plaf.nimbus.NimbusLookAndFeel","rules": [
+    {"function": "getDefaults","type": "ignore","vul": "","actions": {"return": ["this<f>uiDefaults"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "sun.util.resources.TimeZoneNamesBundle","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "sun.text.resources.DateFormatZoneData","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.javac.resources.legacy","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.javac.resources.compiler_zh_CN","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.crypto.provider.DESCrypt","rules": [
+    {"function": "expandKey","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.swing.plaf.basic.BasicLookAndFeel","rules": [
+    {"function": "initComponentDefaults","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.java.swing.plaf.gtk.GTKLookAndFeel","rules": [
+    {"function": "getDefaults","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.seeyon.ctp.common.parser.BytesEncodingDetect","rules": [
+    {"function": "initialize_frequencies","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.seeyon.cap4.form.util.SinoDetect","rules": [
+    {"function": "initializeFrequencies","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.am.gb","rules": [
+    {"function": "f","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.util.concurrent.LinkedBlockingQueue","rules": [
+    {"function": "clear","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.javac.resources.compiler","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.example.debug.tty.TTYResources_zh_CN","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_de","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_ko","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_zh_CN","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_pt_BR","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.example.debug.tty.TTYResources_ja","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.example.debug.tty.TTYResources","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_zh_TW","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_es","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_it","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_fr","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_ja","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.res.XSLTErrorResources_sv","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.javac.resources.compiler_ja","rules": [
+    {"function": "getContents","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.imageio.plugins.bmp.BMPImageReader","rules": [
+    {"function": "read32Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "read24Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "read8Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "read4Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "read16Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2},
+    {"function": "read1Bit","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.swing.text.html.FrameView","rules": [
+    {"function": "getHostPane","type": "ignore","vul": "","actions": {"return": ["this<f>parent"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.tools.javac.tree.TreeMaker$AnnotationBuilder","rules": [
+    {"function": "visitArray","type": "ignore","vul": "","actions": {"this<f>result<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.codemodel.internal.JAnnotationUse","rules": [
+    {"function": "generate","type": "ignore","vul": "","actions": {"param-0<s>": ["this"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.xml.internal.xsom.impl.scd.SCDParserTokenManager","rules": [
+    {"function": "jjMoveNfa_0","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.sun.xml.internal.rngom.parse.compact.CompactSyntaxTokenManager","rules": [
+    {"function": "jjMoveNfa_0","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.hrms.frame.codec.SafeCode","rules": [
+    {"function": "decode","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.hjsj.hrms.utils.PubFunc","rules": [
+    {"function": "keyWord_reback","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "decryption","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2},
+    {"function": "decrypt","type": "know","vul": "","actions": {"return<s>": ["param-0"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "javax.swing.colorchooser.MainSwatchPanel","rules": [
+    {"function": "initRawValues","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.itextpdf.text.pdf.ColumnText","rules": [
+    {"function": "intgoComposite(boolean)","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.itextpdf.layout.renderer.TableRenderer","rules": [
+    {"function": "com.itextpdf.layout.layout.LayoutResultlayout(com.itextpdf.layout.layout.LayoutContext)","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.itextpdf.text.pdf.codec.TIFFDirectory","rules": [
+    {"function": "voidinitialize(com.itextpdf.text.pdf.RandomAccessFileOrArray)>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_no_NO","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_pt_PT","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.SqljResources_it_IT","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T2zResources_hr_HR","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_zh_CN","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_sk_SK","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_sl_SI","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_hu_HU","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_sv_SE","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_ro_RO","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_cs_CZ","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_ru_RU","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_fr_FR","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_pt_BR","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_sl_SI","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.Resources_da_DK","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "org.apache.struts2.ServletActionContext","rules": [
+    {"function": "getRequest","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.opensymphony.xwork2.ActionContext","rules": [
+    {"function": "getParameters","type": "know","vul": "","actions": {"return<s>": ["source"]},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.resources.T4Resources_fi_FI","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.am.ErrorKey","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.am.lp","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.t4.a8","rules": [
+    {"function": "<clinit>","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "com.ibm.db2.jcc.am.ao","rules": [
+    {"function": "f","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]},
+  
+  {"name": "java.text.DecimalFormat","rules": [
+    {"function": "applyPattern","type": "ignore","vul": "","actions": {},"polluted": [],"max": -2}
+  ]}
+]

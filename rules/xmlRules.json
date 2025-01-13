@@ -1,0 +1,15 @@
+[
+  {
+    "name": "mybatis-dto",
+    "classes": [
+      "//mapper/@namespace",
+      "//mapper/@class"
+    ],
+    "methods": [
+      "//mapper/insert/@id",
+      "//mapper/select/@id",
+      "//mapper/update/@id",
+      "//mapper/delete/@id"
+    ]
+  }
+]
