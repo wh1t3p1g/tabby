@@ -36,9 +36,10 @@ TABBY 使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为�
 
 - [现有利用链覆盖](https://github.com/wh1t3p1g/tabby/wiki/%E7%8E%B0%E6%9C%89%E5%88%A9%E7%94%A8%E9%93%BE%E8%A6%86%E7%9B%96)
 - papers && slides
-    - KCon 2022 [Tabby: Java Code Review Like A Pro](https://github.com/knownsec/KCon/blob/master/2022/tabby%20java%20code%20review%20like%20a%20pro%E3%80%90KCon2022%E3%80%91.pdf)
+    - KCon 2022 [Tabby: Java Code Review Like A Pro](https://github.com/wh1t3p1g/tabby/blob/v2/papers/tabby%20java%20code%20review%20like%20a%20pro.pdf)
     - KCon 议题补充 [基于代码属性图的自动化漏洞挖掘实践](https://blog.0kami.cn/blog/2023/%E5%9F%BA%E4%BA%8E%E4%BB%A3%E7%A0%81%E5%B1%9E%E6%80%A7%E5%9B%BE%E7%9A%84%E8%87%AA%E5%8A%A8%E5%8C%96%E6%BC%8F%E6%B4%9E%E6%8C%96%E6%8E%98%E5%AE%9E%E8%B7%B5/)
     - DSN 2023 [Tabby: Automated Gadget Chain Detection for Java Deserialization Vulnerabilities](https://ieeexplore.ieee.org/document/10202660)
+    - BlackHat EU 2024 [Tabby: Simplifying the Art of Java Vulnerability Hunting](https://github.com/wh1t3p1g/tabby/blob/v2/papers/Tabby%20Simplifying%20the%20Art%20of%20Java%20Vulnerability%20Hunting.pdf)
     - ICASSP 2025 [VulKiller: Java Web Vulnerability Detection with Code Property Graph and Large Language Models]()
 - CVEs
   - CVE-2021-21346 [如何高效的挖掘 Java 反序列化利用链？](https://blog.0kami.cn/2021/03/14/java-how-to-find-gadget-chains/)
