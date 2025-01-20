@@ -42,7 +42,7 @@ jobs:
         uses: actions/create-release@v1
         id: create_release
         with:
-          draft: false
+          draft: true
           prerelease: false
           release_name: ${{ env.tag }}
           tag_name: ${{ env.tag }}
