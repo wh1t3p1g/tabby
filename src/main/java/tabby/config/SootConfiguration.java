@@ -14,7 +14,7 @@ public class SootConfiguration {
     /**
      * soot 默认配置
      */
-    public static void initSootOption() {
+    public static void initSootOption(){
 //        String output = String.join(File.separator, System.getProperty("user.dir"), "temp");
 //        log.debug("Output directory: " + output);
         G.reset();
@@ -30,7 +30,7 @@ public class SootConfiguration {
         Options.v().set_on_the_fly(true);
 //        Options.v().set_no_output_source_file_attribute(true);
 //        Options.v().set_validate(true);
-        Options.v().set_ignore_classpath_errors(true); // Ignores invalid entries on the Soot classpath.
+//        Options.v().set_ignore_classpath_errors(true); // Ignores invalid entries on the Soot classpath.
         Options.v().set_whole_program(true);// 目前开启过程间分析不会进行实质上的过程间分析，开启当前flag只是为了解决依赖缺失的问题
 //        Options.v().set_no_writeout_body_releasing(true); // 当输出内容后不释放获取的body数据
 //        Options.v().set_drop_bodies_after_load(true); // 默认是true
@@ -39,7 +39,5 @@ public class SootConfiguration {
 //        Options.v().set_omit_excepting_unit_edges(true);
         // 设置自定义的package
 //        PhaseOptions.v().setPhaseOption("cg","on");
-
-
     }
 }
