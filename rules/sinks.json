@@ -1,0 +1,535 @@
+[
+  {"name": "org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate","rules": [
+    {"function": "query","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "queryForList","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "queryForObject","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.sql.Statement","rules": [
+    {"function": "execute","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "executeQuery","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "executeUpdate","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "executeLargeUpdate","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.sql.Connection","rules": [
+    {"function": "prepareStatement","type": "sink","vul": "SQLI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.sql.PreparedStatement","rules": [
+    {"function": "execute","type": "sink","vul": "SQLI","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "executeUpdate","type": "sink","vul": "SQLI","actions": {},"polluted": [[-1]],"max": -1},
+    {"function": "executeQuery","type": "sink","vul": "SQLI","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "java.net.URL","rules": [
+    {"function": "openConnection","type": "sink","vul": "SSRF","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "openStream","type": "sink","vul": "SSRF","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "org.apache.http.impl.client.CloseableHttpClient","rules": [
+    {"function": "execute","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.squareup.okhttp.Request$Builder","rules": [
+    {"function": "url","type": "sink","vul": "SSRF","actions": {"return<m>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.squareup.okhttp.HttpUrl","rules": [
+    {"function": "parse","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.http.client.methods.HttpGet","rules": [
+    {"function": "<init>","type": "sink","vul": "SSRF","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.http.client.methods.HttpPost","rules": [
+    {"function": "<init>","type": "sink","vul": "SSRF","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.commons.httpclient.methods.GetMethod","rules": [
+    {"function": "<init>","type": "sink","vul": "SSRF","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.joychou.service.HttpService","rules": [
+    {"function": "RequestHttpBanRedirects","type": "sink","vul": "SSRF","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "RequestHttp","type": "sink","vul": "SSRF","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.jsoup.Jsoup","rules": [
+    {"function": "connect","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.http.client.HttpClient","rules": [
+    {"function": "execute","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.commons.httpclient.HttpClient","rules": [
+    {"function": "executeMethod","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.http.impl.nio.client.CloseableHttpAsyncClient","rules": [
+    {"function": "execute","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.http.client.fluent","rules": [
+    {"function": "execute","type": "sink","vul": "SSRF","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "java.io.FileInputStream","rules": [
+    {"function": "<init>","type": "sink","vul": "FILE","actions": {"this<m>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.io.FileReader","rules": [
+    {"function": "<init>","type": "sink","vul": "FILE","actions": {"this<m>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.springframework.core.io.ClassPathResource","rules": [
+    {"function": "<init>","type": "sink","vul": "FILE_WRITE","actions": {"this<m>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.springframework.util.ResourceUtils","rules": [
+    {"function": "getFile","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.io.FileOutputStream","rules": [
+    {"function": "<init>","type": "sink","vul": "FILE_WRITE","actions": {"this<m>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {"this<m>": ["param-0"]},"polluted": [[-1],[0]],"max": 0}
+  ]},
+  
+  {"name": "java.nio.file.Files","rules": [
+    {"function": "newInputStream","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "newOutputStream","type": "sink","vul": "FILE_WRITE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "newBufferedReader","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "newBufferedWriter","type": "sink","vul": "FILE_WRITE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "read","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "readAllBytes","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {"return": ["param-0"]},"polluted": [[1]],"max": 1},
+    {"function": "copy","type": "sink","vul": "FILE_WRITE","actions": {"param-0<s>": ["param-1"]},"polluted": [[0],[1]],"max": 1},
+    {"function": "lines","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "readAllLines","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.io.File","rules": [
+    {"function": "delete","type": "sink","vul": "FILE","actions": {},"polluted": [[-1]],"max": -1},
+    {"function": "list","type": "sink","vul": "FILE","actions": {},"polluted": [[-1]],"max": -1},
+    {"function": "listRoots","type": "sink","vul": "FILE","actions": {},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "java.nio.channels.AsynchronousFileChannel","rules": [
+    {"function": "open","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {"param-0<s>": ["this"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.util.zip.ZipInputStream","rules": [
+    {"function": "<init>","type": "sink","vul": "FILE","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.io.RandomAccessFile","rules": [
+    {"function": "readBytes","type": "sink","vul": "FILE","actions": {"param-0<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "read","type": "sink","vul": "FILE","actions": {"param-0<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "readFully","type": "sink","vul": "FILE","actions": {"param-0<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "writeBytes","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.commons.fileupload.util.Streams","rules": [
+    {"function": "copy","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "org.apache.commons.io.IOUtils","rules": [
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0],[1]],"max": 1},
+    {"function": "copy","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "javax.servlet.http.Part","rules": [
+    {"function": "write","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[-1],[0]],"max": 0}
+  ]},
+  
+  {"name": "com.mysql.jdbc.MysqlIO","rules": [
+    {"function": "sendFileToServer","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[1]],"max": 1}
+  ]},
+  
+  {"name": "org.springframework.web.multipart.MultipartFile","rules": [
+    {"function": "transferTo","type": "sink","vul": "FILE_WRITE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.Class","rules": [
+    {"function": "forName","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "getResourceAsStream","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.reflect.Method","rules": [
+    {"function": "invoke","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["this"]},"polluted": [[-1],[0]],"max": 0}
+  ]},
+  
+  {"name": "sun.reflect.misc.MethodUtil","rules": [
+    {"function": "invoke","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "sun.reflect.NativeMethodAccessorImpl","rules": [
+    {"function": "invoke0","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "com.sun.xml.internal.ws.api.server.MethodUtil","rules": [
+    {"function": "invoke","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "com.sun.xml.internal.ws.client.sei.MethodUtil","rules": [
+    {"function": "invoke","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "java.lang.reflect.Constructor","rules": [
+    {"function": "newInstance","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["this"]},"polluted": [[-1],[0]],"max": 0}
+  ]},
+  
+  {"name": "java.net.URLClassLoader","rules": [
+    {"function": "newInstance","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "loadClass","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.beans.Introspector","rules": [
+    {"function": "getBeanInfo","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.ClassLoader","rules": [
+    {"function": "defineClass","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-1"]},"polluted": [[1]],"max": 1},
+    {"function": "newInstance","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1},
+    {"function": "loadClass","type": "sink","vul": "REFLECTION","actions": {"return<s>": ["param-0"]},"polluted": [[-1],[0]],"max": 0},
+    {"function": "getSystemResourceAsStream","type": "sink","vul": "FILE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.velocity.app.Velocity","rules": [
+    {"function": "evaluate","type": "sink","vul": "CODE","actions": {},"polluted": [[3]],"max": 3}
+  ]},
+  
+  {"name": "org.springframework.expression.common.TemplateAwareExpressionParser","rules": [
+    {"function": "parseExpression","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 1}
+  ]},
+  
+  {"name": "org.springframework.expression.Expression","rules": [
+    {"function": "getValue","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[-1]],"max": -1},
+    {"function": "setValue","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.el.MethodExpression","rules": [
+    {"function": "invoke","type": "sink","vul": "CODE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "cn.hutool.http.HttpUtil","rules": [
+    {"function": "get","type": "sink","vul": "SSRF","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": -1}
+  ]},
+  
+  {"name": "javax.faces.el.MethodBinding","rules": [
+    {"function": "invoke","type": "sink","vul": "CODE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "ognl.Node","rules": [
+    {"function": "getValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0],[1]],"max": 1},
+    {"function": "setValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0],[1],[2]],"max": 2}
+  ]},
+  
+  {"name": "ognl.Ognl","rules": [
+    {"function": "getValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "setValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.ibatis.ognl.Ognl","rules": [
+    {"function": "getValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "setValue","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "groovy.lang.Script","rules": [
+    {"function": "run","type": "sink","vul": "CODE","actions": {},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "groovy.lang.GroovyShell","rules": [
+    {"function": "evaluate","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "run","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.mvel2.sh.ShellSession","rules": [
+    {"function": "exec","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.script.ScriptEngine","rules": [
+    {"function": "eval","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.velocity.runtime.RuntimeInstance","rules": [
+    {"function": "evaluate","type": "sink","vul": "CODE","actions": {},"polluted": [[3]],"max": 3}
+  ]},
+  
+  {"name": "org.h2.command.dml.RunScriptCommand","rules": [
+    {"function": "execute","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.mvel.MVEL","rules": [
+    {"function": "eval","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "compileExpression","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.mvel2.MVEL","rules": [
+    {"function": "eval","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "compileExpression","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.xmlrpc.parser.XmlRpcResponseParser","rules": [
+    {"function": "addResult","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "bsh.Interpreter","rules": [
+    {"function": "eval","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.batik.swing.svg.JSVGComponent","rules": [
+    {"function": "loadSVGDocument","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.commons.jxpath.JXPathContext","rules": [
+    {"function": "getValue","type": "sink","vul": "CODE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.Runtime","rules": [
+    {"function": "exec","type": "sink","vul": "EXEC","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "load","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "loadLibrary","type": "sink","vul": "CODE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.ProcessBuilder","rules": [
+    {"function": "<init>","type": "sink","vul": "EXEC","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.lang.ProcessImpl","rules": [
+    {"function": "start","type": "sink","vul": "EXEC","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.parsers.DocumentBuilder","rules": [
+    {"function": "parse","type": "sink","vul": "XXE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.monitorjbl.xlsx.StreamingReader$Builder","rules": [
+    {"function": "open","type": "sink","vul": "XXE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.transform.Transformer","rules": [
+    {"function": "transform","type": "sink","vul": "XXE","actions": {"param-1": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.xml.sax.XMLReader","rules": [
+    {"function": "parse","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.jdom2.input.SAXBuilder","rules": [
+    {"function": "build","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.validation.Validator","rules": [
+    {"function": "validate","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.validation.SchemaFactory","rules": [
+    {"function": "newSchema","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.sun.org.apache.xalan.internal.xsltc.trax.TransformerFactoryImpl","rules": [
+    {"function": "newTemplates","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.commons.digester3.Digester","rules": [
+    {"function": "parse","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.sun.org.apache.xerces.internal.jaxp.SAXParserImpl","rules": [
+    {"function": "parse","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.parsers.SAXParser","rules": [
+    {"function": "parse","type": "sink","vul": "XXE","actions": {},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "org.dom4j.io.SAXReader","rules": [
+    {"function": "read","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.monitorjbl.xlsx.XmlUtils","rules": [
+    {"function": "document","type": "sink","vul": "XXE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.dom4j.DocumentHelper","rules": [
+    {"function": "parseText","type": "sink","vul": "XXE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.poi.openxml4j.opc.internal.ContentTypeManager","rules": [
+    {"function": "parseContentTypesFile","type": "sink","vul": "XXE","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.apache.poi.xssf.usermodel.XSSFWorkbook","rules": [
+    {"function": "<init>","type": "sink","vul": "XXE","actions": {"this<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.naming.Context","rules": [
+    {"function": "lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.naming.InitialContext","rules": [
+    {"function": "lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.rmi.registry.Registry","rules": [
+    {"function": "lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.sun.jndi.ldap.LdapCtx","rules": [
+    {"function": "c_lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.springframework.jndi.JndiTemplate","rules": [
+    {"function": "lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.naming.spi.DirectoryManager","rules": [
+    {"function": "getObjectInstance","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.naming.spi.NamingManager","rules": [
+    {"function": "getContext","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "getObjectInstance","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.sql.DriverManager","rules": [
+    {"function": "getConnection","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.sql.Driver","rules": [
+    {"function": "connect","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "ch.qos.logback.classic.util.JNDIUtil","rules": [
+    {"function": "lookup","type": "sink","vul": "JNDI","actions": {},"polluted": [[0],[1]],"max": 1}
+  ]},
+  
+  {"name": "org.h2.util.JdbcUtils","rules": [
+    {"function": "getConnection","type": "sink","vul": "JNDI","actions": {"return<s>": ["param-1"]},"polluted": [[1]],"max": 1}
+  ]},
+  
+  {"name": "com.alibaba.fastjson.JSON","rules": [
+    {"function": "parse","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "parseArray","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0},
+    {"function": "parseObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.fasterxml.jackson.databind.ObjectMapper","rules": [
+    {"function": "readValue","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0,"details": "jackson"}
+  ]},
+  
+  {"name": "com.cedarsoftware.util.io.JsonReader","rules": [
+    {"function": "jsonToJava","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0,"details": "json-io"}
+  ]},
+  
+  {"name": "org.yaml.snakeyaml.Yaml","rules": [
+    {"function": "load","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.ho.yaml.Yaml","rules": [
+    {"function": "loadType","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.esotericsoftware.yamlbeans.YamlReader","rules": [
+    {"function": "<init>","type": "sink","vul": "SERIALIZE","actions": {"this<m>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.beans.XMLDecoder","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.thoughtworks.xstream.XStream","rules": [
+    {"function": "fromXML","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.exolab.castor.xml.Unmarshaller","rules": [
+    {"function": "unmarshal","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "java.io.ObjectInputStream","rules": [
+    {"function": "java.lang.ObjectreadObject()","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "java.io.Externalizable","rules": [
+    {"function": "readExternal","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.caucho.hessian.io.HessianInput","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.caucho.hessian.io.Hessian2Input","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.alibaba.com.caucho.hessian.io.Hessian2Input","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.caucho.hessian.io.AbstractHessianInput","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.alibaba.com.caucho.hessian.io.AbstractHessianInput","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.caucho.burlap.io.BurlapInput","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.esotericsoftware.kryo.Kryo","rules": [
+    {"function": "readClassAndObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "org.red5.io.object.Deserializer","rules": [
+    {"function": "deserialize","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-0"]},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "flex.messaging.io.amf.AbstractAmfInput","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "flex.messaging.io.amf.Amf3Input","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "flex.messaging.io.amf.Amf0Input","rules": [
+    {"function": "readObject","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "flex.messaging.io.amfx.AmfxMessageDeserializer","rules": [
+    {"function": "readMessage","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "flex.messaging.io.amf.AmfMessageDeserializer","rules": [
+    {"function": "readMessage","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["this"]},"polluted": [[-1]],"max": -1}
+  ]},
+  
+  {"name": "com.tangosol.util.ExternalizableHelper","rules": [
+    {"function": "deserializeInternal","type": "sink","vul": "SERIALIZE","actions": {"return<s>": ["param-1"]},"polluted": [[1]],"max": 1}
+  ]},
+  
+  {"name": "java.lang.System","rules": [
+    {"function": "setProperty","type": "sink","vul": "OTHER","actions": {},"polluted": [[0],[1]],"max": 1},
+    {"function": "setProperties","type": "sink","vul": "OTHER","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.servlet.http.HttpServletResponse","rules": [
+    {"function": "sendError","type": "sink","vul": "XSS","actions": {},"polluted": [[0]],"max": 0},
+    {"function": "sendRedirect","type": "sink","vul": "OTHER","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "javax.xml.xpath.XPath","rules": [
+    {"function": "evaluate","type": "sink","vul": "OTHER","actions": {},"polluted": [[0]],"max": 0}
+  ]},
+  
+  {"name": "com.jcraft.jsch.ChannelExec","rules": [
+    {"function": "setCommand","type": "sink","vul": "EXEC","actions": {},"polluted": [[0]],"max": 0}
+  ]}
+]

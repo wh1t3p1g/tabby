@@ -1,7 +1,7 @@
 HELP.md
 .gradle
 build/
-!gradle/wrapper/gradle-wrapper.jar
+
 !**/src/main/**/build/
 !**/src/test/**/build/
 
@@ -52,9 +52,13 @@ runtime.json
 *.db
 ignores.json
 cql.txt
-env/data
-env/import
-.DS_Store
-jre_libs
 *.jar
-db.properties
+
+.DS_Store
+*.tar.gz
+config/db.properties
+rules/cyphers.yml
+target/
+release
+**/src/test/**
+output
