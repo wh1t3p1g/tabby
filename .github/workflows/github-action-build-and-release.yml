@@ -24,14 +24,14 @@ jobs:
 
       - name: Build
         run: |
-          ./gradlew bootJar
+          mvn clean package -DskipTests
           echo "artifactPath=$(pwd)" >> $GITHUB_ENV
           version=$(cat VERSION) 
           tag=${GITHUB_REF_NAME}
           echo "version=$version" >> $GITHUB_ENV
           echo "tag=$tag" >> $GITHUB_ENV
-          cp build/libs/tabby.jar .
-          zip -r tabby.zip . -x "build/*" ".github/*" "cyphers/*" ".git/*" "doc/*" "gradle/*" "src/*" ".gitignore" "README.md" "*gradle*"
+          cp target/tabby.jar .
+          zip -r tabby.zip . -x "target/*" ".github/*" "cyphers/*" ".git/*" "doc/*" "gradle/*" "src/*" ".gitignore" "README.md" "*gradle*"
           rm tabby.jar
 
       # debug

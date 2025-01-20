@@ -22,5 +22,5 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Build with Gradle
-        run: ./gradlew bootJar
+      - name: Build with Maven
+        run: mvn clean package -DskipTests
