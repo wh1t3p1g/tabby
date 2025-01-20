@@ -31,7 +31,7 @@ jobs:
           echo "version=$version" >> $GITHUB_ENV
           echo "tag=$tag" >> $GITHUB_ENV
           cp target/tabby.jar .
-          zip -r tabby.zip . -x "target/*" ".github/*" "cyphers/*" ".git/*" "doc/*" "gradle/*" "src/*" ".gitignore" "README.md" "*gradle*"
+          zip -r tabby.zip . -x "target/*" "papers/*" "pom.xml" "logo.png"  ".github/*" "cyphers/*" ".git/*" "doc/*" "gradle/*" "src/*" ".gitignore"
           rm tabby.jar
 
       # debug
