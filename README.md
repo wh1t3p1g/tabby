@@ -24,7 +24,7 @@ TABBY 使用静态分析框架 [Soot](https://github.com/soot-oss/soot) 作为�
 
 开发 Tabby 的初衷是想要提高代码审计的效率，尽可能的减少人工检索的工作量
 
-使用 tabby 生成的代码属性图（当前版本 1.2.0）可以完成以下的工作场景：
+使用 tabby 生成的代码属性图可以完成以下的工作场景：
 
 - 挖掘目标项目中的反序列化利用链，支持大多数序列化机制，包括 Java 原生序列化机制、Hessian、XStream 等
 - 挖掘目标项目中的常见 Web 漏洞，支持分析 WAR/JAR/FATJAR/JSP/CLASS 文件
