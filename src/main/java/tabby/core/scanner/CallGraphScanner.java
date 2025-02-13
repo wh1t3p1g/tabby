@@ -48,7 +48,7 @@ public class CallGraphScanner {
         }
         log.info("Build call graph. START!");
         GlobalConfiguration.IS_NEED_ADD_TO_TIMEOUT_LIST = true;
-        log.info("Method Timeout on {} min.", GlobalConfiguration.METHOD_TIMEOUT);
+        log.info("Set Method Timeout on {} min.", GlobalConfiguration.METHOD_TIMEOUT);
         doCollectWithNewAddedMethods(targets);
         int timeoutMethodSize = dataContainer.getAnalyseTimeoutMethodSigs().size();
         if (timeoutMethodSize > 0) {
@@ -57,7 +57,7 @@ public class CallGraphScanner {
             GlobalConfiguration.METHOD_TIMEOUT = GlobalConfiguration.METHOD_TIMEOUT * 2; //
             GlobalConfiguration.METHOD_TIMEOUT_SECONDS = GlobalConfiguration.METHOD_TIMEOUT * 60L; //
             log.info("It has {} Methods timeout! Try to Analyse again!", timeoutMethodSize);
-            log.info("Method Timeout on {} min.", GlobalConfiguration.METHOD_TIMEOUT);
+            log.info("Set Method Timeout on {} min.", GlobalConfiguration.METHOD_TIMEOUT);
             targets = new ArrayList<>(dataContainer.getAnalyseTimeoutMethodSigs());
             dataContainer.getAnalyseTimeoutMethodSigs().clear();
             doCollectWithNewAddedMethods(targets);
