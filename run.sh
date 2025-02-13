@@ -7,7 +7,7 @@ then
 	java -jar tabby-vul-finder.jar load $2
 elif [ $1 = 'query' ]
 then
-	java -jar tabby-vul-finder.jar query $2
+	java -jar tabby-vul-finder.jar query $2 $3
 elif [ $1 = 'pack' ]
 then
   tar -czvf output.tar.gz ./output/*.csv
