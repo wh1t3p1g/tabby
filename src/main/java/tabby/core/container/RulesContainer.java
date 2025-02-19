@@ -70,7 +70,7 @@ public class RulesContainer {
             }
         }
 
-        if (ret != null && parameterSize > ret.getMax()) {
+        if (ret != null && parameterSize >= ret.getMax()) {
             return ret;
         }
 
