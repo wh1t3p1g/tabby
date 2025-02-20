@@ -234,7 +234,7 @@ public class FileUtils {
         for (String source : sources) {
             if (source.startsWith(basePath)) {
                 String sub = source.substring(len);
-                if (sub.startsWith("/")) {
+                if (sub.startsWith("/") || sub.startsWith("\\")) { // fix win path format
                     sub = sub.substring(1);
                 }
                 Path path = target.resolve(sub);
