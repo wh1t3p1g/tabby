@@ -18,8 +18,16 @@ public class JavaVersionUtils {
         String parts[] = property.split("\\.|_|-");
         int start = "1".equals(parts[0]) ? 1 : 0; // skip "1." prefix
         v.major = Integer.parseInt(parts[start + 0]);
-        v.minor = Integer.parseInt(parts[start + 1]);
-        v.update = Integer.parseInt(parts[start + 2]);
+        if(start+1>=parts.length){
+            v.minor=0;
+        }else{
+            v.minor = Integer.parseInt(parts[start + 1]);
+        }
+        if(start+2>= parts.length){
+            v.update=0;
+        }else{
+            v.update = Integer.parseInt(parts[start + 2]);
+        }
         return v;
     }
 
